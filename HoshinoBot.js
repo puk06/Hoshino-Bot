@@ -52,6 +52,10 @@ try{
                     message.reply("Pls provide BedAmount");
                     return;
                 };
+				if(/\D/.test(betAmount)){
+					message.reply("Non-numeric input in Betamound. Please enter only numbers!");
+					return;
+				};
 				if(!Number.isSafeInteger(parseInt(betAmount))){
 					message.reply("The amount specified is beyond the range that can be accurately calculated! Please make the BedAmount amount smaller!");
 					return;
