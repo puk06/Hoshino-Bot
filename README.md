@@ -2,10 +2,13 @@
 This bot is an interesting bot with various functions.
 
 
-# COMMAND
+# function
+1: NexusBot function(osu!)
+2: FurryBot function(private server)
+3: CasinoBot function
+4: OhuzakeBot function
 
-
-#NexusBot function
+# NexusBot function
 
 1: `!map <maplink> <mods>` 
 You can view about the map with mod(If you want Mods to be NM, please leave the Mods field blank)
