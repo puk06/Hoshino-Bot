@@ -120,6 +120,8 @@ module.exports.getMapInfowithoutmods = async (maplink, apikey) => {
 			`https://osu.ppy.sh/api/get_beatmaps?k=${apikey}&b=${beatmapId}`
 		);
 		const data = response.data;
+		let lengthsec = data[0].total_length;
+		const time = convertSecond(lengthsec);
 		return {
 			sr: parseFloat(parseFloat(data[0].difficultyrating).toFixed(2)),
 			combo: parseInt(data[0].max_combo),
@@ -146,7 +148,7 @@ module.exports.getMapInfowithoutmods = async (maplink, apikey) => {
 			favouritecount: parseInt(data[0].favourite_count),
 			playcount: parseInt(data[0].playcount)
 		};
-	}catch(e) {
+	}catch(e){
 		console.log(e);
 		return 0;
 	};
