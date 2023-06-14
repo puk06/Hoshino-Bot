@@ -4,6 +4,7 @@ require('dotenv').config();
 const fs = require("fs");
 const tools = require("osu-api-extended");
 const axios = require("axios");
+const path = require('path');
 
 //requireFIle
 const { calculateSR, calculateSRwithacc } = require("./CalculateSR/CalculateSRPP");
@@ -42,10 +43,9 @@ try{
 		{
 			//casino bot
 			if (message.content.startsWith("/slot")) {
-                const betAmount = message.content.split(" ")[1];
+                let betAmount = message.content.split(" ")[1];
 				if(betAmount < 0){
 					message.reply("^^;");
-					fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, "0", 'utf-8');
 					return;
 				};
                 if(betAmount == undefined){
@@ -53,49 +53,187 @@ try{
                     return;
                 };
 				if(/\D/.test(betAmount)){
-					message.reply("Non-numeric input in Betamound. Please enter only numbers!");
+					message.reply("Non-numeric input in Betamount. Please enter only numbers!");
 					return;
 				};
-				if(!Number.isSafeInteger(parseInt(betAmount))){
-					message.reply("The amount specified is beyond the range that can be accurately calculated! Please make the BedAmount amount smaller!");
-					return;
-				};
+				betAmount = BigInt(betAmount);
                 const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
                 if(!truefalseuser) {
                     message.reply("You didn't register to this casino! type `/reg` to register!");
                     return;
                 };
-                let currentBalance = parseInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+                let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
                 const newBalance = currentBalance - betAmount;
-                if (newBalance <= 0){
-                    message.reply(`You can't bet! Your bank will be <= 0(${newBalance})`);
+                if (newBalance <= 0n){
+                    message.reply(`You can't bet! Your bank will be <= 0(${newBalance.toLocaleString()})`);
                     return;
                 };
                 fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBalance.toString(), 'utf-8');
                 const result = generateSlotResult();
                 const rewardMultiplier = evaluateSlotResult(result);
                 const reward = betAmount * rewardMultiplier;
-				if(!Number.isSafeInteger(reward)){
-					message.reply("The amount of compensation was beyond the range that could be accurately calculated, so it was not reflected");
-					return;
+				let resultprefix;
+				let prefix = reward - betAmount;
+				if(prefix >= 0n){
+					resultprefix = "+";
+				}else{
+					resultprefix = "";
 				};
-                const prefix = reward - parseInt(betAmount);
-                let resultprefix;
-                if(prefix >= 0){
-                    resultprefix = "+";
-                }else if(prefix < 0){
-                    resultprefix = "-";
-                };
-                message.channel.send(`結果: ${result.join(' ')}\n報酬: ${reward}coin (${resultprefix} ${Math.abs(parseInt(reward - betAmount))})`);
-                let newcurrentBalance = 0;
-                newcurrentBalance = parseInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${reward.toLocaleString()}coin (${resultprefix}${(reward - betAmount).toLocaleString()})`);
+                let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
                 const newBankBalance = newcurrentBalance + reward;
-				if(!Number.isSafeInteger(newBankBalance)){
-					message.reply("The reflected bank amount was not reflected because it exceeded the range that could be accurately calculated.");
+                fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString().replace("n", ""), 'utf-8');
+            };
+
+			if (message.content.startsWith("/safeslot")) {
+                let betAmount = message.content.split(" ")[1];
+				if(betAmount < 0){
+					message.reply("^^;");
 					return;
 				};
-                fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString(), 'utf-8');
+                if(betAmount == undefined){
+                    message.reply("Pls provide BedAmount");
+                    return;
+                };
+				if(/\D/.test(betAmount)){
+					message.reply("Non-numeric input in Betamount. Please enter only numbers!");
+					return;
+				};
+				betAmount = BigInt(betAmount);
+                const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
+                if(!truefalseuser) {
+                    message.reply("You didn't register to this casino! type `/reg` to register!");
+                    return;
+                };
+                let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+                const newBalance = currentBalance - betAmount;
+                if (newBalance <= 0n){
+                    message.reply(`You can't bet! Your bank will be <= 0(${newBalance.toLocaleString()})`);
+                    return;
+                };
+                fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBalance.toString(), 'utf-8');
+                const result = generateSlotResult();
+                const rewardMultiplier = evaluateSlotResult(result);
+				let reward;
+				if(rewardMultiplier == 0n){
+					reward = betAmount * 2n * 10n / 100n;
+				}else{
+					reward = betAmount * rewardMultiplier * 7n * 10n / 100n;
+				};
+				let resultprefix;
+				let prefix = reward - betAmount;
+				if(prefix >= 0n){
+					resultprefix = "+";
+				}else{
+					resultprefix = "";
+				};
+				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${reward.toLocaleString()}coin (${resultprefix}${(reward - betAmount).toLocaleString()})`);
+                let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+                const newBankBalance = newcurrentBalance + reward;
+                fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString().replace("n", ""), 'utf-8');
             };
+
+			if(message.content == "/bankranking"){
+				const folderPath = './Player Bank';
+				const fileNamePattern = /^(.+)\.txt$/;
+				const files = fs.readdirSync(folderPath);
+				const userAmounts = {};
+				files.forEach(file =>
+					{
+						const filePath = path.join(folderPath, file);
+						const match = fileNamePattern.exec(file);
+						if (match) {
+							const username = match[1];
+							const fileContent = fs.readFileSync(filePath, 'utf8');
+							const amount = fileContent.trim();
+							userAmounts[username] = amount;
+						};
+					}
+				);
+				const sortedUserAmounts = Object.entries(userAmounts).sort((a, b) => b[1] - a[1]);
+				let ranking = [];
+				for (let i = 0; i < sortedUserAmounts.length; i++) {
+					const rank = i + 1;
+					const username = sortedUserAmounts[i][0];
+					ranking.push(`- __#**${rank}**__: **${username}**`);
+				};
+				message.channel.send(`__**Current Bank balance Ranking**__\n${ranking.join('\n')}`);
+			};
+
+			if(message.content == "/lv"){
+				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
+                if(!truefalseuser) {
+                    message.reply("You didn't register to this casino! type `/reg` to register!");
+                    return;
+                };
+				const messageuserbalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+				let currentrank = 0;
+				let nextbalance = 0n;
+				for (let i = 1n ; i <= 300n; i += 1n){
+					if(messageuserbalance / BigInt(35n ** i) < 1n && currentrank == 0){
+						message.reply("Your rank could not be calculated because it is below 0");
+						return;
+					}
+					if(messageuserbalance / BigInt(35n ** i) >= 1n){
+						currentrank += 1;
+						nextbalance = BigInt(35n ** (i + 1n));
+					}
+				}
+				message.reply(`Your current level is **__${currentrank}lv__** / 300 (Next level => **${nextbalance}**coins)`);
+				return;
+			};
+
+			if(message.content == "/recoshot"){
+				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
+                if(!truefalseuser) {
+                    message.reply("You didn't register to this casino! type `/reg` to register!");
+                    return;
+                };
+				const userbank = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+				if(userbank <= 100000000000000000000000000000000000n){
+					message.reply("It appears you do not have the necessary amount of money to use this command. Please come back and earn some money! You need 1000溝 coins to use it!");
+					return;
+				};
+				if(userbank <= 0){
+					message.reply("You do not seem to have enough money to do the math. Please get someone else to give it to you or earn it!");
+					return;
+				};
+				const recommend = (userbank / 15n).toString().replace("n", "");
+				let betAmount = recommend;
+				betAmount = BigInt(betAmount);
+                let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+                const newBalance = currentBalance - betAmount;
+                fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBalance.toString(), 'utf-8');
+                const result = generateSlotResult();
+                const rewardMultiplier = evaluateSlotResult(result);
+                const reward = betAmount * rewardMultiplier * 8n * 10n / 100n;
+				let resultprefix;
+				let prefix = reward - betAmount;
+				if(prefix >= 0n){
+					resultprefix = "+";
+				}else{
+					resultprefix = "";
+				};
+				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${reward.toLocaleString()}coin (${resultprefix}${(reward - betAmount).toLocaleString()})`);
+                let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+                const newBankBalance = newcurrentBalance + reward;
+                fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString().replace("n", ""), 'utf-8');
+			}
+
+			if(message.content == "/reco"){
+				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
+                if(!truefalseuser) {
+                    message.reply("You didn't register to this casino! type `/reg` to register!");
+                    return;
+                };
+				const userbank = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+				if(userbank <= 0){
+					message.reply("You do not seem to have enough money to do the math. Please get someone else to give it to you or earn it!");
+					return;
+				};
+				const recommend = (userbank / 15n).toString().replace("n", "");
+				message.reply(`Recommend command: /slot ${recommend}`);
+			}
 
             if(message.content === "/bank"){
                 const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`)
@@ -104,7 +242,16 @@ try{
                     return;
                 };
                 const currentbank = fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8');
-                message.reply(`${message.author.username}'s Bank Current Balance \n ${currentbank} coins`);
+                message.reply(`${message.author.username}'s Bank Current Balance \n ${BigInt(currentbank).toLocaleString()}(${toJPUnit(currentbank)}) coins`);
+            };
+
+			if(message.content.startsWith("/amount")){
+				const amount = message.content.split(" ")[1];
+				if(/\D/.test(amount)){
+					message.reply("Non-numeric input in Betamound. Please enter only numbers!");
+					return;
+				};
+                message.reply(`${toJPUnit(amount)}`)
             };
 
             if(message.content === "/reg"){
@@ -116,7 +263,7 @@ try{
 					};
                     fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, "1000000", "utf-8");
                     message.reply(`Welcome to Casio ${message.author.username}! 1000000 coin here!`);
-                }catch(e) {
+                }catch(e){
                     console.log(e);
 					message.reply("Error");
 					return;
@@ -125,6 +272,10 @@ try{
 
             if(message.content.startsWith("/send")){
                 const sentusername = message.content.split(" ")[1];
+				if(sentusername == message.author.username){
+					message.reply("You can't send to yourself!");
+					return;
+				};
                 if(sentusername === undefined){
                     message.reply("Pls provide user you want to send coin");
                     return;
@@ -139,21 +290,31 @@ try{
                     message.reply("You didn't register to this casino! type `/reg` to register!");
                     return;
                 };
-                const sentmoney = message.content.split(" ")[2];
+                let sentmoney = message.content.split(" ")[2];
                 if(sentmoney === undefined){
                     message.reply("Pls provide coins you want to send");
                     return;
                 };
-                const messagercurrentBalance = parseInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-                const newmessagerbankbalance = messagercurrentBalance - parseInt(sentmoney);
-                if (newmessagerbankbalance < 0){
+				if(/\D/.test(sentmoney)){
+					message.reply("Non-numeric input in Betamound. Please enter only numbers!");
+					return;
+				};
+				sentmoney = BigInt(sentmoney);
+				if(sentmoney < 0n){
+					message.reply("^^;");
+					fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, "0", 'utf-8');
+					return;
+				};
+                const messagercurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+                const newmessagerbankbalance = messagercurrentBalance - sentmoney;
+                if (newmessagerbankbalance < 0n){
                     message.reply(`You can't send! Your bank will be < 0(${newmessagerbankbalance})`);
                     return;
                 };
                 fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newmessagerbankbalance.toString(), 'utf-8');
-                const sentusercurrentbalance = parseInt(fs.readFileSync(`./Player Bank/${sentusername}.txt`, 'utf-8'));
-                const newsentusercurrentbalance  = sentusercurrentbalance + parseInt(sentmoney);
-                fs.writeFileSync(`./Player Bank/${sentusername}.txt`, newsentusercurrentbalance.toString(), 'utf-8');
+                const sentusercurrentbalance = BigInt(fs.readFileSync(`./Player Bank/${sentusername}.txt`, 'utf-8'));
+                const newsentusercurrentbalance = sentusercurrentbalance + sentmoney;
+                fs.writeFileSync(`./Player Bank/${sentusername}.txt`, newsentusercurrentbalance.toString().replace("n", ""), 'utf-8');
                 message.reply("Sended!");
             }
 
@@ -1200,12 +1361,28 @@ function generateSlotResult() {
 
 function evaluateSlotResult(result) {
 	if (result[0] === result[1] && result[1] === result[2]) {
-		return 100;
+		return 30n;
 	}else if (result[0] === result[1] || result[1] === result[2]) {
-		return 50;
+		return 10n;
+	}else if (result[0] === result[2]){
+		return 5n;
 	}else {
-		return 0;
+		return 0n;
 	}
+}
+
+function toJPUnit(num){
+	const str = num;
+	let n = "";
+	let count = 0;
+	let ptr = 0;
+	let kName = ["万","億","兆","京","垓","杼","穰","溝","澗","正","載","極","恒河沙","阿僧祇","那由他","不可思議","無量大数","無限超越数","無限超超越数","無限高次超越数","超限大数","超限超越大数","超限高次大数","超超限大数","超超限超越大数","超超限高次大数","超超超限大数","無辺数","無限大数","無限極数","無窮数","無限巨数","無涯数","無辺無数","無窮無数","無限超数","無辺超数","無尽数","無量超数","無辺絶数","無限絶数","イクカン","イガグン","レジギガス","イイググ","イガグググ","イカレジ","イカマニア","イガ","イグ","グイグイ","イクンカ","イカクンガ"];
+	for (let i=str.length-1; i>=0; i--){
+		n = str.charAt(i) + n;
+		count++;
+		if (((count % 4) == 0) && (i != 0)) n = kName[ptr++]+n;
+	}
+	return n;
 }
 
 //Furry bot Function
