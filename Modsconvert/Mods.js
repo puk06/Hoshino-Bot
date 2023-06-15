@@ -75,7 +75,7 @@ module.exports.splitString = (modstrings) => {
 	}
 	let modstring = null;
 	for (const str of modstrings) {
-		if (typeof str === "string" && RegExp(/^[A-Z]{2}[A-Z]*$/).exec(str)) {
+		if (typeof str === "string" && RegExp(/^[a-zA-Z]+$/).exec(str)) {
 			modstring = str;
 			break;
 		};
