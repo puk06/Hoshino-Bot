@@ -38,7 +38,6 @@ client.on("ready", () => {
 const symbols = ['🍒', '🍊', '🍇', '🔔', '💰', '⌚', '⛵'];
 
 //Use command
-
 client.on("message", async(message) =>
 	{
 		//casino bot
@@ -375,7 +374,7 @@ client.on("message", async(message) =>
 					message.reply("送りたい希望金額を入力してください。");
 					return;
 				};
-				if(sendmoney == ""){
+				if(sentmoney == ""){
 					message.reply("送りたい希望金額の前の空白が1つ多い可能性があります。");
 					return;
 				};
