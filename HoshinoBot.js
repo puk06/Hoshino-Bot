@@ -1,9 +1,9 @@
 //require library
-const { Client, Intents, MessageEmbed } = require("discord.js");
-require('dotenv').config();
+const { Client, Intents, MessageEmbed } = require("./node_modules/discord.js");
+require('./node_modules/dotenv').config();
 const fs = require("fs");
-const tools = require("osu-api-extended");
-const axios = require("axios");
+const tools = require("./node_modules/osu-api-extended");
+const axios = require("./node_modules/axios");
 const path = require('path');
 
 //requireFIle
@@ -46,27 +46,27 @@ client.on("message", async(message) =>
 			try{
 				let betAmount = message.content.split(" ")[1];
 				if(betAmount < 0){
-					message.reply("^^;");
+					message.reply("賭け金額をマイナスにすることは出来ません。");
 					return;
 				};
 				if(betAmount == undefined){
-					message.reply("Pls provide BedAmount");
+					message.reply("賭け金を入力してください。");
 					return;
 				};
 				if(/\D/.test(betAmount)){
-					message.reply("Non-numeric input in Betamount. Please enter only numbers!");
+					message.reply("数字以外が賭け金額欄に入力されています。数字のみ入力するようにしてください。");
 					return;
 				};
 				betAmount = BigInt(betAmount);
 				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
 				if(!truefalseuser) {
-					message.reply("You didn't register to this casino! type `/reg` to register!");
+					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。");
 					return;
 				};
 				let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
 				const newBalance = currentBalance - betAmount;
 				if (newBalance <= 0n){
-					message.reply(`You can't bet! Your bank will be <= 0(${newBalance.toLocaleString()})`);
+					message.reply(`この金額を賭けることは出来ません。この金額を賭けた場合、あなたの銀行口座残高が0を下回ってしまいます。(${newBalance.toLocaleString()})`);
 					return;
 				};
 				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBalance.toString(), 'utf-8');
@@ -80,7 +80,7 @@ client.on("message", async(message) =>
 				}else{
 					resultprefix = "";
 				};
-				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${reward.toLocaleString()}coin (${resultprefix}${(reward - betAmount).toLocaleString()})`);
+				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
 				let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
 				const newBankBalance = newcurrentBalance + reward;
 				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString().replace("n", ""), 'utf-8');
@@ -99,23 +99,23 @@ client.on("message", async(message) =>
 					return;
 				};
 				if(betAmount == undefined){
-					message.reply("Pls provide BedAmount");
+					message.reply("賭け金を入力してください。");
 					return;
 				};
 				if(/\D/.test(betAmount)){
-					message.reply("Non-numeric input in Betamount. Please enter only numbers!");
+					message.reply("数字以外が賭け金額欄に入力されています。数字のみ入力するようにしてください。");
 					return;
 				};
 				betAmount = BigInt(betAmount);
 				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
 				if(!truefalseuser) {
-					message.reply("You didn't register to this casino! type `/reg` to register!");
+					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。");
 					return;
 				};
 				let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
 				const newBalance = currentBalance - betAmount;
 				if (newBalance <= 0n){
-					message.reply(`You can't bet! Your bank will be <= 0(${newBalance.toLocaleString()})`);
+					message.reply(`この金額を賭けることは出来ません。この金額を賭けた場合、あなたの銀行口座残高が0を下回ってしまいます。(${newBalance.toLocaleString()})`);
 					return;
 				};
 				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBalance.toString(), 'utf-8');
@@ -134,7 +134,7 @@ client.on("message", async(message) =>
 				}else{
 					resultprefix = "";
 				};
-				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${reward.toLocaleString()}coin (${resultprefix}${(reward - betAmount).toLocaleString()})`);
+				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
 				let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
 				const newBankBalance = newcurrentBalance + reward;
 				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString().replace("n", ""), 'utf-8');
@@ -157,9 +157,8 @@ client.on("message", async(message) =>
 						const match = fileNamePattern.exec(file);
 						if(match){
 							const username = match[1];
-							const fileContent = fs.readFileSync(filePath, 'utf8');
-							const amount = fileContent.trim();
-							userAmounts[username] = amount;
+							const fileContent = fs.readFileSync(filePath, 'utf8').length;
+							userAmounts[username] = fileContent;
 						};
 					}
 				);
@@ -168,9 +167,9 @@ client.on("message", async(message) =>
 				for(let i = 0; i < sortedUserAmounts.length; i++){
 					const rank = i + 1;
 					const username = sortedUserAmounts[i][0];
-					ranking.push(`- __#**${rank}**__: **${username}**`);
+					ranking.push(`- __#**${rank}**__: **${username}** (__*${sortedUserAmounts[i][1]}桁*__)`);
 				};
-				message.channel.send(`__**Current Bank balance Ranking**__\n${ranking.join('\n')}`);
+				message.channel.send(`__**Current Bank digits Ranking**__\n${ranking.join('\n')}`);
 			}catch(e){
 				console.log(e);
 				message.reply("ランキング作成中にエラーが発生しました。");
@@ -182,7 +181,7 @@ client.on("message", async(message) =>
 			try{
 				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
 				if(!truefalseuser) {
-					message.reply("You didn't register to this casino! type `/reg` to register!");
+					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。");
 					return;
 				};
 				const messageuserbalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
@@ -190,7 +189,7 @@ client.on("message", async(message) =>
 				let nextbalance = 0n;
 				for (let i = 1n ; i <= 300n; i += 1n){
 					if(messageuserbalance / BigInt(120n ** i) < 1n && currentrank == 0){
-						message.reply("Your rank could not be calculated because it is below 0");
+						message.reply("あなたの現在のレベルは**__0lv__**以下です。");
 						return;
 					}
 					if(messageuserbalance / BigInt(120n ** i) >= 1n){
@@ -198,7 +197,7 @@ client.on("message", async(message) =>
 						nextbalance = BigInt(120n ** (i + 1n));
 					}
 				}
-				message.reply(`Your current level is **__${currentrank}lv__** / 300 (Next level => **${nextbalance}**coins)`);
+				message.reply(`あなたの現在のレベルは **__${currentrank}lv__** / 300 (次のレベル => **${formatBigInt(nextbalance)}**coins)`);
 				return;
 			}catch(e){
 				console.log(e);
@@ -211,16 +210,16 @@ client.on("message", async(message) =>
 			try{
 				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
 				if(!truefalseuser) {
-					message.reply("You didn't register to this casino! type `/reg` to register!");
+					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。");
 					return;
 				};
 				const userbank = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
 				if(userbank <= 100000000000000000000000000000000000n){
-					message.reply("It appears you do not have the necessary amount of money to use this command. Please come back and earn some money! You need 1000溝 coins to use it!");
+					message.reply("このコマンドを使うには、1000溝以上のお金が銀行口座にある必要があります。");
 					return;
 				};
-				if(userbank <= 0){
-					message.reply("You do not seem to have enough money to do the math. Please get someone else to give it to you or earn it!");
+				if(userbank <= 0n){
+					message.reply("賭け金額を計算できるほどのお金を持っていないようです。他人からもらうか、稼ぐかしてください。");
 					return;
 				};
 				const recommend = (userbank / 15n).toString().replace("n", "");
@@ -239,7 +238,7 @@ client.on("message", async(message) =>
 				}else{
 					resultprefix = "";
 				};
-				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${reward.toLocaleString()}coin (${resultprefix}${(reward - betAmount).toLocaleString()})`);
+				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
 				let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
 				const newBankBalance = newcurrentBalance + reward;
 				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString().replace("n", ""), 'utf-8');
@@ -254,16 +253,16 @@ client.on("message", async(message) =>
 			try{
 				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
 				if(!truefalseuser) {
-					message.reply("You didn't register to this casino! type `/reg` to register!");
+					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。");
 					return;
 				};
 				const userbank = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
 				if(userbank <= 0){
-					message.reply("You do not seem to have enough money to do the math. Please get someone else to give it to you or earn it!");
+					message.reply("賭け金額を計算できるほどのお金を持っていないようです。他人からもらうか、稼ぐかしてください。");
 					return;
 				};
 				const recommend = (userbank / 15n).toString().replace("n", "");
-				message.reply(`Recommend command: /slot ${recommend}`);
+				message.reply(`おすすめのslotコマンド: /slot ${recommend}`);
 			}catch(e){
 				console.log(e);
 				message.reply("コマンド処理中にエラーが発生しました。");
@@ -271,15 +270,15 @@ client.on("message", async(message) =>
 			};
 		};
 
-		if(message.content === "/bank"){
+		if(message.content =="/bank"){
 			try{
 				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`)
 				if(!truefalseuser) {
-					message.reply("You didn't register to this casino! type `/reg` to register!");
+					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。");
 					return;
 				};
 				const currentbank = fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8');
-				message.reply(`${message.author.username}'s Bank Current Balance \n ${BigInt(currentbank).toLocaleString()}(${toJPUnit(currentbank)}) coins`);
+				message.reply(`${message.author.username}の現在の銀行口座残高: \n ${formatBigInt(currentbank)}(${toJPUnit(currentbank)}) coins`);
 			}catch(e){
 				console.log(e);
 				message.reply("銀行残高の取得中にエラーが発生しました。");
@@ -288,10 +287,14 @@ client.on("message", async(message) =>
 		};
 
 		if(message.content.startsWith("/amount")){
+			if(message.content == "/amount"){
+				message.reply("使い方: /amount <金額>");
+				return;
+			};
 			try{
 				const amount = message.content.split(" ")[1];
 				if(/\D/.test(amount)){
-					message.reply("Non-numeric input in Betamound. Please enter only numbers!");
+					message.reply("数字以外が金額入力欄に入力されています。数字のみ入力するようにしてください。");
 					return;
 				};
 				message.reply(`${toJPUnit(amount)}`);
@@ -302,15 +305,15 @@ client.on("message", async(message) =>
 			};
 		};
 
-		if(message.content === "/reg"){
+		if(message.content == "/reg"){
 			try {
 				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
 				if(truefalseuser) {
-					message.reply("You already register to this casino!");
+					message.reply("あなたはもう既にこのカジノに登録されています。");
 					return;
 				};
 				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, "1000000", "utf-8");
-				message.reply(`Welcome to Casio ${message.author.username}! 1000000 coin here!`);
+				message.reply(`カジノへようこそ！ ${message.author.username}! 初回なので1000000コインを差し上げます。`);
 			}catch(e){
 				console.log(e);
 				message.reply("ユーザー登録中にエラーが発生しました。");
@@ -322,30 +325,30 @@ client.on("message", async(message) =>
 			try{
 				const sentusername = message.content.split(" ")[1];
 				if(sentusername == message.author.username){
-					message.reply("You can't send to yourself!");
+					message.reply("自分自身に送ることは許されていません！");
 					return;
 				};
-				if(sentusername === undefined){
-					message.reply("Pls provide user you want to send coin");
+				if(sentusername == undefined){
+					message.reply("送り先のユーザー名を入力してください。");
 					return;
 				};
 				const truefalsesentuser = await checkFileExists(`./Player Bank/${sentusername}.txt`);
 				if(!truefalsesentuser){
-					message.reply(`${sentusername} doesn't register to this casino! type \`/reg\` to register!`);
+					message.reply(`${sentusername} というユーザーはこのカジノに登録されていません。/regで登録してもらってください。`);
 					return;
 				};
 				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
 				if(!truefalseuser){
-					message.reply("You didn't register to this casino! type `/reg` to register!");
+					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。");
 					return;
 				};
 				let sentmoney = message.content.split(" ")[2];
-				if(sentmoney === undefined){
-					message.reply("Pls provide coins you want to send");
+				if(sentmoney == undefined){
+					message.reply("送りたい希望金額を入力してください。");
 					return;
 				};
 				if(/\D/.test(sentmoney)){
-					message.reply("Non-numeric input in Betamound. Please enter only numbers!");
+					message.reply("数字以外が金額入力欄に入力されています。数字のみ入力するようにしてください。");
 					return;
 				};
 				sentmoney = BigInt(sentmoney);
@@ -357,17 +360,33 @@ client.on("message", async(message) =>
 				const messagercurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
 				const newmessagerbankbalance = messagercurrentBalance - sentmoney;
 				if(newmessagerbankbalance < 0n){
-					message.reply(`You can't send! Your bank will be < 0(${newmessagerbankbalance})`);
+					message.reply(`この金額を送ることは出来ません。この金額を送った場合、あなたの銀行口座残高が0を下回ってしまいます。(${newmessagerbankbalance})`);
 					return;
 				};
 				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newmessagerbankbalance.toString(), 'utf-8');
 				const sentusercurrentbalance = BigInt(fs.readFileSync(`./Player Bank/${sentusername}.txt`, 'utf-8'));
 				const newsentusercurrentbalance = sentusercurrentbalance + sentmoney;
 				fs.writeFileSync(`./Player Bank/${sentusername}.txt`, newsentusercurrentbalance.toString().replace("n", ""), 'utf-8');
-				message.reply("Sended!");
+				message.reply("送金が完了しました。");
 			}catch(e){
 				console.log(e);
 				message.reply("送金処理中にエラーが発生しました。");
+			};
+		};
+
+		if(message.content == "/dice"){
+			message.reply(`サイコロを振った結果: **${Math.floor(Math.random() * 6) + 1}**`);
+			return;
+		};
+
+		if(message.content == "/roulette"){
+			const num = Math.floor(Math.random() * 2);
+			if(num == 0){
+				message.reply("ルーレットの結果: **赤**");
+				return;
+			}else if(num == 1){
+				message.reply("ルーレットの結果: **黒**");
+				return;
 			};
 		};
 
@@ -396,7 +415,7 @@ client.on("message", async(message) =>
 				fs.appendFile(`./Furry/Furry.txt`, `${imageURL} `, function (err){
 					if(err) throw err;
 				});
-				message.reply(`Furry saved!`);
+				message.reply(`Furryが保存されました`);
 			}catch(e){
 				console.log(e);
 				message.reply("ファイルの保存中にエラーが発生しました。");
@@ -412,7 +431,7 @@ client.on("message", async(message) =>
 					return;
 				};
 				if(!message.content.split(" ")[0] == "!delete"){
-					message.reply("!deleteとリンクの間には空白を入れてくださいね。");
+					message.reply("!deleteとリンクの間には空白を入れてください。");
 					return;
 				};
 				const wannadelete = message.content.split(" ")[1];
@@ -432,7 +451,7 @@ client.on("message", async(message) =>
 				const lineCount = lines.length -1;
 				message.channel.send(`今まで追加した画像や映像、gifの合計枚数は${lineCount}枚です。`);
 			}catch(e){
-				console.error(e);
+				console.log(e);
 				message.channel.send('ファイルを読み込む際にエラーが発生しました。');
 				return;
 			};
@@ -445,7 +464,7 @@ client.on("message", async(message) =>
 				message.reply("しんこうろえね");
 				return;
 			};
-			if(kuniicontent === undefined){
+			if(kuniicontent == undefined){
 				message.reply("できないからやばい");
 				return;
 			};
@@ -459,9 +478,9 @@ client.on("message", async(message) =>
 				{
 					return response.data.word_list
 				}
-			).catch((error) =>
+			).catch((e) =>
 				{
-					console.log(error);
+					console.log(e);
 					message.reply("コマンド処理中になんらかのエラーが発生しました。");
 				}
 			);
@@ -519,7 +538,7 @@ client.on("message", async(message) =>
 		if(message.content.startsWith("!map")){
 			try{
 				if(message.content == "!map"){
-					message.reply("How to use: !map <Maplink> <Mods(optional)> <Acc(optional)>");
+					message.reply("使い方: !map <マップリンク> <Mods(省略可)> <Acc(省略可)>");
 					return;
 				}else{
 					const MessageMaplink = message.content.split(" ")[1];
@@ -543,8 +562,12 @@ client.on("message", async(message) =>
 					}else if(arg2 == "mod"){
 						Mods = [message.content.split(" ")[2].toUpperCase()];
 						Mods = splitString(Mods);
-						if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT"))){
-							message.reply("It seems that the calculator does not calculate well with the combination of these mods.");
+						if(!checkStrings(Mods)){
+							message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。");
+							return;
+						};
+						if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")) )){
+							message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
 							return;
 						};
 						if (Mods.includes("NC")) {
@@ -622,7 +645,7 @@ client.on("message", async(message) =>
 		if(message.content.startsWith("!ro")){
 			try{
 				let playername;
-				if(message.content.split(" ")[1] === undefined){
+				if(message.content.split(" ")[1] == undefined){
 					try{
 						let username = message.author.username;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
@@ -633,14 +656,14 @@ client.on("message", async(message) =>
 					};
 				}else{
 					playername = message.content.split(" ")[1];
-					if(playername === undefined){
+					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
 						return;
 					};
 				};
 				const recentplay = await Recentplay(apikey, playername, 0);
 				if(recentplay == 0){
-					message.reply("No records found for this player within 24 hours");
+					message.reply("このプレイヤーには24時間以内にプレイした譜面がないようです。");
 					return;
 				};
 				let mods = parseMods(recentplay.enabled_mods);
@@ -733,7 +756,7 @@ client.on("message", async(message) =>
 		if(message.content.startsWith("!rt")){
 			try {
 				let playername;
-				if(message.content.split(" ")[1] === undefined){
+				if(message.content.split(" ")[1] == undefined){
 					try{
 						let username = message.author.username;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
@@ -745,14 +768,14 @@ client.on("message", async(message) =>
 					};
 				}else{
 					playername = message.content.split(" ")[1];
-					if(playername === undefined){
+					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
 						return;
 					};
 				};
 				const recentplay = await Recentplay(apikey, playername, 1);
 				if(recentplay == 0){
-					message.reply("No records found for this player within 24 hours");
+					message.reply("このプレイヤーには24時間以内にプレイした譜面がないようです。");
 					return;
 				};
 				let mods = parseMods(recentplay.enabled_mods);
@@ -846,7 +869,7 @@ client.on("message", async(message) =>
 		if(message.content.startsWith("!rc")){
 			try {
 				let playername;
-				if(message.content.split(" ")[1] === undefined){
+				if(message.content.split(" ")[1] == undefined){
 					try{
 						let username = message.author.username;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
@@ -858,14 +881,14 @@ client.on("message", async(message) =>
 					};
 				}else{
 					playername = message.content.split(" ")[1];
-					if(playername === undefined){
+					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
 						return;
 					};
 				};
 				const recentplay = await Recentplay(apikey, playername, 2);
 				if(recentplay == 0){
-					message.reply("No records found for this player within 24 hours");
+					message.reply("このプレイヤーには24時間以内にプレイした譜面がないようです。");
 					return;
 				};
 				let mods = parseMods(recentplay.enabled_mods);
@@ -919,7 +942,7 @@ client.on("message", async(message) =>
 					modforresult = modsnotDT;
 				};
 				let odscaled = ODscaled(GetMapInfo.od, mods);
-				if(modforresult.length === 0){
+				if(modforresult.length == 0){
 					modforresult.push("NM");
 				};
 				const embed = new MessageEmbed()
@@ -965,7 +988,7 @@ client.on("message", async(message) =>
 		if(message.content.startsWith("!rm")){
 			try {
 				let playername;
-				if(message.content.split(" ")[1] === undefined){
+				if(message.content.split(" ")[1] == undefined){
 					try{
 						let username = message.author.username;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
@@ -977,14 +1000,14 @@ client.on("message", async(message) =>
 					};
 				}else{
 					playername = message.content.split(" ")[1];
-					if(playername === undefined){
+					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
 						return;
 					};
 				};
 				const recentplay = await Recentplay(apikey, playername, 3);
 				if(recentplay == 0){
-					message.reply("No records found for this player within 24 hours");
+					message.reply("このプレイヤーには24時間以内にプレイした譜面がないようです。");
 					return;
 				};
 				let mods = parseMods(recentplay.enabled_mods);
@@ -1039,7 +1062,7 @@ client.on("message", async(message) =>
 					modforresult = modsnotDT;
 				};
 				let odscaled = ODscaled(GetMapInfo.od, mods);
-				if(modforresult.length === 0){
+				if(modforresult.length == 0){
 					modforresult.push("NM");
 				};
 				let recent300 = recentplay.count300 + recentplay.countgeki;
@@ -1083,22 +1106,21 @@ client.on("message", async(message) =>
 			};
 		};
 
-		if (message.content === "!r") {
-			message.reply("How to use: !r(o, t, c, m) <Username(optional)>");
+		if (message.content == "!r") {
+			message.reply("使い方: !r(o, t, c, m) <osu!ユーザーネーム(省略可)>");
 			return;
 		};
 
 		if (message.content.startsWith("!reg")) {
-			if(message.content === "!reg"){
-				message.reply("How to use: !reg <osu!username>");
+			if(message.content == "!reg"){
+				message.reply("使い方: !reg <osu!ユーザーネーム>");
 				return;
 			}else{
 				const username = message.author.username;
 				const osuid = message.content.split(" ")[1];
-				console.log(`登録履歴 ${username}: ${osuid}`);
 				try{
 					fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8");
-					message.reply(`${username} is saved as ${osuid}!`);
+					message.reply(`${username} さんは ${osuid} として保存されました!`);
 				}catch(e){
 					console.log(e);
 					message.reply("ユーザーを登録する際にエラーが発生しました。");
@@ -1109,17 +1131,28 @@ client.on("message", async(message) =>
 
 		if(message.content.startsWith("!ispp")){
 			try{
-				if(message.content === "!ispp"){
-					message.reply("How to use: !ispp <Maplink> <Mods(Optional)>")
+				if(message.content == "!ispp"){
+					message.reply("使い方: !ispp <マップリンク> <Mods(省略可)>")
 				}else{
-					const args = message.content.substring(4).split(/\s+/);
-					let mods;
+					let mods = [];
 					let modsforcalc;
-					if(args.slice(2).length == 0){
-						mods = "NM";
+					if(message.content.splt(" ")[1] == undefined){
+						message.reply("マップリンクを入力してください。");
+						return;
+					};
+					if(message.content.splt(" ")[2] == undefined){
+						mods = ["NM"];
 						modsforcalc = 0;
 					}else{
-						mods = splitString(args.slice(2));
+						mods = splitString(message.content.splt(" ")[2].toUpperCase());
+						if(!checkStrings(mods)){
+							message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。");
+							return;
+						};
+						if((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")) )){
+							message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
+							return;
+						};
 						if (mods.includes("NC")) {
 							let modsnotDT = Mods.filter((item) => /NC/.exec(item) == null);
 							modsnotDT.push("DT");
@@ -1168,18 +1201,25 @@ client.on("message", async(message) =>
 
 		if (message.content.startsWith("!lb")) {
 			try{
-				if(message.content === "!lb"){
-					message.reply("How to use: !lb <Maplink> <Mods(Optional)>");
+				if(message.content == "!lb"){
+					message.reply("使い方: !lb <マップリンク> <Mods(省略可)>");
 					return;
 				}else{
 					const maplink = message.content.split(" ")[1];
 					const beatmapid = maplink.split("/")[5].split(" ")[0];
-					const args = message.content.substring(4).split(/\s+/);
 					let mods = [];
-					if(args.slice(1).length === 0){
+					if(message.content.split(" ")[1] == undefined){
 						mods.push("NM");
 					}else{
-						mods = splitString(args.slice(1).toUpperCase());
+						mods = splitString(message.content.split(" ")[1].toUpperCase());
+					};
+					if(!checkStrings(mods)){
+						message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。");
+						return;
+					};
+					if((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")) )){
+						message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
+						return;
 					};
 					let modsnotNC = mods;
 					if(mods.includes("NC")){
@@ -1209,7 +1249,7 @@ client.on("message", async(message) =>
 					let acc2;
 					let acc3;
 					let acc4;
-					if(resulttop5.length === 5){
+					if(resulttop5.length == 5){
 						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
 						acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
 						acc2 = tools.tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode));
@@ -1229,7 +1269,7 @@ client.on("message", async(message) =>
 								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 						message.channel.send(embed);
 						return;
-					}else if(resulttop5.length === 4){
+					}else if(resulttop5.length == 4){
 						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
 						acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
 						acc2 = tools.tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode));
@@ -1247,7 +1287,7 @@ client.on("message", async(message) =>
 								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 						message.channel.send(embed)
 						return;
-					}else if(resulttop5.length === 3){
+					}else if(resulttop5.length == 3){
 						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
 						acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
 						acc2 = tools.tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode));
@@ -1263,7 +1303,7 @@ client.on("message", async(message) =>
 								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 						message.channel.send(embed)
 						return;
-					}else if(resulttop5.length === 2){
+					}else if(resulttop5.length == 2){
 						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
 						acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
 							const embed = new MessageEmbed()
@@ -1277,7 +1317,7 @@ client.on("message", async(message) =>
 								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 						message.channel.send(embed)
 						return;
-					}else if(resulttop5.length === 1){
+					}else if(resulttop5.length == 1){
 						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
 						const embed = new MessageEmbed()
 							.setColor("BLUE")
@@ -1290,7 +1330,7 @@ client.on("message", async(message) =>
 						message.channel.send(embed);
 						return;
 					}else{
-						message.channel.send("No score found");
+						message.channel.send("この譜面には選択されたModの記録が無いようです");
 						return;
 					};
 				};
@@ -1301,18 +1341,14 @@ client.on("message", async(message) =>
 			};
 		};
 
-		if(message.content === "!help"){
-			message.reply("How to use NexusBot commands \n 1: `!map <maplink> <mods(optional)> <acc(optional)>` You can get more information about the map. By adding mods to the command, you can see the SR, PP, and BPM when the mods are applied. \n 2:`!r<mode(o, t, c, m)> <username(optional)>` You can view the most recent your record for each mode. \n 3:`!reg <osu!username>` It will be possible to link Discord username to osu!username and omit usernames when sending commands(!rt command). \n 4:`!ispp <maplink> <mods(optional)>` It calculates the pp per song total time and tells you if it is efficient. \n 5:`!lb <maplink> <mods(optional)>` You can view the top 5 rankings by mods.\n 6:`!s <maplink> <username(optional)>` You can view your best score at the map.\n 7: `!check <maplink>` It show the map's max stream length!");
-		};
-
 		if(message.content.startsWith("!s")){
 			try{
-				if(message.content === "!s"){
-					message.reply("How to use: !s <Maplink> <username(optional)>")
+				if(message.content == "!s"){
+					message.reply("使い方: !s <マップリンク> <osu!ユーザーネーム(省略可)>")
 					return
 				}
 				let playername;
-				if(message.content.split(" ")[2] === undefined){
+				if(message.content.split(" ")[2] == undefined){
 					try{
 						let username = message.author.username;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
@@ -1334,7 +1370,7 @@ client.on("message", async(message) =>
 				const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
 				const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
 				if(playersscore == 0){
-					message.reply("No score found. Is this convertmap? convertmap is incompatible!");
+					message.reply("スコアが見つかりませんでした。");
 					return;
 				};
 				const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
@@ -1395,7 +1431,7 @@ client.on("message", async(message) =>
 		if(message.content.startsWith("!check")){
 			try{
 				if(message.content == "!check"){
-					message.reply("How to use: !check <Maplink>");
+					message.reply("使い方: !check <マップリンク>");
 					return;
 				};
 				const beatmapId = message.content.split(" ")[1].split("/")[5];
@@ -1416,9 +1452,25 @@ client.on("message", async(message) =>
 				return;
 			};
 		};
+
+		if(message.content == "!bothelp"){
+			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake>");
+			return;
+		}else if(message.content == "!bothelp osu"){
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。");
+			return;
+		}else if(message.content == "!bothelp casino"){
+			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。");
+			return;
+		}else if(message.content == "!bothelp furry"){
+			message.reply("__**Furryコマンドの使い方**__ \n1: `/kemo` ケモ画像を表示することが出来ます。\n2:`!count` 保存されている全てのケモの画像や映像の数を知ることが出来ます。\n3: `!delete <メディアリンク>` 保存されている画像を削除することが出来ます。メディアリンクが必要となります。")
+			return;
+		}else if(message.content == "!bothelp ohuzake"){
+			message.reply("__**おふざけコマンドの使い方**__ \n1: `!kunii <単語(2つ以上)>` それぞれの単語の1文字目を入れ替えることが出来ます。")
+			return;
+		};
 	}
 );
-
 
 //Casino bot function
 function generateSlotResult() {
@@ -1428,14 +1480,14 @@ function generateSlotResult() {
 		result.push(symbols[randomIndex]);
 	};
 	return result;
-}
+};
 
 function evaluateSlotResult(result) {
-	if(result[0] === result[1] && result[1] === result[2]){
+	if(result[0] == result[1] && result[1] == result[2]){
 		return 30n;
-	}else if(result[0] === result[1] || result[1] === result[2]){
+	}else if(result[0] == result[1] || result[1] == result[2]){
 		return 10n;
-	}else if(result[0] === result[2]){
+	}else if(result[0] == result[2]){
 		return 5n;
 	}else{
 		return 0n;
@@ -1445,8 +1497,7 @@ function evaluateSlotResult(result) {
 function toJPUnit(num){
 	const str = num;
 	if(str.length >= 216){
-		const truncatedValue = parseFloat(str.slice(0, str.length - (str.length - 4))) / 1000;
-		return "約" + truncatedValue + ` * 10^${str.length - 213}イカクンガ(+212桁)`;
+		return "約" + `${formatBigInt(str)}`;
 	}else{
 		let n = "";
 		let count = 0;
@@ -1459,6 +1510,28 @@ function toJPUnit(num){
 		};
 		return n;
 	};
+};
+
+function formatBigInt(num) {
+	const str = num.toString();
+	if(str.length >= 216){
+		const power = str.length - 1;
+		const mantissa = str.slice(0, 2) + '.' + str.slice(2, 5).padEnd(3, '0');
+	  	return `${mantissa} * 10^${power}`;
+	}else{
+		return str.toLocaleString();
+	};
+};
+
+//NexusBot Function
+function checkStrings(array) {
+	const targetStrings = ['EZ', 'HT', 'NF', 'HR', 'SD', 'DT', 'NC', 'FL', 'SO', 'PF', 'V2', 'TD', 'HD', 'FI', 'RX', 'AP', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9'];
+	for (const element of targetStrings) {
+		if(!array.includes(element)){
+			return false;
+		};
+	};
+	return true;
 };
 
 //Furry bot Function
