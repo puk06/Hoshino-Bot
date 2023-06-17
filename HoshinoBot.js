@@ -44,7 +44,15 @@ client.on("message", async(message) =>
 		//casino bot
 		if (message.content.startsWith("/slot")) {
 			try{
+				if(message.content == "/slot"){
+					message.reply("使い方: /slot <賭け金額>");
+					return;
+				};
 				let betAmount = message.content.split(" ")[1];
+				if(betAmount == ""){
+					message.reply("賭け金額の前の空白が1つ多い可能性があります。");
+					return;
+				};
 				if(betAmount < 0){
 					message.reply("賭け金額をマイナスにすることは出来ません。");
 					return;
@@ -93,7 +101,15 @@ client.on("message", async(message) =>
 
 		if (message.content.startsWith("/safeslot")) {
 			try{
+				if(message.content == "/safeslot"){
+					message.reply("使い方: /safeslot <賭け金額>");
+					return;
+				};
 				let betAmount = message.content.split(" ")[1];
+				if(betAmount == ""){
+					message.reply("賭け金額の前の空白が1つ多い可能性があります。");
+					return;
+				};
 				if(betAmount < 0){
 					message.reply("^^;");
 					return;
@@ -270,7 +286,7 @@ client.on("message", async(message) =>
 			};
 		};
 
-		if(message.content =="/bank"){
+		if(message.content == "/bank"){
 			try{
 				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`)
 				if(!truefalseuser) {
@@ -287,12 +303,16 @@ client.on("message", async(message) =>
 		};
 
 		if(message.content.startsWith("/amount")){
-			if(message.content == "/amount"){
-				message.reply("使い方: /amount <金額>");
-				return;
-			};
 			try{
+				if(message.content == "/amount"){
+					message.reply("使い方: /amount <確認したい金額>");
+					return;
+				};
 				const amount = message.content.split(" ")[1];
+				if(amount == ""){
+					message.reply("金額の前の空白が1つ多い可能性があります。");
+					return;
+				};
 				if(/\D/.test(amount)){
 					message.reply("数字以外が金額入力欄に入力されています。数字のみ入力するようにしてください。");
 					return;
@@ -323,7 +343,15 @@ client.on("message", async(message) =>
 
 		if(message.content.startsWith("/send")){
 			try{
+				if(message.content == "/send"){
+					message.reply("使い方: /send <あげたい人> <金額>");
+					return;
+				};
 				const sentusername = message.content.split(" ")[1];
+				if(message.content.split(" ")[1] == ""){
+					message.reply("送り先のユーザー名の前の空白が1つ多い可能性があります。");
+					return;
+				}
 				if(sentusername == message.author.username){
 					message.reply("自分自身に送ることは許されていません！");
 					return;
@@ -345,6 +373,10 @@ client.on("message", async(message) =>
 				let sentmoney = message.content.split(" ")[2];
 				if(sentmoney == undefined){
 					message.reply("送りたい希望金額を入力してください。");
+					return;
+				};
+				if(sendmoney == ""){
+					message.reply("送りたい希望金額の前の空白が1つ多い可能性があります。");
 					return;
 				};
 				if(/\D/.test(sentmoney)){
@@ -427,7 +459,7 @@ client.on("message", async(message) =>
 			if (message.author.bot) return;
 			try{
 				if(message.content == "!delete"){
-					message.reply("削除したいリンクを一緒に貼り付けてください");
+					message.reply("使い方: !delete <メディアリンク>");
 					return;
 				};
 				if(!message.content.split(" ")[0] == "!delete"){
@@ -435,6 +467,10 @@ client.on("message", async(message) =>
 					return;
 				};
 				const wannadelete = message.content.split(" ")[1];
+				if(wannadelete == ""){
+					message.reply("削除したいリンクの前の空白が1つ多い可能性があります。");
+					return;
+				};
 				removeStringFromFile(`${wannadelete} `);
 				message.reply("削除しました");
 			}catch(e){
@@ -459,56 +495,70 @@ client.on("message", async(message) =>
 
 		//Ohuzake bot
 		if(message.content.startsWith("!kunii")){
-			const kuniicontent = message.content.split(" ")[1]
-			if(kuniicontent == "うんこえろしね"){
-				message.reply("しんこうろえね");
-				return;
-			};
-			if(kuniicontent == undefined){
-				message.reply("できないからやばい");
-				return;
-			};
-			const url = "https://labs.goo.ne.jp/api/morph";
-			const params = {
-				app_id: appid,
-				sentence: kuniicontent
-			};
-			const data = await axios.post(url, params)
-			.then((response) =>
-				{
-					return response.data.word_list
+			try{
+				if(message.content == "!kunii"){
+					message.reply("使い方: !kunii <変換したい文章>");
+					return;
+				};
+				const kuniicontent = message.content.split(" ")[1]
+				if(kuniicontent == ""){
+					message.reply("変換したい文章の前の空白が1つ多い可能性があります。");
+					return;
+				};
+				if(kuniicontent == "うんこえろしね"){
+					message.reply("しんこうろえね");
+					return;
+				};
+				if(kuniicontent == undefined){
+					message.reply("できないからやばい");
+					return;
+				};
+				const url = "https://labs.goo.ne.jp/api/morph";
+				const params = {
+					app_id: appid,
+					sentence: kuniicontent
+				};
+				const data = await axios.post(url, params)
+				.then((response) =>
+					{
+						return response.data.word_list
+					}
+				).catch((e) =>
+					{
+						console.log(e);
+						message.reply("データ取得中になんらかのエラーが発生しました。");
+					}
+				);
+				if(data[0].length == undefined || data[0].length == 0 || data[0].length == 1 || data[0].length > 4){
+					message.channel.send("できないからやばい");
+					return;
+				}else if(data[0].length == 2){
+					const data1 = data[0][0][0];
+					const data2 = data[0][1][0];
+					const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1);
+					message.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`);
+					return;
+				}else if(data[0].length == 3){
+					const data1 = data[0][0][0];
+					const data2 = data[0][1][0];
+					const data3 = data[0][2][0];
+					const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data3;
+					message.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`);
+					return;
+				}else if(data[0].length == 4){
+					const data1 = data[0][0][0];
+					const data2 = data[0][1][0];
+					const data3 = data[0][2][0];
+					const data4 = data[0][3][0];
+					const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data4.charAt(0) + data3.slice(1) + data3.charAt(0) + data4.slice(1);
+					message.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`);
+					return;
 				}
-			).catch((e) =>
-				{
-					console.log(e);
-					message.reply("コマンド処理中になんらかのエラーが発生しました。");
-				}
-			);
-			if(data[0].length == undefined || data[0].length == 0 || data[0].length == 1 || data[0].length > 4){
-				message.channel.send("できないからやばい");
+			}catch(e){
+				console.log(e);
+				message.reply("コマンド処理中にエラーが発生しました。空白が多いかも知れません。");
 				return;
-			}else if(data[0].length == 2){
-				const data1 = data[0][0][0];
-				const data2 = data[0][1][0];
-				const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1);
-				message.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`);
-				return;
-			}else if(data[0].length == 3){
-				const data1 = data[0][0][0];
-				const data2 = data[0][1][0];
-				const data3 = data[0][2][0];
-				const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data3;
-				message.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`);
-				return;
-			}else if(data[0].length == 4){
-				const data1 = data[0][0][0];
-				const data2 = data[0][1][0];
-				const data3 = data[0][2][0];
-				const data4 = data[0][3][0];
-				const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data4.charAt(0) + data3.slice(1) + data3.charAt(0) + data4.slice(1);
-				message.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`);
-				return;
-			};
+			}
 		};
 
 		if(message.content == "うん"){
@@ -538,102 +588,115 @@ client.on("message", async(message) =>
 		if(message.content.startsWith("!map")){
 			try{
 				if(message.content == "!map"){
-					message.reply("使い方: !map <マップリンク> <Mods(省略可)> <Acc(省略可)>");
+					message.reply("使い方: !s <マップリンク> <Mods(省略可)> <Acc(省略可)>");
 					return;
+				};
+				const MessageMaplink = message.content.split(" ")[1];
+				if(MessageMaplink == ""){
+					message.reply("マップリンクの前の空白が1つ多い可能性があります。");
+					return;
+				};
+				if(MessageMaplink == undefined){
+					message.reply("マップリンクを入力してください。");
+					return;
+				};
+				let arg2;
+				let arg3;
+				if(/^[a-zA-Z]+$/.test(message.content.split(" ")[2])){
+					arg2 = "mod";
+				}else if(/^[\d.]+$/g.test(message.content.split(" ")[2])){
+					arg2 = "acc";
 				}else{
-					const MessageMaplink = message.content.split(" ")[1];
-					let arg2;
-					let arg3;
-					if(/^[a-zA-Z]+$/.test(message.content.split(" ")[2])){
-						arg2 = "mod";
-					}else if(/^[\d.]+$/g.test(message.content.split(" ")[2])){
-						arg2 = "acc";
-					}else{
-						arg2 = "nothing";
+					arg2 = "nothing";
+				};
+				if(message.content.split(" ")[2] == ""){
+					message.reply("Mod欄に空白が一つ多い可能性があります。")
+				};
+				if(/^[\d.]+$/g.test(message.content.split(" ")[3])){
+					arg3 = "acc";
+				}else{
+					arg3 = "nothing";
+				};
+				if(message.content.split(" ")[3] == ""){
+					message.reply("Acc欄に空白が一つ多い可能性があります。")
+				};
+				let Mods = [];
+				if(arg2 == "nothing"){
+					Mods.push("NM");
+				}else if(arg2 == "mod"){
+					Mods = [message.content.split(" ")[2].toUpperCase()];
+					Mods = splitString(Mods);
+					if(!checkStrings(Mods)){
+						message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。");
+						return;
 					};
-					if(/^[\d.]+$/g.test(message.content.split(" ")[3])){
-						arg3 = "acc";
-					}else{
-						arg3 = "nothing";
+					if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")) )){
+						message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
+						return;
 					};
-					let Mods = [];
-					if(arg2 == "nothing"){
-						Mods.push("NM");
-					}else if(arg2 == "mod"){
-						Mods = [message.content.split(" ")[2].toUpperCase()];
-						Mods = splitString(Mods);
-						if(!checkStrings(Mods)){
-							message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。");
-							return;
-						};
-						if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")) )){
-							message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
-							return;
-						};
-						if (Mods.includes("NC")) {
-							Mods.push("DT");
-							let modsnotNC = Mods.filter((item) => /NC/.exec(item) == null);
-							Mods = modsnotNC;
-						};
+					if (Mods.includes("NC")) {
+						Mods.push("DT");
+						let modsnotNC = Mods.filter((item) => /NC/.exec(item) == null);
+						Mods = modsnotNC;
 					};
-					const MapInfo = await getMapInfo(MessageMaplink, apikey, Mods);
-					let BPM = MapInfo.bpm;
-					if(Mods.includes("DT")){
-						BPM *= 1.5;
-					}else if(Mods.includes("HT")){
-						BPM *= 0.75;
+				};
+				const MapInfo = await getMapInfo(MessageMaplink, apikey, Mods);
+				let BPM = MapInfo.bpm;
+				if(Mods.includes("DT")){
+					BPM *= 1.5;
+				}else if(Mods.includes("HT")){
+					BPM *= 0.75;
+				};
+				const mapperdata = await getplayersdata(apikey, MapInfo.mapper);
+				const Modsconverted = parseModString(Mods);
+				const srpps = await calculateSR(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode));
+				const Mapstatus = mapstatus(MapInfo.approved);
+				let lengthsec;
+				if(numDigits(parseFloat(MapInfo.lengthsec.toFixed(0))) == 1){
+					lengthsec = ('00' + MapInfo.lengthsec.toString()).slice(-2);
+				}else{
+					lengthsec = parseFloat(MapInfo.lengthsec.toString()).toFixed(0);
+				};
+				for(let i = 0; i < 4; i++){
+					const value = parseFloat(srpps['S' + i]).toFixed(2);
+					const numDigits = value.length;
+					let result = '';
+					if (numDigits >= 7) {
+						result = `  ${value} `;
+					} else if (numDigits == 6) {
+						result = `  ${value}  `;
+					} else if (numDigits == 5) {
+						result = `  ${value}   `;
+					} else if (numDigits == 4) {
+						result = `   ${value}   `;
 					};
-					const mapperdata = await getplayersdata(apikey, MapInfo.mapper);
-					const Modsconverted = parseModString(Mods);
-					const srpps = await calculateSR(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode));
-					const Mapstatus = mapstatus(MapInfo.approved);
-					let lengthsec;
-					if(numDigits(parseFloat(MapInfo.lengthsec.toFixed(0))) == 1){
-						lengthsec = ('00' + MapInfo.lengthsec.toString()).slice(-2);
-					}else{
-						lengthsec = parseFloat(MapInfo.lengthsec.toString()).toFixed(0);
-					};
-					for(let i = 0; i < 4; i++){
-						const value = parseFloat(srpps['S' + i]).toFixed(2);
-						const numDigits = value.length;
-						let result = '';
-						if (numDigits >= 7) {
-							result = `  ${value} `;
-						} else if (numDigits == 6) {
-							result = `  ${value}  `;
-						} else if (numDigits == 5) {
-							result = `  ${value}   `;
-						} else if (numDigits == 4) {
-							result = `   ${value}   `;
-						};
-						srpps['S' + i] = result;
-					};
-					let Showonlymods = [];
-					if(arg2 == "mod"){
-						Showonlymods = message.content.split(" ")[2].toUpperCase();
-					}else{
-						Showonlymods.push("NM");
-					};
-					let od = ODscaled(MapInfo.od, Mods);
-					const maplembed = new MessageEmbed()
-					.setColor("BLUE")
-					.setTitle(`${MapInfo.artist} - ${MapInfo.title}`)
-					.setURL(MapInfo.maplink)
-					.addField("Music and Backgroud",`:musical_note:[Song Preview](https://b.ppy.sh/preview/${MapInfo.beatmapset_id}.mp3) :frame_photo:[Full background](https://assets.ppy.sh/beatmaps/${MapInfo.beatmapset_id}/covers/raw.jpg)`)
-					.setAuthor(`Created by ${MapInfo.mapper}`, mapperdata.iconurl, mapperdata.playerurl)
-					.addField(`[**__${MapInfo.version}__**] **+${Showonlymods}**`, `Combo: \`${MapInfo.combo}\` Stars: \`${srpps.sr}\` \n Length: \`${MapInfo.lengthmin}:${lengthsec}\` BPM: \`${BPM}\` Objects: \`${MapInfo.combo}\` \n CS: \`${MapInfo.cs}\` AR: \`${MapInfo.ar}\` OD: \`${od.toFixed(1)}\` HP: \`${MapInfo.hp}\` Spinners: \`${MapInfo.countspinner}\``, true)
-					.addField("**Download**", `[Official](https://osu.ppy.sh/beatmapsets/${MapInfo.beatmapset_id}/download)\n[Nerinyan(no video)](https://api.nerinyan.moe/d/${MapInfo.beatmapset_id}?nv=1)\n[Beatconnect](https://beatconnect.io/b/${MapInfo.beatmapset_id})\n[chimu.moe](https://api.chimu.moe/v1/download/${MapInfo.beatmapset_id}?n=1)`, true)
-					.addField(`:heart: ${MapInfo.favouritecount} :play_pause: ${MapInfo.playcount}`,`\`\`\` Acc |    98%   |    99%   |   99.5%  |   100%   | \n ----+----------+----------+----------+----------+  \n  PP |${srpps.S3}|${srpps.S2}|${srpps.S1}|${srpps.S0}|\`\`\``, false)
-					.setImage(`https://assets.ppy.sh/beatmaps/${MapInfo.beatmapset_id}/covers/cover.jpg`)
-					.setFooter(`${Mapstatus} mapset of ${MapInfo.mapper}`)
-					message.channel.send(maplembed);
-					if(arg2 == "acc"){
-						let accpp = await calculateSRwithacc(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode), parseFloat(message.content.split(" ")[2]), 0,  MapInfo.combo);
-						message.reply(`If you get **${message.content.split(" ")[2]}%** with **${Showonlymods}**, you will get __**${accpp.ppwithacc}pp**__`);
-					}else if(arg3 == "acc"){
-						let accpp = await calculateSRwithacc(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode), parseFloat(message.content.split(" ")[3]), 0,  MapInfo.combo);
-						message.reply(`If you get **${message.content.split(" ")[3]}%** with **${Showonlymods}**, you will get __**${accpp.ppwithacc}pp**__`);
-					};
+					srpps['S' + i] = result;
+				};
+				let Showonlymods = [];
+				if(arg2 == "mod"){
+					Showonlymods = message.content.split(" ")[2].toUpperCase();
+				}else{
+					Showonlymods.push("NM");
+				};
+				let od = ODscaled(MapInfo.od, Mods);
+				const maplembed = new MessageEmbed()
+				.setColor("BLUE")
+				.setTitle(`${MapInfo.artist} - ${MapInfo.title}`)
+				.setURL(MapInfo.maplink)
+				.addField("Music and Backgroud",`:musical_note:[Song Preview](https://b.ppy.sh/preview/${MapInfo.beatmapset_id}.mp3) :frame_photo:[Full background](https://assets.ppy.sh/beatmaps/${MapInfo.beatmapset_id}/covers/raw.jpg)`)
+				.setAuthor(`Created by ${MapInfo.mapper}`, mapperdata.iconurl, mapperdata.playerurl)
+				.addField(`[**__${MapInfo.version}__**] **+${Showonlymods}**`, `Combo: \`${MapInfo.combo}\` Stars: \`${srpps.sr}\` \n Length: \`${MapInfo.lengthmin}:${lengthsec}\` BPM: \`${BPM}\` Objects: \`${MapInfo.combo}\` \n CS: \`${MapInfo.cs}\` AR: \`${MapInfo.ar}\` OD: \`${od.toFixed(1)}\` HP: \`${MapInfo.hp}\` Spinners: \`${MapInfo.countspinner}\``, true)
+				.addField("**Download**", `[Official](https://osu.ppy.sh/beatmapsets/${MapInfo.beatmapset_id}/download)\n[Nerinyan(no video)](https://api.nerinyan.moe/d/${MapInfo.beatmapset_id}?nv=1)\n[Beatconnect](https://beatconnect.io/b/${MapInfo.beatmapset_id})\n[chimu.moe](https://api.chimu.moe/v1/download/${MapInfo.beatmapset_id}?n=1)`, true)
+				.addField(`:heart: ${MapInfo.favouritecount} :play_pause: ${MapInfo.playcount}`,`\`\`\` Acc |    98%   |    99%   |   99.5%  |   100%   | \n ----+----------+----------+----------+----------+  \n  PP |${srpps.S3}|${srpps.S2}|${srpps.S1}|${srpps.S0}|\`\`\``, false)
+				.setImage(`https://assets.ppy.sh/beatmaps/${MapInfo.beatmapset_id}/covers/cover.jpg`)
+				.setFooter(`${Mapstatus} mapset of ${MapInfo.mapper}`)
+				message.channel.send(maplembed);
+				if(arg2 == "acc"){
+					let accpp = await calculateSRwithacc(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode), parseFloat(message.content.split(" ")[2]), 0,  MapInfo.combo);
+					message.reply(`If you get **${message.content.split(" ")[2]}%** with **${Showonlymods}**, you will get __**${accpp.ppwithacc}pp**__`);
+				}else if(arg3 == "acc"){
+					let accpp = await calculateSRwithacc(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode), parseFloat(message.content.split(" ")[3]), 0,  MapInfo.combo);
+					message.reply(`If you get **${message.content.split(" ")[3]}%** with **${Showonlymods}**, you will get __**${accpp.ppwithacc}pp**__`);
 				};
 			}catch(e){
 				console.log(e);
@@ -658,6 +721,10 @@ client.on("message", async(message) =>
 					playername = message.content.split(" ")[1];
 					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
+						return;
+					};
+					if(playername == ""){
+						message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
 						return;
 					};
 				};
@@ -772,6 +839,10 @@ client.on("message", async(message) =>
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
 						return;
 					};
+					if(playername == ""){
+						message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
+						return;
+					};
 				};
 				const recentplay = await Recentplay(apikey, playername, 1);
 				if(recentplay == 0){
@@ -883,6 +954,10 @@ client.on("message", async(message) =>
 					playername = message.content.split(" ")[1];
 					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
+						return;
+					};
+					if(playername == ""){
+						message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
 						return;
 					};
 				};
@@ -1002,6 +1077,10 @@ client.on("message", async(message) =>
 					playername = message.content.split(" ")[1];
 					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
+						return;
+					};
+					if(playername == ""){
+						message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
 						return;
 					};
 				};
@@ -1132,66 +1211,75 @@ client.on("message", async(message) =>
 		if(message.content.startsWith("!ispp")){
 			try{
 				if(message.content == "!ispp"){
-					message.reply("使い方: !ispp <マップリンク> <Mods(省略可)>")
+					message.reply("使い方: !ispp <マップリンク> <Mods(省略可)>");
+					return;
+				};
+				let mods = [];
+				let modsforcalc;
+				if(message.content.split(" ")[1] == undefined){
+					message.reply("マップリンクを入力してください。");
+					return;
+				};
+				if(message.content.split(" ")[1] == ""){
+					message.reply("マップリンクの前の空白が1つ多いかも知れません。");
+					return;
+				};
+				if(message.content.split(" ")[2] == ""){
+					message.reply("Modsの前の空白が1つ多いかも知れません。");
+					return;
+				};
+				if(message.content.split(" ")[2] == undefined){
+					mods.push("NM");
+					modsforcalc = 0;
 				}else{
-					let mods = [];
-					let modsforcalc;
-					if(message.content.splt(" ")[1] == undefined){
-						message.reply("マップリンクを入力してください。");
+					mods.push(message.content.split(" ")[2].toUpperCase());
+					mods = splitString(mods);
+					if(!checkStrings(mods)){
+						message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。");
 						return;
 					};
-					if(message.content.splt(" ")[2] == undefined){
-						mods = ["NM"];
-						modsforcalc = 0;
-					}else{
-						mods = splitString(message.content.splt(" ")[2].toUpperCase());
-						if(!checkStrings(mods)){
-							message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。");
-							return;
-						};
-						if((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")) )){
-							message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
-							return;
-						};
-						if (mods.includes("NC")) {
-							let modsnotDT = Mods.filter((item) => /NC/.exec(item) == null);
-							modsnotDT.push("DT");
-							modsforcalc = parseModString(modsnotDT);
-						}else{
-							modsforcalc = parseModString(mods);
-						};
+					if((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")) )){
+						message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
+						return;
 					};
-					const maplink = message.content.split(" ")[1];
-					let data = await getMapInfo(maplink, apikey, mods);
-					let sr = await calculateSR(data.beatmapId, modsforcalc, modeconvert(data.mode));
-					const Mapstatus = mapstatus(data.approved);
-					const FP = parseFloat(sr.S0 / data.totallength * 100).toFixed(1);
-					let FPmessage;
-					let rankplayer;
-					if(FP >= 700){
-						FPmessage = "**This is SO GOOD PP map**";
-					}else if(FP >= 400){
-						FPmessage = "**This is PP map**";
-					}else if(FP >= 200){
-						FPmessage = "**This is PP map...?idk**";
-					}else if(FP >= 100){
-						FPmessage = "This is no PP map ;-;";
+					if(mods.includes("NC")){
+						let modsnotDT = Mods.filter((item) => /NC/.exec(item) == null);
+						modsnotDT.push("DT");
+						modsforcalc = parseModString(modsnotDT);
 					}else{
-						FPmessage = "This is no PP map ;-;";
+						modsforcalc = parseModString(mods);
 					};
-					if(sr.S0 >= 750){
-						rankplayer = "**High rank player**";
-					}else if(sr.S0 >= 500){
-						rankplayer = "**Middle rank player**";
-					}else if(sr.S0 >= 350){
-						rankplayer = "**Funny map player**";
-					}else{
-						rankplayer = "**Beginner player**";
-					};
-					const ppdevidetotallength = (sr.S0 / data.totallength);
-					const ppdevideparsefloat = parseFloat(ppdevidetotallength).toFixed(1);
-					message.reply(`Totalpp : **${sr.S0}** (**${Mapstatus}**) | Farmscore : **${FP}** For ${rankplayer} | ${FPmessage} (${ppdevideparsefloat} pp/s)`);
-				}
+				};
+				const maplink = message.content.split(" ")[1];
+				let data = await getMapInfo(maplink, apikey, mods);
+				let sr = await calculateSR(data.beatmapId, modsforcalc, modeconvert(data.mode));
+				const Mapstatus = mapstatus(data.approved);
+				const FP = parseFloat(sr.S0 / data.totallength * 100).toFixed(1);
+				let FPmessage;
+				let rankplayer;
+				if(FP >= 700){
+					FPmessage = "**This is SO GOOD PP map**";
+				}else if(FP >= 400){
+					FPmessage = "**This is PP map**";
+				}else if(FP >= 200){
+					FPmessage = "**This is PP map...?idk**";
+				}else if(FP >= 100){
+					FPmessage = "This is no PP map ;-;";
+				}else{
+					FPmessage = "This is no PP map ;-;";
+				};
+				if(sr.S0 >= 750){
+					rankplayer = "**High rank player**";
+				}else if(sr.S0 >= 500){
+					rankplayer = "**Middle rank player**";
+				}else if(sr.S0 >= 350){
+					rankplayer = "**Funny map player**";
+				}else{
+					rankplayer = "**Beginner player**";
+				};
+				const ppdevidetotallength = (sr.S0 / data.totallength);
+				const ppdevideparsefloat = parseFloat(ppdevidetotallength).toFixed(1);
+				message.reply(`Totalpp : **${sr.S0}** (**${Mapstatus}**) | Farmscore : **${FP}** For ${rankplayer} | ${FPmessage} (${ppdevideparsefloat} pp/s)`);
 			}catch(e){
 				console.log(e);
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。");
@@ -1202,123 +1290,72 @@ client.on("message", async(message) =>
 		if (message.content.startsWith("!lb")) {
 			try{
 				if(message.content == "!lb"){
-					message.reply("使い方: !lb <マップリンク> <Mods(省略可)>");
+					message.reply("使い方: !s <マップリンク> <Mods(省略可)>");
 					return;
+				};
+				const maplink = message.content.split(" ")[1];
+				if(maplink == undefined){
+					message.reply("マップリンクを入力してください。");
+					return;
+				};
+				if(maplink == ""){
+					message.reply("マップリンクの前の空白が1つ多いかも知れません。");
+					return;
+				};
+				const beatmapid = maplink.split("/")[5].split(" ")[0];
+				let mods = [];
+				if(message.content.split(" ")[2] == ""){
+					message.reply("Modsの前の空白が1つ多いかも知れません。");
+					return;
+				};
+				if(message.content.split(" ")[2] == undefined){
+					mods.push("NM");
 				}else{
-					const maplink = message.content.split(" ")[1];
-					const beatmapid = maplink.split("/")[5].split(" ")[0];
-					let mods = [];
-					if(message.content.split(" ")[1] == undefined){
-						mods.push("NM");
-					}else{
-						mods = splitString(message.content.split(" ")[1].toUpperCase());
-					};
-					if(!checkStrings(mods)){
-						message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。");
-						return;
-					};
-					if((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")) )){
-						message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
-						return;
-					};
-					let modsnotNC = mods;
-					if(mods.includes("NC")){
-						mods.push("DT");
-						modsnotNC = Mods.filter((item) => /NC/.exec(item) == null);
-					};
-					const Mapinfo = await getMapInfo(maplink, apikey, mods);
-					const mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
-					const mapsetlink = Mapinfo.maplink.split("/")[4].split("#")[0];
-					let SR = await calculateSR(beatmapid, parseModString(modsnotNC), modeconvert(Mapinfo.mode));
-					let BPM = Mapinfo.bpm;
-					if(mods.includes('NC')){
-						mods.push('DT');
-					};
-					if(mods.includes("NC") || mods.includes("DT")){
-						BPM *= 1.5;
-					}else if(mods.includes("HT")){
-						BPM *= 0.75;
-					};
-					const resulttop5 = await GetMapScore(beatmapid, parseModString(mods), apikey, Mapinfo.mode);
-					if (mods.includes("DT") && mods.includes("NC")) {
-						let modsnotDT = Mods.filter((item) => /DT/.exec(item) == null);
-						mods = modsnotDT;
-					};
-					let acc0;
-					let acc1;
-					let acc2;
-					let acc3;
-					let acc4;
-					if(resulttop5.length == 5){
-						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
-						acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
-						acc2 = tools.tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode));
-						acc3 = tools.tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode));
-						acc4 = tools.tools.accuracy({300: resulttop5[4].count300, 100: resulttop5[4].count100, 50: resulttop5[4].count50, 0: resulttop5[4].countmiss, geki:  resulttop5[4].countgeki, katu: resulttop5[4].countkatu}, modeconvert(Mapinfo.mode));
-							const embed = new MessageEmbed()
-								.setColor("BLUE")
-								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-								.setURL(maplink)
-								.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
-								.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-								.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
-								.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
-								.addField("\`#3\`", `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`,false)
-								.addField("\`#4\`", `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`,false)
-								.addField("\`#5\`", `**Rank**: \`${resulttop5[4].rank}\` **Player**: \`${resulttop5[4].username}\` **Score**: ${resulttop5[4].score} \n [\`${resulttop5[4].maxcombo}\`combo] \`${acc4}\`% \`${resulttop5[4].pp}\`pp miss:${resulttop5[4].countmiss}`,false)
-								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-						message.channel.send(embed);
-						return;
-					}else if(resulttop5.length == 4){
-						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
-						acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
-						acc2 = tools.tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode));
-						acc3 = tools.tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode));
-							const embed = new MessageEmbed()
-								.setColor("BLUE")
-								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-								.setURL(maplink)
-								.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
-								.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-								.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
-								.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
-								.addField("\`#3\`", `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`,false)
-								.addField("\`#4\`", `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`,false)
-								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-						message.channel.send(embed)
-						return;
-					}else if(resulttop5.length == 3){
-						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
-						acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
-						acc2 = tools.tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode));
-							const embed = new MessageEmbed()
-								.setColor("BLUE")
-								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-								.setURL(maplink)
-								.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
-								.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-								.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
-								.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
-								.addField("\`#3\`", `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`,false)
-								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-						message.channel.send(embed)
-						return;
-					}else if(resulttop5.length == 2){
-						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
-						acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
-							const embed = new MessageEmbed()
-								.setColor("BLUE")
-								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-								.setURL(maplink)
-								.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
-								.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-								.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
-								.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
-								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-						message.channel.send(embed)
-						return;
-					}else if(resulttop5.length == 1){
-						acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
+					mods.push(message.content.split(" ")[2].toUpperCase());
+					mods = splitString(mods);
+				};
+				if(!checkStrings(mods)){
+					message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。");
+					return;
+				};
+				if((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")) )){
+					message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
+					return;
+				};
+				let modsnotNC = mods;
+				if(mods.includes("NC")){
+					mods.push("DT");
+					modsnotNC = mods.filter((item) => /NC/.exec(item) == null);
+				};
+				const Mapinfo = await getMapInfo(maplink, apikey, mods);
+				const mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
+				const mapsetlink = Mapinfo.maplink.split("/")[4].split("#")[0];
+				let SR = await calculateSR(beatmapid, parseModString(modsnotNC), modeconvert(Mapinfo.mode));
+				let BPM = Mapinfo.bpm;
+				if(mods.includes('NC')){
+					mods.push('DT');
+				};
+				if(mods.includes("NC") || mods.includes("DT")){
+					BPM *= 1.5;
+				}else if(mods.includes("HT")){
+					BPM *= 0.75;
+				};
+				const resulttop5 = await GetMapScore(beatmapid, parseModString(mods), apikey, Mapinfo.mode);
+				if (mods.includes("DT") && mods.includes("NC")) {
+					let modsnotDT = mods.filter((item) => /DT/.exec(item) == null);
+					mods = modsnotDT;
+				};
+				let acc0;
+				let acc1;
+				let acc2;
+				let acc3;
+				let acc4;
+				if(resulttop5.length == 5){
+					acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
+					acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
+					acc2 = tools.tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode));
+					acc3 = tools.tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode));
+					acc4 = tools.tools.accuracy({300: resulttop5[4].count300, 100: resulttop5[4].count100, 50: resulttop5[4].count50, 0: resulttop5[4].countmiss, geki:  resulttop5[4].countgeki, katu: resulttop5[4].countkatu}, modeconvert(Mapinfo.mode));
 						const embed = new MessageEmbed()
 							.setColor("BLUE")
 							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
@@ -1326,13 +1363,76 @@ client.on("message", async(message) =>
 							.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
 							.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
 							.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
+							.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
+							.addField("\`#3\`", `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`,false)
+							.addField("\`#4\`", `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`,false)
+							.addField("\`#5\`", `**Rank**: \`${resulttop5[4].rank}\` **Player**: \`${resulttop5[4].username}\` **Score**: ${resulttop5[4].score} \n [\`${resulttop5[4].maxcombo}\`combo] \`${acc4}\`% \`${resulttop5[4].pp}\`pp miss:${resulttop5[4].countmiss}`,false)
 							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-						message.channel.send(embed);
-						return;
-					}else{
-						message.channel.send("この譜面には選択されたModの記録が無いようです");
-						return;
-					};
+					message.channel.send(embed);
+					return;
+				}else if(resulttop5.length == 4){
+					acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
+					acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
+					acc2 = tools.tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode));
+					acc3 = tools.tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode));
+						const embed = new MessageEmbed()
+							.setColor("BLUE")
+							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+							.setURL(maplink)
+							.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
+							.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
+							.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
+							.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
+							.addField("\`#3\`", `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`,false)
+							.addField("\`#4\`", `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`,false)
+							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+					message.channel.send(embed)
+					return;
+				}else if(resulttop5.length == 3){
+					acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
+					acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
+					acc2 = tools.tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode));
+						const embed = new MessageEmbed()
+							.setColor("BLUE")
+							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+							.setURL(maplink)
+							.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
+							.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
+							.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
+							.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
+							.addField("\`#3\`", `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`,false)
+							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+					message.channel.send(embed)
+					return;
+				}else if(resulttop5.length == 2){
+					acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
+					acc1 = tools.tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode));
+						const embed = new MessageEmbed()
+							.setColor("BLUE")
+							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+							.setURL(maplink)
+							.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
+							.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
+							.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
+							.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
+							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+					message.channel.send(embed)
+					return;
+				}else if(resulttop5.length == 1){
+					acc0 = tools.tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode));
+					const embed = new MessageEmbed()
+						.setColor("BLUE")
+						.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+						.setURL(maplink)
+						.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
+						.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
+						.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
+						.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+					message.channel.send(embed);
+					return;
+				}else{
+					message.reply("この譜面には選択されたModの記録が無いようです");
+					return;
 				};
 			}catch(e){
 				console.log(e);
@@ -1344,9 +1444,9 @@ client.on("message", async(message) =>
 		if(message.content.startsWith("!s")){
 			try{
 				if(message.content == "!s"){
-					message.reply("使い方: !s <マップリンク> <osu!ユーザーネーム(省略可)>")
-					return
-				}
+					message.reply("使い方: !s <マップリンク> <osu!ユーザーネーム(省略可)>");
+					return;
+				};
 				let playername;
 				if(message.content.split(" ")[2] == undefined){
 					try{
@@ -1360,13 +1460,21 @@ client.on("message", async(message) =>
 					};
 				}else{
 					playername = message.content.split(" ")[2];
-					if(playername == undefined){
-						message.reply("メッセージからユーザー名を取得できませんでした。");
+					if(playername == undefined || playername == ""){
+						message.reply("メッセージからユーザー名を取得できませんでした。空白が多い可能性があります。");
 						return;
 					};
 				};
-				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
 				const maplink = message.content.split(" ")[1];
+				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
+				if(maplink == undefined){
+					message.reply("マップリンクを入力してください。");
+					return;
+				};
+				if(maplink == ""){
+					message.reply("マップリンクの前の空白が1つ多いかも知れません。");
+					return;
+				};
 				const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
 				const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
 				if(playersscore == 0){
@@ -1432,6 +1540,14 @@ client.on("message", async(message) =>
 			try{
 				if(message.content == "!check"){
 					message.reply("使い方: !check <マップリンク>");
+					return;
+				};
+				if(message.content.split(" ")[1] == ""){
+					message.reply("マップリンクの前に空白が1つ多い可能性があります。");
+					return;
+				};
+				if(message.content.split(" ")[1] == undefined){
+					message.reply("マップリンクを入力してください。");
 					return;
 				};
 				const beatmapId = message.content.split(" ")[1].split("/")[5];
@@ -1526,8 +1642,8 @@ function formatBigInt(num) {
 //NexusBot Function
 function checkStrings(array) {
 	const targetStrings = ['EZ', 'HT', 'NF', 'HR', 'SD', 'DT', 'NC', 'FL', 'SO', 'PF', 'V2', 'TD', 'HD', 'FI', 'RX', 'AP', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9'];
-	for (const element of targetStrings) {
-		if(!array.includes(element)){
+	for (const element of array) {
+		if(!targetStrings.includes(element)){
 			return false;
 		};
 	};
