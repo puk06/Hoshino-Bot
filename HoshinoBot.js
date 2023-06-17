@@ -556,7 +556,7 @@ client.on("message", async(message) =>
 				}
 			}catch(e){
 				console.log(e);
-				message.reply("コマンド処理中にエラーが発生しました。空白が多いかも知れません。");
+				message.reply("コマンド処理中にエラーが発生しました。");
 				return;
 			}
 		};
@@ -1221,11 +1221,11 @@ client.on("message", async(message) =>
 					return;
 				};
 				if(message.content.split(" ")[1] == ""){
-					message.reply("マップリンクの前の空白が1つ多いかも知れません。");
+					message.reply("マップリンクの前の空白が1つ多い可能性があります。");
 					return;
 				};
 				if(message.content.split(" ")[2] == ""){
-					message.reply("Modsの前の空白が1つ多いかも知れません。");
+					message.reply("Modsの前の空白が1つ多い可能性があります。");
 					return;
 				};
 				if(message.content.split(" ")[2] == undefined){
@@ -1460,8 +1460,12 @@ client.on("message", async(message) =>
 					};
 				}else{
 					playername = message.content.split(" ")[2];
-					if(playername == undefined || playername == ""){
-						message.reply("メッセージからユーザー名を取得できませんでした。空白が多い可能性があります。");
+					if(playername == undefined){
+						message.reply("メッセージからユーザー名を取得できませんでした。");
+						return;
+					};
+					if(playername == ""){
+						message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
 						return;
 					};
 				};
@@ -1472,7 +1476,7 @@ client.on("message", async(message) =>
 					return;
 				};
 				if(maplink == ""){
-					message.reply("マップリンクの前の空白が1つ多いかも知れません。");
+					message.reply("マップリンクの前の空白が1つ多い可能性があります。");
 					return;
 				};
 				const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
