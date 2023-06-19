@@ -601,23 +601,29 @@ client.on("message", async(message) =>
 				};
 				let arg2;
 				let arg3;
-				if(/^[a-zA-Z]+$/.test(message.content.split(" ")[2])){
+				if(message.content.split(" ")[2] == undefined){
+					arg2 = "nothing";
+				}else if(/^[a-zA-Z]+$/.test(message.content.split(" ")[2])){
 					arg2 = "mod";
 				}else if(/^[\d.]+$/g.test(message.content.split(" ")[2])){
 					arg2 = "acc";
+				}else if(message.content.split(" ")[2] == ""){
+					message.reply("Mods, Acc欄の前に空白が一つ多い可能性があります。")
+					return;
 				}else{
-					arg2 = "nothing";
+					message.reply("Mods, Acc欄には数字かModのみを入力してください。")
+					return;
 				};
-				if(message.content.split(" ")[2] == ""){
-					message.reply("Mod欄に空白が一つ多い可能性があります。")
-				};
-				if(/^[\d.]+$/g.test(message.content.split(" ")[3])){
+				if(message.content.split(" ")[3] == undefined){
+					arg3 = "nothing"
+				}else if(/^[\d.]+$/g.test(message.content.split(" ")[3])){
 					arg3 = "acc";
+				}else if(message.content.split(" ")[3] == ""){
+					message.reply("Acc欄の前に空白が一つ多い可能性があります。")
+					return;
 				}else{
-					arg3 = "nothing";
-				};
-				if(message.content.split(" ")[3] == ""){
-					message.reply("Acc欄に空白が一つ多い可能性があります。")
+					message.reply("Acc欄には数字のみを入力してください。")
+					return;
 				};
 				let Mods = [];
 				if(arg2 == "nothing"){
@@ -692,10 +698,10 @@ client.on("message", async(message) =>
 				message.channel.send(maplembed);
 				if(arg2 == "acc"){
 					let accpp = await calculateSRwithacc(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode), parseFloat(message.content.split(" ")[2]), 0,  MapInfo.combo);
-					message.reply(`If you get **${message.content.split(" ")[2]}%** with **${Showonlymods}**, you will get __**${accpp.ppwithacc}pp**__`);
+					message.reply(`**${Showonlymods}**で**${message.content.split(" ")[2]}%**を取った時のPPは__**${accpp.ppwithacc}pp**__です。`);
 				}else if(arg3 == "acc"){
 					let accpp = await calculateSRwithacc(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode), parseFloat(message.content.split(" ")[3]), 0,  MapInfo.combo);
-					message.reply(`If you get **${message.content.split(" ")[3]}%** with **${Showonlymods}**, you will get __**${accpp.ppwithacc}pp**__`);
+					message.reply(`**${Showonlymods}**で**${message.content.split(" ")[3]}%**を取った時のPPは__**${accpp.ppwithacc}pp**__です。`);
 				};
 			}catch(e){
 				console.log(e);
@@ -709,7 +715,7 @@ client.on("message", async(message) =>
 				let playername;
 				if(message.content.split(" ")[1] == undefined){
 					try{
-						let username = message.author.username;
+						let username = message.author.id;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
 						playername = osuid;
 					}catch(e){
@@ -721,15 +727,14 @@ client.on("message", async(message) =>
 					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
 						return;
-					};
-					if(playername == ""){
+					}else if(playername == ""){
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
 						return;
 					};
 				};
 				const recentplay = await Recentplay(apikey, playername, 0);
 				if(recentplay == 0){
-					message.reply("このプレイヤーには24時間以内にプレイした譜面がないようです。");
+					message.reply(`${playername}さんには24時間以内にプレイしたosu!譜面がないようです。`);
 					return;
 				};
 				let mods = parseMods(recentplay.enabled_mods);
@@ -793,7 +798,7 @@ client.on("message", async(message) =>
 					.addField("`If FC`", `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
 					.addField("`Acc`", `${ifFCacc}%`, true)
 					.addField("`Hits`", `{${ifFC300}/${ifFC100}/0}`, true)
-					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
+					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
 					.setFooter(`${Mapstatus} mapset of ${GetMapInfo.mapper}`, mappersdata.iconurl);
@@ -824,7 +829,7 @@ client.on("message", async(message) =>
 				let playername;
 				if(message.content.split(" ")[1] == undefined){
 					try{
-						let username = message.author.username;
+						let username = message.author.id;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
 						playername = osuid;
 					}catch(e){
@@ -837,15 +842,14 @@ client.on("message", async(message) =>
 					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
 						return;
-					};
-					if(playername == ""){
+					}else if(playername == ""){
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
 						return;
 					};
 				};
 				const recentplay = await Recentplay(apikey, playername, 1);
 				if(recentplay == 0){
-					message.reply("このプレイヤーには24時間以内にプレイした譜面がないようです。");
+					message.reply(`${playername}さんには24時間以内にプレイしたTaiko譜面がないようです。`);
 					return;
 				};
 				let mods = parseMods(recentplay.enabled_mods);
@@ -910,7 +914,7 @@ client.on("message", async(message) =>
 					.addField("`If FC`", `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
 					.addField("`Acc`", `${ifFCacc}%`, true)
 					.addField("`Hits`", `{${ifFC300}/${ifFC100}/0}`, true)
-					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
+					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
 					.setFooter(`${Mapstatus} mapset of ${GetMapInfo.mapper}`, mappersdata.iconurl);
@@ -941,7 +945,7 @@ client.on("message", async(message) =>
 				let playername;
 				if(message.content.split(" ")[1] == undefined){
 					try{
-						let username = message.author.username;
+						let username = message.author.id;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
 						playername = osuid;
 					}catch(e){
@@ -954,15 +958,14 @@ client.on("message", async(message) =>
 					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
 						return;
-					};
-					if(playername == ""){
+					}else if(playername == ""){
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
 						return;
 					};
 				};
 				const recentplay = await Recentplay(apikey, playername, 2);
 				if(recentplay == 0){
-					message.reply("このプレイヤーには24時間以内にプレイした譜面がないようです。");
+					message.reply(`${playername}さんには24時間以内にプレイしたCatch譜面がないようです。`);
 					return;
 				};
 				let mods = parseMods(recentplay.enabled_mods);
@@ -1033,7 +1036,7 @@ client.on("message", async(message) =>
 					.addField("`If FC`", `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
 					.addField("`Acc`", `${ifFCacc}%`, true)
 					.addField("`Hits`", `{${ifFC300}/${ifFC100}/${ifFC50}/0}`, true)
-					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
+					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
 					.setFooter(`${Mapstatus} mapset of ${GetMapInfo.mapper}`, mappersdata.iconurl);
@@ -1064,7 +1067,7 @@ client.on("message", async(message) =>
 				let playername;
 				if(message.content.split(" ")[1] == undefined){
 					try{
-						let username = message.author.username;
+						let username = message.author.id;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
 						playername = osuid;
 					}catch(e){
@@ -1077,15 +1080,14 @@ client.on("message", async(message) =>
 					if(playername == undefined){
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。");
 						return;
-					};
-					if(playername == ""){
+					}else if(playername == ""){
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
 						return;
 					};
 				};
 				const recentplay = await Recentplay(apikey, playername, 3);
 				if(recentplay == 0){
-					message.reply("このプレイヤーには24時間以内にプレイした譜面がないようです。");
+					message.reply(`${playername}さんには24時間以内にプレイしたMania譜面がないようです。`);
 					return;
 				};
 				let mods = parseMods(recentplay.enabled_mods);
@@ -1158,7 +1160,7 @@ client.on("message", async(message) =>
 					.addField("`If FC`", `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
 					.addField("`Acc`", `${ifFCacc}%`, true)
 					.addField("`Hits`", `{${ifFC300}/${ifFC100}/${ifFC50}/0}`, true)
-					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
+					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
 					.setFooter(`${Mapstatus} mapset of ${GetMapInfo.mapper}`, mappersdata.iconurl);
@@ -1194,11 +1196,11 @@ client.on("message", async(message) =>
 				message.reply("使い方: !reg <osu!ユーザーネーム>");
 				return;
 			}else{
-				const username = message.author.username;
+				const username = message.author.id;
 				const osuid = message.content.split(" ")[1];
 				try{
 					fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8");
-					message.reply(`${username} さんは ${osuid} として保存されました!`);
+					message.reply(`${message.author.username} さんは ${osuid} として保存されました!`);
 				}catch(e){
 					console.log(e);
 					message.reply("ユーザーを登録する際にエラーが発生しました。");
@@ -1218,18 +1220,16 @@ client.on("message", async(message) =>
 				if(message.content.split(" ")[1] == undefined){
 					message.reply("マップリンクを入力してください。");
 					return;
-				};
-				if(message.content.split(" ")[1] == ""){
+				}else if(message.content.split(" ")[1] == ""){
 					message.reply("マップリンクの前の空白が1つ多い可能性があります。");
-					return;
-				};
-				if(message.content.split(" ")[2] == ""){
-					message.reply("Modsの前の空白が1つ多い可能性があります。");
 					return;
 				};
 				if(message.content.split(" ")[2] == undefined){
 					mods.push("NM");
 					modsforcalc = 0;
+				}else if(message.content.split(" ")[2] == ""){
+					message.reply("Modsの前の空白が1つ多い可能性があります。");
+					return;
 				}else{
 					mods.push(message.content.split(" ")[2].toUpperCase());
 					mods = splitString(mods);
@@ -1449,7 +1449,7 @@ client.on("message", async(message) =>
 				let playername;
 				if(message.content.split(" ")[2] == undefined){
 					try{
-						let username = message.author.username;
+						let username = message.author.id;
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8");
 						playername = osuid;
 					}catch(e){
@@ -1481,7 +1481,7 @@ client.on("message", async(message) =>
 				const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
 				const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
 				if(playersscore == 0){
-					message.reply("スコアが見つかりませんでした。");
+					message.reply(`${playername}さんのスコアが見つかりませんでした。`);
 					return;
 				};
 				const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
