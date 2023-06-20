@@ -1,10 +1,10 @@
 {
-    "name": "nexusbot",
+    "name": "hoshinobot",
     "version": "1.0.0",
-    "description": "A discord bot for ALL mode osu!player",
+    "description": "A discord bot for private server",
     "dependencies": {
-        "axios": "1.4.0",
-        "discord.js": "12.3.0",
+        "axios": "0.21.4",
+        "discord.js": "12.5.3",
         "dotenv": "16.0.3",
         "fs": "0.0.1-security",
         "osu-api-extended": "2.5.30",
