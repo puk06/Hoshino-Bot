@@ -2137,7 +2137,7 @@ function evaluateSlotResult(result) {
 	}
 }
 
-function toJPUnit(num){
+function toJPUnit(num) {
 	const str = num;
 	if (str.length >= 216) {
 		return "約" + `${formatBigInt(str)}`
