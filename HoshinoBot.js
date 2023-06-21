@@ -23,6 +23,7 @@ const { checkFileExists } = require("./Checkuser/CheckUser");
 const apikey = process.env.APIKEY;
 const token = process.env.TOKEN;
 const appid = process.env.APPID;
+const hypixelapikey = process.env.HYPIXELAPI;
 
 //discord.jsのインテンツを指定
 const client = new Client({ intents: Intents.ALL });
@@ -2095,9 +2096,259 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//?slayerコマンド(Hypixel Skyblock)
+		if (message.content.startsWith("?slayer")) {
+			try {
+				//?slayerのみ入力された時の処理
+				if (message.content == "?slayer") {
+					message.reply("使い方: ?slayer <Minecraftユーザー名> <スレイヤーのID(1（ゾンスレ）, 2（クモスレ）, 3（ウルフスレ）, 4（エンスレ）, 5（ブレイズスレ）)> <プロファイルID>")
+					return
+				}
+
+				//メッセージからユーザー名を取得
+				const username = message.content.split(" ")[1]
+
+				//ユーザー名が入力されてなかった時、の処理
+				if (username == undefined) {
+					message.reply("ユーザー名を入力してください。")
+					return
+				}
+				
+				//ユーザー名の前の空白が1つ多かった時の処理
+				if (username == "") {
+					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//メッセージからスレイヤーのIDを取得
+				const slayerid = message.content.split(" ")[2]
+
+				//スレイヤーのIDが入力されてなかった時の処理
+				if (slayerid == undefined) {
+					message.reply("スレイヤーのIDを入力してください。1 = ゾンスレ、2 = クモスレ、3 = ウルフスレ、4 = エンスレ、5 = ブレイズスレ")
+					return
+				}
+
+				//スレイヤーのIDの前の空白が1つ多かった時の処理
+				if (slayerid == "") {
+					message.reply("スレイヤーのIDの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//メッセージからプロファイル番号を取得
+				const i = message.content.split(" ")[3]
+
+				//プロファイル番号が入力されてなかった時の処理
+				if (i == undefined) {
+					message.reply("プロファイル番号を入力してください。")
+					return
+				}
+
+				//プロファイル番号の前の空白が1つ多かった時の処理
+				if (i == "") {
+					message.reply("プロファイル番号の前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//プロファイル番号が数字かどうかの処理
+				if (!/^[\d.]+$/g.test(i)) {
+					message.reply("プロファイル番号は数字のみで入力してください。")
+					return
+				}
+
+				//ユーザー名からUUIDを取得
+				const useruuidresponce = await axios.get(
+					`https://api.mojang.com/users/profiles/minecraft/${username}`
+				);
+
+				//ユーザーが存在しなかった場合の処理
+				if (useruuidresponce.data.id == undefined) {
+					message.reply("このユーザーは存在しないようです。")
+					return
+				}
+
+				//先程取得したUUIDからプロファイル情報を取得
+				const responce = await axios.get(
+					`https://api.hypixel.net/skyblock/profiles?key=${hypixelapikey}&uuid=${useruuidresponce.data.id}`
+				);
+
+				//プロファイル情報が取得できなかった場合の処理
+				if (!responce.data.success) {
+					message.reply("データを取得するのに失敗しました。")
+					return
+				}
+
+				//スレイヤーのIDからスレイヤーの名前を取得
+				let slayername;
+				if (slayerid == "1") {
+					slayername = "zombie"
+				} else if (slayerid == "2") {
+					slayername = "spider"
+				} else if (slayerid == "3") {
+					slayername = "wolf"
+				} else if (slayerid == "4") {
+					slayername = "enderman"
+				} else if (slayerid == "5") {
+					slayername = "blaze"
+				} else if (slayerid == "6") {
+					message.reply("このスレイヤーの処理機能はまだ実装されていません。")
+					return
+				} else {
+					message.reply("スレイヤーのIDが不正です。")
+					return
+				}
+
+				//スレイヤーの名前から表示用のスレイヤーの名前を取得
+				let showonlyslayername;
+				if (slayername == "zombie") {
+					showonlyslayername = "ゾンスレ"
+				} else if (slayername == "spider") {
+					showonlyslayername = "クモスレ"
+				} else if (slayername == "wolf") {
+					showonlyslayername = "ウルフスレ"
+				} else if (slayername == "enderman") {
+					showonlyslayername = "エンスレ"
+				} else if (slayername == "blaze") {
+					showonlyslayername = "ブレイズスレ"
+				}
+
+				//取得したデータからユーザーの指定したプロファイルのスレイヤーのXPを取得
+				const userslayerxp = eval(`responce.data.profiles[${i}].members.${useruuidresponce.data.id}.slayer_bosses.${slayername}.xp`);
+
+				//プロファイルが存在しなかった場合の処理
+				if (responce.data.profiles[i] == undefined) {
+					message.reply("このプロファイルは存在しないようです。")
+					return
+				}
+
+				//スレイヤーのXPが存在しなかった場合の処理(未プレイとされる)
+				if (userslayerxp == undefined) {
+					message.reply(`プロファイル:${responce.data.profiles[i].cute_name} | この${showonlyslayername}は未プレイみたいです。`)
+					return
+				}
+
+				//スレイヤーXPなどの計算をし、メッセージを送信する
+				if (userslayerxp >= 1000000) {
+					message.reply(`プロファイル:${responce.data.profiles[i].cute_name} | この${showonlyslayername}レベルは既に**Lv9**です。`)
+					return
+				} else if (userslayerxp >= 400000) {
+					const remainxp = 1000000 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv8**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else if (userslayerxp >= 100000) {
+					const remainxp = 400000 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv7**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else if (userslayerxp >= 20000) {
+					const remainxp = 100000 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv6**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else if (userslayerxp >= 5000) {
+					const remainxp = 20000 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv5**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else if (((slayername == "zombie" || slayername == "spider") && userslayerxp >= 1000) || ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 1500)) {
+					const remainxp = 5000 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv4**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else if ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 200) {
+					const remainxp = 1000 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 250) {
+					const remainxp = 1500 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else if ((slayername == "zombie" && userslayerxp >= 15) || (slayername == "spider" && userslayerxp >= 25)) {
+					const remainxp = 200 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				}else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 30) {
+					const remainxp = 250 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else if ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 5) {
+					let remainxp = 0
+					if (slayername == "zombi") {
+						remainxp = 15 - userslayerxp
+					} else if (slayername == "spider") {
+						remainxp = 25 - userslayerxp
+					}
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在のスレイヤーレベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 10) {
+					const remainxp = 30 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在のスレイヤーレベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+				} else {
+					const remainxp = 5 - userslayerxp
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | このスレイヤーはLv1に達していません。次のレベルまでに必要なXPは${remainxp}です。`)
+				}
+			} catch(e) {
+				console.log(e)
+				message.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+				return
+			}
+		}
+
+		//?profileコマンド(Hypixel Skyblock)
+		if (message.content.startsWith("?profile")) {
+			try {
+
+				//?profileのみ入力された時の処理
+				if (message.content == "?profile") {
+					message.reply("使い方: ?profile <Minecraftユーザー名>")
+					return
+				}
+
+				//メッセージからユーザー名を取得
+				const username = message.content.split(" ")[1]
+
+				//ユーザー名が入力されてなかった時、の処理
+				if (username == undefined) {
+					message.reply("ユーザー名を入力してください。")
+					return
+				}
+
+				//ユーザー名の前の空白が1つ多かった時の処理
+				if (username == "") {
+					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//ユーザー名からUUIDを取得
+				const useruuidresponce = await axios.get(
+					`https://api.mojang.com/users/profiles/minecraft/${username}`
+				);
+
+				//ユーザーが存在しなかった場合の処理
+				if (useruuidresponce.data.id == undefined) {
+					message.reply("このユーザーは存在しないようです。")
+					return
+				}
+
+				//先程取得したUUIDからプロファイル情報を取得
+				let responce = await axios.get(
+					`https://api.hypixel.net/skyblock/profiles?key=${hypixelapikey}&uuid=${useruuidresponce.data.id}`
+				);
+
+				//プロファイルが存在しなかった場合の処理
+				if (!responce.data.success) {
+					message.reply("データを取得するのに失敗しました。")
+					return
+				}
+
+				//メッセージ内容を作成する処理
+				let showprofilemessage = ["__**プロファイル一覧**__"];
+				let showonlyselected;
+				for (let i = 0; i < responce.data.profiles.length; i++) {
+					if (responce.data.profiles[i].selected) {
+						showonlyselected = "✅"
+					} else {
+						showonlyselected = "❌"
+					}
+					showprofilemessage.push(`**${i}**: ${responce.data.profiles[i].cute_name} | 選択中: ${showonlyselected}`)
+				}
+				message.reply(showprofilemessage.join("\n"));
+			} catch(e) {
+				console.log(e)
+				message.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+				return
+			}
+		}
+
 		//Helpコマンド(AllBOT)
 		if (message.content == "!bothelp") {
-			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake>")
+			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock>")
 			return
 		} else if (message.content == "!bothelp osu") {
 			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。")
@@ -2110,6 +2361,9 @@ client.on("message", async(message) =>
 			return
 		} else if (message.content == "!bothelp ohuzake") {
 			message.reply("__**おふざけコマンドの使い方**__ \n1: `!kunii <単語(2つ以上)>` それぞれの単語の1文字目を入れ替えることが出来ます。")
+			return
+		} else if (message.content == "!bothelp Skyblock") {
+			message.reply("__**Skyblockコマンドの使い方**__ \n1: `?profile <Minecraftユーザー名>` SkyblockのプロファイルのIDを知ることが出来ます。?slayerコマンドで使います。\n2: `?slayer <Minecraftユーザー名> <スレイヤーのID(1（ゾンスレ）, 2（クモスレ）, 3（ウルフスレ）, 4（エンスレ）, 5（ブレイズスレ）)> <プロファイルID>` Skyblockのスレイヤーのレベルを上げるのに必要な経験値、周回数を知ることが出来ます。")
 			return
 		}
 	}
