@@ -2053,7 +2053,6 @@ client.on("message", async(message) =>
 		//Streamの長さをチェックするコマンド(osu!BOT)
 		if (message.content.startsWith("!check")) {
 			try {
-
 				//!checkのみ入力された時の処理
 				if (message.content == "!check") {
 					message.reply("使い方: !check <マップリンク>")
@@ -2283,7 +2282,6 @@ client.on("message", async(message) =>
 		//?profileコマンド(Hypixel Skyblock)
 		if (message.content.startsWith("?profile")) {
 			try {
-
 				//?profileのみ入力された時の処理
 				if (message.content == "?profile") {
 					message.reply("使い方: ?profile <Minecraftユーザー名>")
