@@ -2156,13 +2156,16 @@ client.on("message", async(message) =>
 				}
 
 				//ユーザー名からUUIDを取得
-				const useruuidresponce = await axios.get(
+				let useruuidresponce
+				useruuidresponce = await axios.get(
 					`https://api.mojang.com/users/profiles/minecraft/${username}`
-				);
+				).catch(()=> {
+					useruuidresponce = undefined
+				});
 
-				//ユーザーが存在しなかった場合の処理
-				if (useruuidresponce.data.id == undefined) {
-					message.reply("このユーザーは存在しないようです。")
+				////ユーザーが存在しなかった場合の処理
+				if (useruuidresponce == undefined) {
+					message.reply("ユーザー名が間違っているか、Mojang APIがダウンしている可能性があります。")
 					return
 				}
 
@@ -2174,6 +2177,9 @@ client.on("message", async(message) =>
 				//プロファイル情報が取得できなかった場合の処理
 				if (!responce.data.success) {
 					message.reply("データを取得するのに失敗しました。")
+					return
+				}else if (responce.data.profiles == null) {
+					message.reply("このユーザーはSkyblockをしていないようです。")
 					return
 				}
 
@@ -2211,66 +2217,67 @@ client.on("message", async(message) =>
 					showonlyslayername = "ブレイズスレ"
 				}
 
-				//取得したデータからユーザーの指定したプロファイルのスレイヤーのXPを取得
-				const userslayerxp = eval(`responce.data.profiles[${i}].members.${useruuidresponce.data.id}.slayer_bosses.${slayername}.xp`);
-
 				//プロファイルが存在しなかった場合の処理
 				if (responce.data.profiles[i] == undefined) {
 					message.reply("このプロファイルは存在しないようです。")
 					return
 				}
 
+				//取得したデータからユーザーの指定したプロファイルのスレイヤーのXPを取得
+				const userslayerxp = eval(`responce.data.profiles[${i}].members.${useruuidresponce.data.id}.slayer_bosses.${slayername}.xp`);
+
 				//スレイヤーのXPが存在しなかった場合の処理(未プレイとされる)
 				if (userslayerxp == undefined) {
-					message.reply(`プロファイル:${responce.data.profiles[i].cute_name} | この${showonlyslayername}は未プレイみたいです。`)
+					message.reply(`プロファイル:${responce.data.profiles[i].cute_name} | このプレイヤーは${showonlyslayername}をしていないみたいです。`)
 					return
 				}
 
 				//スレイヤーXPなどの計算をし、メッセージを送信する
 				if (userslayerxp >= 1000000) {
-					message.reply(`プロファイル:${responce.data.profiles[i].cute_name} | この${showonlyslayername}レベルは既に**Lv9**です。`)
+					message.reply(`プロファイル:${responce.data.profiles[i].cute_name} | このプレイヤーの${showonlyslayername}レベルは既に**Lv9**です。`)
 					return
 				} else if (userslayerxp >= 400000) {
 					const remainxp = 1000000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv8**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv8**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1000000 * 100).toFixed(1))}${(userslayerxp / 1000000 * 100).toFixed(1)}%`)
 				} else if (userslayerxp >= 100000) {
 					const remainxp = 400000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv7**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv7**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 400000 * 100).toFixed(1))}${(userslayerxp / 400000 * 100).toFixed(1)}%`)
 				} else if (userslayerxp >= 20000) {
 					const remainxp = 100000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv6**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv6**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 100000 * 100).toFixed(1))}${(userslayerxp / 100000 * 100).toFixed(1)}%`)
 				} else if (userslayerxp >= 5000) {
 					const remainxp = 20000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv5**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv5**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 20000 * 100).toFixed(1))}${(userslayerxp / 20000 * 100).toFixed(1)}%`)
 				} else if (((slayername == "zombie" || slayername == "spider") && userslayerxp >= 1000) || ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 1500)) {
 					const remainxp = 5000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv4**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv4**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 5000 * 100).toFixed(1))}${(userslayerxp / 5000 * 100).toFixed(1)}%`)
 				} else if ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 200) {
 					const remainxp = 1000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1000 * 100).toFixed(1))}${(userslayerxp / 1000 * 100).toFixed(1)}%`)
 				} else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 250) {
 					const remainxp = 1500 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1500 * 100).toFixed(1))}${(userslayerxp / 1500 * 100).toFixed(1)}%`)
 				} else if ((slayername == "zombie" && userslayerxp >= 15) || (slayername == "spider" && userslayerxp >= 25)) {
 					const remainxp = 200 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 200 * 100).toFixed(1))}${(userslayerxp / 200 * 100).toFixed(1)}%`)
 				}else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 30) {
 					const remainxp = 250 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 250 * 100).toFixed(1))}${(userslayerxp / 250 * 100).toFixed(1)}%`)
 				} else if ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 5) {
 					let remainxp = 0
 					if (slayername == "zombi") {
 						remainxp = 15 - userslayerxp
+						message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 15 * 100).toFixed(1))}${(userslayerxp / 15 * 100).toFixed(1)}%`)
 					} else if (slayername == "spider") {
 						remainxp = 25 - userslayerxp
+						message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 25 * 100).toFixed(1))}${(userslayerxp / 25 * 100).toFixed(1)}%`)
 					}
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在のスレイヤーレベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
 				} else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 10) {
 					const remainxp = 30 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在のスレイヤーレベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 30 * 100).toFixed(1))}${(userslayerxp / 30 * 100).toFixed(1)}%`)
 				} else {
 					const remainxp = 5 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | このスレイヤーはLv1に達していません。次のレベルまでに必要なXPは${remainxp}です。`)
+					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | このプレイヤーの${showonlyslayername}はLv1に達していません。次のレベルまでに必要なXPは${remainxp}です。`)
 				}
 			} catch(e) {
 				console.log(e)
@@ -2304,24 +2311,30 @@ client.on("message", async(message) =>
 				}
 
 				//ユーザー名からUUIDを取得
-				const useruuidresponce = await axios.get(
+				let useruuidresponce
+				useruuidresponce = await axios.get(
 					`https://api.mojang.com/users/profiles/minecraft/${username}`
-				);
+				).catch(()=> {
+					useruuidresponce = undefined
+				});
 
 				//ユーザーが存在しなかった場合の処理
-				if (useruuidresponce.data.id == undefined) {
-					message.reply("このユーザーは存在しないようです。")
+				if (useruuidresponce == undefined) {
+					message.reply("ユーザー名が間違っているか、Mojang APIがダウンしている可能性があります。")
 					return
 				}
 
 				//先程取得したUUIDからプロファイル情報を取得
-				let responce = await axios.get(
+				const responce = await axios.get(
 					`https://api.hypixel.net/skyblock/profiles?key=${hypixelapikey}&uuid=${useruuidresponce.data.id}`
 				);
 
-				//プロファイルが存在しなかった場合の処理
+				//プロファイル情報が取得できなかった場合の処理
 				if (!responce.data.success) {
 					message.reply("データを取得するのに失敗しました。")
+					return
+				}else if (responce.data.profiles == null) {
+					message.reply("このユーザーはSkyblockをしていないようです。")
 					return
 				}
 
@@ -2347,22 +2360,16 @@ client.on("message", async(message) =>
 		//Helpコマンド(AllBOT)
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock>")
-			return
 		} else if (message.content == "!bothelp osu") {
 			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。")
-			return
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
-			return
 		} else if (message.content == "!bothelp furry") {
 			message.reply("__**Furryコマンドの使い方**__ \n1: `/kemo` ケモ画像を表示することが出来ます。\n2:`!count` 保存されている全てのケモの画像や映像の数を知ることが出来ます。\n3: `!delete <メディアリンク>` 保存されている画像を削除することが出来ます。メディアリンクが必要となります。")
-			return
 		} else if (message.content == "!bothelp ohuzake") {
 			message.reply("__**おふざけコマンドの使い方**__ \n1: `!kunii <単語(2つ以上)>` それぞれの単語の1文字目を入れ替えることが出来ます。")
-			return
 		} else if (message.content == "!bothelp Skyblock") {
 			message.reply("__**Skyblockコマンドの使い方**__ \n1: `?profile <Minecraftユーザー名>` SkyblockのプロファイルのIDを知ることが出来ます。?slayerコマンドで使います。\n2: `?slayer <Minecraftユーザー名> <スレイヤーのID(1（ゾンスレ）, 2（クモスレ）, 3（ウルフスレ）, 4（エンスレ）, 5（ブレイズスレ）)> <プロファイルID>` Skyblockのスレイヤーのレベルを上げるのに必要な経験値、周回数を知ることが出来ます。")
-			return
 		}
 	}
 );
@@ -2426,7 +2433,7 @@ function checkStrings(array) {
 			return false
 		}
 	}
-	return true;
+	return true
 }
 
 //FurryBotの関数
@@ -2443,6 +2450,15 @@ function removeStringFromFile(stringToRemove) {
 			}
 		})
 	})
+}
+
+//プログレスバー作成関数
+function createProgressBar(percent) {
+	const progress = parseInt((20 * percent / 100).toFixed(0))
+	const emptyProgress = parseInt((20 * (100 - percent) / 100).toFixed(0))
+	const progressText = "#".repeat(progress)
+	const emptyProgressText = "-".repeat(emptyProgress)
+	return `[${progressText}${emptyProgressText}]`
 }
 
 //discord bot login
