@@ -1,3 +1,3 @@
 module.exports.numDigits = (num) =>{
-    return num.toString().length;
-};
+    return num.toString().length
+}
