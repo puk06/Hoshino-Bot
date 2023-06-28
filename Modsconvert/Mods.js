@@ -3,11 +3,11 @@ module.exports.parseMods = (mods) => {
 	for (let i = 0; i < 14; i++) {
 		const bit = 1 << i;
 		if ((mods & bit) === bit) {
-			activeMods.push(ModStrings[bit]);
+			activeMods.push(ModStrings[bit])
 		}
-	};
+	}
 	return activeMods;
-};
+}
 
 const ModStrings = {
 	0: "NM",
