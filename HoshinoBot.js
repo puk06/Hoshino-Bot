@@ -2,7 +2,7 @@
 const { Client, Intents, MessageEmbed } = require("./node_modules/discord.js");
 require('./node_modules/dotenv').config();
 const fs = require("fs");
-const tools = require("./node_modules/osu-api-extended");
+const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
 const axios = require("./node_modules/axios");
 const path = require('path');
 
@@ -22,6 +22,8 @@ const { checkFileExists } = require("./Checkuser/CheckUser");
 //APIキーやTOKENなど
 const apikey = process.env.APIKEY;
 const token = process.env.TOKEN;
+const osuclientid = process.env.CLIENTID;
+const osuclientsecret = process.env.CLIENTSECRET;
 const appid = process.env.APPID;
 const hypixelapikey = process.env.HYPIXELAPI;
 
@@ -29,11 +31,14 @@ const hypixelapikey = process.env.HYPIXELAPI;
 const client = new Client({ intents: Intents.ALL });
 
 //BOTが準備完了したら実行
-client.on("ready", () => {
+client.on("ready", async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
-    client.user.setActivity('いろんなbotの機能')
+    client.user.setActivity('ほしのBot V1.0.0', { type: 'PLAYING' })
+	setInterval(checkqualfiedosu, 60000);
+	setInterval(checkqualfiedtaiko, 60000);
+	setInterval(checkqualfiedcatch, 60000);
+	setInterval(checkqualfiedmania, 60000);
 });
-
 //カジノの絵文字
 const symbols = ['🍒', '🍊', '🍇', '🔔', '💰', '⌚', '⛵'];
 
@@ -720,8 +725,15 @@ client.on("message", async(message) =>
 				}
 
 				//リンクを削除する処理
-				removeStringFromFile(`${wannadelete} `);
-				message.reply("削除しました");
+				if (fs.readFileSync(`./Furry/Furry.txt`, "utf-8").includes(wannadelete)) {
+					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
+					const newtext = currenttext.replace(`${wannadelete} `, "")
+					fs.writeFileSync(`./Furry/Furry.txt`, newtext)
+					message.reply("削除が完了しました");
+				} else {
+					message.reply("そのリンクはリンク一覧に存在しません。")
+					return
+				}
 			}catch (e){
 				console.log(e)
 				message.reply("ファイルの削除中にエラーが発生しました。")
@@ -834,26 +846,8 @@ client.on("message", async(message) =>
 		}
 
 		//メッセージが特定の文字列だったら、という処理(おふざけBOT)
-		if (message.content == "うん") {
-			message.channel.send("こ")
-			return
-		} else if (message.content == "おい") {
+		if (message.content == "おい") {
 			message.channel.send("電話だ")
-			return
-		} else if (message.content.endsWith("ぞ？")) {
-			message.channel.send("で　ん　わ　で")
-			return
-		} else if (message.content == "死ね" || message.content == "しね" || message.content == "死ねよ" || message.content == "しねよ") {
-			message.channel.send("いきる")
-			return
-		} else if (message.content.endsWith("しらねぇよ")) {
-			message.channel.send("知らねえじゃねえ！！！");
-			return;
-		} else if (message.content == "ごま") {
-			message.channel.send("まいご")
-			return
-		} else if (message.content == "やばい") {
-			message.channel.send("やばいからやばい")
 			return
 		}
 
@@ -2095,6 +2089,81 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//!qfコマンド(osu!BOT)
+		if (message.content.startsWith("!qf")) {
+			try {
+				//!qfのみ入力された時の処理
+				if (message.content == "!qf") {
+					message.reply("使い方: !qf <モード(osu, taiko, catch, mania)>")
+					return
+				}
+				const channelid = message.channel.id
+				const mode = message.content.split(" ")[1]
+				if (mode == undefined) {
+					message.reply("モードを入力してください。")
+					return
+				}
+				if (mode == "") {
+					message.reply("モードの前の空白が1つ多い可能性があります。")
+					return
+				}
+				if (!(mode == "osu" || mode == "taiko" || mode == "catch" || mode == "mania")) {
+					message.reply("モードの指定方法が間違っています。osu, taiko, catch, maniaのどれかを入力してください。")
+					return
+				}
+				const allchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8").split(" ")
+				if (allchannels.includes(channelid)) {
+					message.reply("このチャンネルは既にQualfiedチェックチャンネルとして登録されています。")
+					return
+				}
+				fs.appendFile(`./QualfiedChannels/${mode}/Channels.txt`, `${channelid} `, function (err) {
+					if (err) throw err
+				})
+				message.reply(`このチャンネルを${mode}のQualfiedチェックチャンネルとして登録しました。`)
+			} catch (e){
+				console.log(e)
+				return
+			}
+		}
+
+		//!deqfコマンド(osu!BOT)
+		if (message.content.startsWith("!deqf")) {
+			try {
+				//!qfのみ入力された時の処理
+				if (message.content == "!deqf") {
+					message.reply("使い方: !deqf <モード(osu, taiko, catch, mania)>")
+					return
+				}
+				const channelid = message.channel.id
+				const mode = message.content.split(" ")[1]
+				if (mode == undefined) {
+					message.reply("モードを入力してください。")
+					return
+				}
+				if (mode == "") {
+					message.reply("モードの前の空白が1つ多い可能性があります。")
+					return
+				}
+				if (!(mode == "osu" || mode == "taiko" || mode == "catch" || mode == "mania")) {
+					message.reply("モードの指定方法が間違っています。osu, taiko, catch, maniaのどれかを入力してください。")
+					return
+				}
+				const allchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8").split(" ")
+				if (allchannels.includes(channelid)) {
+					const currentchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8")
+					const newchannels = currentchannels.replace(`${channelid} `, "")
+					fs.writeFileSync(`./QualfiedChannels/${mode}/Channels.txt`, newchannels)
+				} else {
+					message.reply("このチャンネルはQualfiedチェックチャンネルとして登録されていません。")
+					return
+				}
+				message.reply(`このチャンネルを${mode}のQualfiedチェックチャンネルから削除しました。`)
+			} catch (e){
+				console.log(e)
+				return
+			}
+		}
+
 		//?slayerコマンド(Hypixel Skyblock)
 		if (message.content.startsWith("?slayer")) {
 			try {
@@ -2361,7 +2430,7 @@ client.on("message", async(message) =>
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock>")
 		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。")
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。")
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
 		} else if (message.content == "!bothelp furry") {
@@ -2436,20 +2505,447 @@ function checkStrings(array) {
 	return true
 }
 
-//FurryBotの関数
-function removeStringFromFile(stringToRemove) {
-	return new Promise((resolve, reject) =>{
-		fs.readFile('./Furry/Furry.txt', "utf8", (err, data) =>{
-			if(err) reject(err)
-			else {
-				const updatedData = data.replace(new RegExp(stringToRemove, "g"), "")
-				fs.writeFile('./Furry/Furry.txt', updatedData, (err) => {
-					if (err) reject(err)
-					else resolve()
-				})
-			}
-		})
-	})
+function findDifferentElements(array1, array2) {
+	if (array1.length > array2.length) {
+		return null;
+	}
+	if (array1.toString() == array2.toString()) {
+		return null;
+	}
+	for (let i = 0; i < array1.length; i++) {
+		if (array1[i] !== array2[i]) {
+			return array2[i];
+		}
+	}
+	return null;
+}
+
+async function checkqualfiedosu () {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objectosu = {
+			mode: "osu",
+			section: "qualified"
+		};
+
+		//検索結果を取得
+		const qfdatalist = await v2.beatmap.search(objectosu);
+
+		//検索結果からIDのみを取得
+		let qfarray = [];
+		for (const element of qfdatalist.beatmapsets) {
+			qfarray.push(element.id)
+		}
+
+		//現在のQualfiedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentQFlistfile = fs.readFileSync(`./QualfiedBeatmaps/osu.txt`, 'utf8');
+		const currentQFlistarray = currentQFlistfile.split(",");
+
+		//先程の検索結果と現在のQualfiedのIDを比較し、違う物を取得
+		const differentQF = findDifferentElements(currentQFlistarray, qfarray);
+		fs.writeFileSync(`./QualfiedBeatmaps/osu.txt`, qfarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentQF == null) return;
+
+		//違う物があった場合の処理(SRやPPの計算過程)
+		let QFbeatmapsmaxsrId;
+		let QFbeatmapsminsrId;
+
+		//BeatmapIdを取得
+		await v2.beatmap.set(differentQF).then(async (res) => {
+			const array = res.beatmaps;
+			array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+			const maxRatingObj = array[array.length - 1];
+			const minRatingObj = array[0];
+			QFbeatmapsmaxsrId = maxRatingObj.id;
+			QFbeatmapsminsrId = minRatingObj.id;
+		});
+
+		//なんらかのエラーでundefinedだった場合の処理
+		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return;
+
+		//マップ情報を取得(タイトルなど)
+		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
+		const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "osu");
+		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "osu");
+		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "osu");
+		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "osu");
+
+		//QF時の日時を取得
+		const now = new Date();
+		const month = now.getMonth() + 1;
+		const day = now.getDate();
+		const hours = now.getHours();
+		const minutes = now.getMinutes();
+		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+		//Ranked時(予測)の日時(７日後)を取得
+		const sevenDaysLater = new Date(now);
+		sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+		const rankedmonth = sevenDaysLater.getMonth() + 1;
+		const rankedday = sevenDaysLater.getDate();
+		const rankedhours = sevenDaysLater.getHours();
+		const rankedminutes = sevenDaysLater.getMinutes();
+		const rankeddateString = `${rankedmonth}月${rankedday}日 ${rankedhours}時${rankedminutes}分`;
+
+		//表示用の文字列を作成
+		let srstring;
+		let ppstring;
+		if (maxsr.sr == minsr.sr) {
+			srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+		} else {
+			srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+		}
+		if (maxsr.S0 == minsr.S0) {
+			ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+		} else {
+			ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+		}
+
+		//メッセージの送信
+		const embed = new MessageEmbed()
+			.setColor("BLUE")
+			.setAuthor(`🎉New Qualfied osu Map🎉`)
+			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+			.setURL(GetMapInfo.maplink)
+			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`PP`", `**${ppstring}**`, false)
+			.addField("`Qualfied 日時`",`**${dateString}**`, true)
+			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+		for (element of fs.readFileSync(`./QualfiedChannels/osu/Channels.txt`, 'utf8').split(",")) {
+			if (element == "") return;
+			client.channels.cache.get(element).send(embed);
+		}
+	} catch(e) {
+		console.log(e)
+		return
+	}
+}
+
+async function checkqualfiedtaiko () {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objecttaiko = {
+			mode: "taiko",
+			section: "qualified"
+		};
+
+		//検索結果を取得
+		const qfdatalist = await v2.beatmap.search(objecttaiko);
+
+		//検索結果からIDのみを取得
+		let qfarray = [];
+		for (const element of qfdatalist.beatmapsets) {
+			qfarray.push(element.id)
+		}
+
+		//現在のQualfiedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentQFlistfile = fs.readFileSync(`./QualfiedBeatmaps/taiko.txt`, 'utf8');
+		const currentQFlistarray = currentQFlistfile.split(",");
+
+		//先程の検索結果と現在のQualfiedのIDを比較し、違う物を取得
+		const differentQF = findDifferentElements(currentQFlistarray, qfarray);
+		fs.writeFileSync(`./QualfiedBeatmaps/taiko.txt`, qfarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentQF == null) return;
+
+		//違う物があった場合の処理(SRやPPの計算過程)
+		let QFbeatmapsmaxsrId;
+		let QFbeatmapsminsrId;
+
+		//BeatmapIdを取得
+		await v2.beatmap.set(differentQF).then(async (res) => {
+			const array = res.beatmaps;
+			array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+			const maxRatingObj = array[array.length - 1];
+			const minRatingObj = array[0];
+			QFbeatmapsmaxsrId = maxRatingObj.id;
+			QFbeatmapsminsrId = minRatingObj.id;
+		});
+
+		//なんらかのエラーでundefinedだった場合の処理
+		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return;
+
+		//マップ情報を取得(タイトルなど)
+		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
+		const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "taiko");
+		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "taiko");
+		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "taiko");
+		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "taiko");
+
+		//QF時の日時を取得
+		const now = new Date();
+		const month = now.getMonth() + 1;
+		const day = now.getDate();
+		const hours = now.getHours();
+		const minutes = now.getMinutes();
+		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+		//Ranked時(予測)の日時(７日後)を取得
+		const sevenDaysLater = new Date(now);
+		sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+		const rankedmonth = sevenDaysLater.getMonth() + 1;
+		const rankedday = sevenDaysLater.getDate();
+		const rankedhours = sevenDaysLater.getHours();
+		const rankedminutes = sevenDaysLater.getMinutes();
+		const rankeddateString = `${rankedmonth}月${rankedday}日 ${rankedhours}時${rankedminutes}分`;
+
+		//表示用の文字列を作成
+		let srstring;
+		let ppstring;
+		if (maxsr.sr == minsr.sr) {
+			srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+		} else {
+			srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+		}
+		if (maxsr.S0 == minsr.S0) {
+			ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+		} else {
+			ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+		}
+
+		//メッセージの送信
+		const embed = new MessageEmbed()
+			.setColor("BLUE")
+			.setAuthor(`🎉New Qualfied Taiko Map🎉`)
+			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+			.setURL(GetMapInfo.maplink)
+			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`PP`", `**${ppstring}**`, false)
+			.addField("`Qualfied 日時`",`**${dateString}**`, true)
+			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+		for (const element of fs.readFileSync(`./QualfiedChannels/taiko/Channels.txt`, 'utf8').split(",")) {
+			if (element == "") return;
+			client.channels.cache.get(element).send(embed);
+		}
+	} catch(e) {
+		console.log(e)
+		return
+	}
+}
+
+async function checkqualfiedcatch () {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objectfruits = {
+			mode: "fruits",
+			section: "qualified"
+		};
+
+		//検索結果を取得
+		const qfdatalist = await v2.beatmap.search(objectfruits);
+
+		//検索結果からIDのみを取得
+		let qfarray = [];
+		for (const element of qfdatalist.beatmapsets) {
+			qfarray.push(element.id)
+		}
+
+		//現在のQualfiedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentQFlistfile = fs.readFileSync(`./QualfiedBeatmaps/catch.txt`, 'utf8');
+		const currentQFlistarray = currentQFlistfile.split(",");
+
+		//先程の検索結果と現在のQualfiedのIDを比較し、違う物を取得
+		const differentQF = findDifferentElements(currentQFlistarray, qfarray);
+		fs.writeFileSync(`./QualfiedBeatmaps/catch.txt`, qfarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentQF == null) return;
+
+		//違う物があった場合の処理(SRやPPの計算過程)
+		let QFbeatmapsmaxsrId;
+		let QFbeatmapsminsrId;
+
+		//BeatmapIdを取得
+		await v2.beatmap.set(differentQF).then(async (res) => {
+			const array = res.beatmaps;
+			array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+			const maxRatingObj = array[array.length - 1];
+			const minRatingObj = array[0];
+			QFbeatmapsmaxsrId = maxRatingObj.id;
+			QFbeatmapsminsrId = minRatingObj.id;
+		});
+
+		//なんらかのエラーでundefinedだった場合の処理
+		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return;
+
+		//マップ情報を取得(タイトルなど)
+		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
+		const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "catch");
+		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "catch");
+		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "catch");
+		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "catch");
+
+		//QF時の日時を取得
+		const now = new Date();
+		const month = now.getMonth() + 1;
+		const day = now.getDate();
+		const hours = now.getHours();
+		const minutes = now.getMinutes();
+		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+		//Ranked時(予測)の日時(７日後)を取得
+		const sevenDaysLater = new Date(now);
+		sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+		const rankedmonth = sevenDaysLater.getMonth() + 1;
+		const rankedday = sevenDaysLater.getDate();
+		const rankedhours = sevenDaysLater.getHours();
+		const rankedminutes = sevenDaysLater.getMinutes();
+		const rankeddateString = `${rankedmonth}月${rankedday}日 ${rankedhours}時${rankedminutes}分`;
+
+		//表示用の文字列を作成
+		let srstring;
+		let ppstring;
+		if (maxsr.sr == minsr.sr) {
+			srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+		} else {
+			srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+		}
+		if (maxsr.S0 == minsr.S0) {
+			ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+		} else {
+			ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+		}
+
+		//メッセージの送信
+		const embed = new MessageEmbed()
+			.setColor("BLUE")
+			.setAuthor(`🎉New Qualfied Catch Map🎉`)
+			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+			.setURL(GetMapInfo.maplink)
+			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`PP`", `**${ppstring}**`, false)
+			.addField("`Qualfied 日時`",`**${dateString}**`, true)
+			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+		for (const element of fs.readFileSync(`./QualfiedChannels/catch/Channels.txt`, 'utf8').split(",")) {
+			if (element == "") return;
+			client.channels.cache.get(element).send(embed);
+		}
+	} catch(e) {
+		console.log(e)
+		return
+	}
+}
+
+async function checkqualfiedmania () {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objectmania = {
+			mode: "mania",
+			section: "qualified"
+		};
+
+		//検索結果を取得
+		const qfdatalist = await v2.beatmap.search(objectmania);
+
+		//検索結果からIDのみを取得
+		let qfarray = [];
+		for (const element of qfdatalist.beatmapsets) {
+			qfarray.push(element.id)
+		}
+
+		//現在のQualfiedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentQFlistfile = fs.readFileSync(`./QualfiedBeatmaps/mania.txt`, 'utf8');
+		const currentQFlistarray = currentQFlistfile.split(",");
+
+		//先程の検索結果と現在のQualfiedのIDを比較し、違う物を取得
+		const differentQF = findDifferentElements(currentQFlistarray, qfarray);
+		fs.writeFileSync(`./QualfiedBeatmaps/mania.txt`, qfarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentQF == null) return;
+
+		//違う物があった場合の処理(SRやPPの計算過程)
+		let QFbeatmapsmaxsrId;
+		let QFbeatmapsminsrId;
+
+		//BeatmapIdを取得
+		await v2.beatmap.set(differentQF).then(async (res) => {
+			const array = res.beatmaps;
+			array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+			const maxRatingObj = array[array.length - 1];
+			const minRatingObj = array[0];
+			QFbeatmapsmaxsrId = maxRatingObj.id;
+			QFbeatmapsminsrId = minRatingObj.id;
+		});
+
+		//なんらかのエラーでundefinedだった場合の処理
+		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return;
+
+		//マップ情報を取得(タイトルなど)
+		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
+		const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "mania");
+		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "mania");
+		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "mania");
+		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "mania");
+
+		//QF時の日時を取得
+		const now = new Date();
+		const month = now.getMonth() + 1;
+		const day = now.getDate();
+		const hours = now.getHours();
+		const minutes = now.getMinutes();
+		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+		//Ranked時(予測)の日時(７日後)を取得
+		const sevenDaysLater = new Date(now);
+		sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+		const rankedmonth = sevenDaysLater.getMonth() + 1;
+		const rankedday = sevenDaysLater.getDate();
+		const rankedhours = sevenDaysLater.getHours();
+		const rankedminutes = sevenDaysLater.getMinutes();
+		const rankeddateString = `${rankedmonth}月${rankedday}日 ${rankedhours}時${rankedminutes}分`;
+
+		//表示用の文字列を作成
+		let srstring;
+		let ppstring;
+		if (maxsr.sr == minsr.sr) {
+			srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+		} else {
+			srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+		}
+		if (maxsr.S0 == minsr.S0) {
+			ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+		} else {
+			ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+		}
+
+		//メッセージの送信
+		const embed = new MessageEmbed()
+			.setColor("BLUE")
+			.setAuthor(`🎉New Qualfied Mania Map🎉`)
+			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+			.setURL(GetMapInfo.maplink)
+			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`PP`", `**${ppstring}**`, false)
+			.addField("`Qualfied 日時`",`**${dateString}**`, true)
+			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+		for (const element of fs.readFileSync(`./QualfiedChannels/mania/Channels.txt`, 'utf8').split(",")) {
+			if (element == "") return;
+			client.channels.cache.get(element).send(embed);
+		}
+	} catch(e) {
+		console.log(e)
+		return
+	}
 }
 
 //プログレスバー作成関数
