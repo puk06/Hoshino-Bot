@@ -2617,7 +2617,7 @@ async function checkqualfiedosu () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (element of fs.readFileSync(`./QualfiedChannels/osu/Channels.txt`, 'utf8').split(",")) {
+		for (element of fs.readFileSync(`./QualfiedChannels/osu/Channels.txt`, 'utf8').split(" ")) {
 			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -2724,7 +2724,7 @@ async function checkqualfiedtaiko () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/taiko/Channels.txt`, 'utf8').split(",")) {
+		for (const element of fs.readFileSync(`./QualfiedChannels/taiko/Channels.txt`, 'utf8').split(" ")) {
 			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -2831,7 +2831,7 @@ async function checkqualfiedcatch () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/catch/Channels.txt`, 'utf8').split(",")) {
+		for (const element of fs.readFileSync(`./QualfiedChannels/catch/Channels.txt`, 'utf8').split(" ")) {
 			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -2938,7 +2938,7 @@ async function checkqualfiedmania () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/mania/Channels.txt`, 'utf8').split(",")) {
+		for (const element of fs.readFileSync(`./QualfiedChannels/mania/Channels.txt`, 'utf8').split(" ")) {
 			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
