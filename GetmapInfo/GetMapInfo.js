@@ -1,6 +1,6 @@
 //require ribrary
 const axios = require("axios");
-const { modeconvert } = require("../Mode/Mode");
+const { modeconvert, modeconvertforlinks } = require("../Mode/Mode");
 
 module.exports.getMapInfo = async (maplink, apikey, mods) => {
 	const beatmapId = maplink.split("#")[1].split("/")[1];
@@ -64,7 +64,7 @@ module.exports.getMapforRecent = async (beatmapId, apikey, mods) => {
 			cs: parseInt(data[0].diff_size),
 			ar: parseInt(data[0].diff_approach),
 			hp: parseInt(data[0].diff_drain),
-			maplink: `https://osu.ppy.sh/beatmapsets/${data[0].beatmapset_id}#${modeconvert(data[0].mode)}/${beatmapId}`,
+			maplink: `https://osu.ppy.sh/beatmapsets/${data[0].beatmapset_id}#${modeconvertforlinks(data[0].mode)}/${beatmapId}`,
 			totallength: parseInt(lengthsec),
 			lengthmin: time.minutes,
 			lengthsec: time.seconds,
