@@ -2220,12 +2220,12 @@ client.on("message", async(message) =>
 					const newchannels = currentchannels.replace(`${channelid} `, "")
 					fs.writeFileSync("./BeatmapLinkChannels/Channels.txt", newchannels)
 				} else {
-					message.reply("このチャンネルは既にマップ情報が表示されないようになっています。")
+					message.reply("このチャンネルでは既にマップ情報が表示されないようになっています。")
 					return
 				}
 
 				//メッセージ送信
-				message.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されないようになりました。再度表示したい場合は!linkコマンドを使用してください。`)
+				message.reply(`このチャンネルにマップリンクが送信されてもマップ情報が表示されないようになりました。再度表示したい場合は!linkコマンドを使用してください。`)
 			} catch (e){
 				console.log(e)
 				return
