@@ -2618,6 +2618,7 @@ async function checkqualfiedosu () {
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
 		for (element of fs.readFileSync(`./QualfiedChannels/osu/Channels.txt`, 'utf8').split(" ")) {
+			if (client.channels.cache.get(element) == undefined) continue;
 			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -2725,6 +2726,7 @@ async function checkqualfiedtaiko () {
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
 		for (const element of fs.readFileSync(`./QualfiedChannels/taiko/Channels.txt`, 'utf8').split(" ")) {
+			if (client.channels.cache.get(element) == undefined) continue;
 			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -2832,6 +2834,7 @@ async function checkqualfiedcatch () {
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
 		for (const element of fs.readFileSync(`./QualfiedChannels/catch/Channels.txt`, 'utf8').split(" ")) {
+			if (client.channels.cache.get(element) == undefined) continue;
 			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -2939,6 +2942,7 @@ async function checkqualfiedmania () {
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
 		for (const element of fs.readFileSync(`./QualfiedChannels/mania/Channels.txt`, 'utf8').split(" ")) {
+			if (client.channels.cache.get(element) == undefined) continue; 
 			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
