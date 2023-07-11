@@ -2552,6 +2552,7 @@ function findDifferentElements(array1, array2) {
 	return null;
 }
 
+//Qualfiedチェックをする関数(全mode対応)
 async function checkqualfiedosu () {
 	try {
 		//V2にアクセスするためのログイン処理
@@ -2649,9 +2650,8 @@ async function checkqualfiedosu () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (element of fs.readFileSync(`./QualfiedChannels/osu/Channels.txt`, 'utf8').split(" ")) {
+		for (element of fs.readFileSync(`./QualfiedChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channels) {return channels !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
 	} catch(e) {
@@ -2757,9 +2757,8 @@ async function checkqualfiedtaiko () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/taiko/Channels.txt`, 'utf8').split(" ")) {
+		for (const element of fs.readFileSync(`./QualfiedChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channels) {return channels !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
 	} catch(e) {
@@ -2865,9 +2864,8 @@ async function checkqualfiedcatch () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/catch/Channels.txt`, 'utf8').split(" ")) {
+		for (const element of fs.readFileSync(`./QualfiedChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channels) {return channels !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			if (element == "") return;
 			client.channels.cache.get(element).send(embed);
 		}
 	} catch(e) {
@@ -2973,9 +2971,8 @@ async function checkqualfiedmania () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/mania/Channels.txt`, 'utf8').split(" ")) {
-			if (client.channels.cache.get(element) == undefined) continue; 
-			if (element == "") return;
+		for (const element of fs.readFileSync(`./QualfiedChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channels) {return channels !== "";}))) {
+			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
 		}
 	} catch(e) {
