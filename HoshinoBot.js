@@ -2044,6 +2044,101 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//Beatmapリンクが入力されたときの処理
+		if (message.content.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+			try {
+				//チャンネルidを取得
+				const channelid = message.channel.id;
+
+				//全ての登録済みのチャンネルを取得、チャンネルidがにChannels.txtになかった場合の処理
+				const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+				if (!allchannels.includes(channelid)) return;
+
+				//マップ情報を取得
+				const mapdata = await getMapInfowithoutmods(message.content, apikey);
+
+				//マッパー情報を取得
+				const mapperdata = await getplayersdata(apikey, mapdata.mapper);
+
+				//SRを計算
+				const sr = await calculateSR(mapdata.beatmapId, 0, modeconvert(mapdata.mode));
+
+				//マップの時間の秒数を分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
+				let lengthsec;
+				if (numDigits(parseFloat(mapdata.lengthsec.toFixed(0))) == 1) {
+					lengthsec = ('00' + mapdata.lengthsec.toString()).slice(-2)
+				} else {
+					lengthsec = parseFloat(mapdata.lengthsec.toString()).toFixed(0)
+				}
+
+				//メッセージを送信
+				const embed = new MessageEmbed()
+					.setColor("BLUE")
+					.setAuthor(`${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, mapperdata.iconurl, message.content)
+					.setDescription(`**Length**: ${mapdata.lengthmin}:${lengthsec} **BPM**: ${mapdata.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapdata.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapdata.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapdata.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapdata.beatmapset_id})`)
+					.addField(`**[__${mapdata.version}__]**`, `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **98**%-${sr.S3} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, false)
+					.setTimestamp()
+					.setImage(`https://assets.ppy.sh/beatmaps/${mapdata.beatmapset_id}/covers/cover.jpg`)
+					.setFooter(`${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}`);
+				message.channel.send(embed)
+			} catch (e) {
+				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+				console.log(e)
+				return
+			}
+		}
+
+		//!linkコマンド(osu!BOT)
+		if (message.content.startsWith("!link")) {
+			try {
+				//チャンネルidを取得
+				const channelid = message.channel.id;
+
+				//全ての登録済みのチャンネルを取得、チャンネルidが既にChannels.txtにあった場合の処理
+				const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+				if (allchannels.includes(channelid)) {
+					message.reply("このチャンネルは既にマップ情報が表示されるようになっています。")
+					return
+				}
+
+				//Channels.txtにチャンネルidを追加
+				fs.appendFile("./BeatmapLinkChannels/Channels.txt", `${channelid} `, function (err) {
+					if (err) throw err
+				})
+
+				//メッセージ送信
+				message.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されるようになりました。解除したい場合は!unlinkコマンドを使用してください。`)
+			} catch (e){
+				console.log(e)
+				return
+			}
+		}
+
+		//!unlinkコマンド(osu!BOT)
+		if (message.content.startsWith("!unlink")) {
+			try {
+				//チャンネルidを取得
+				const channelid = message.channel.id
+
+				//全ての登録済みのチャンネルを取得、チャンネルidが既にChannels.txtにあった場合の処理(削除)
+				const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+				if (allchannels.includes(channelid)) {
+					const currentchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8")
+					const newchannels = currentchannels.replace(`${channelid} `, "")
+					fs.writeFileSync("./BeatmapLinkChannels/Channels.txt", newchannels)
+				} else {
+					message.reply("このチャンネルは既にマップ情報が表示されないようになっています。")
+					return
+				}
+
+				//メッセージ送信
+				message.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されないようになりました。再度表示したい場合は!linkコマンドを使用してください。`)
+			} catch (e){
+				console.log(e)
+				return
+			}
+		}
+
 		//Streamの長さをチェックするコマンド(osu!BOT)
 		if (message.content.startsWith("!check")) {
 			try {
@@ -2462,7 +2557,7 @@ client.on("message", async(message) =>
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock>")
 		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。")
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。")
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
 		} else if (message.content == "!bothelp furry") {
