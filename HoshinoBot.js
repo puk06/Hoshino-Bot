@@ -2076,7 +2076,7 @@ client.on("message", async(message) =>
 					.setColor("BLUE")
 					.setAuthor(`${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, mapperdata.iconurl, message.content)
 					.setDescription(`**Length**: ${mapdata.lengthmin}:${lengthsec} **BPM**: ${mapdata.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapdata.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapdata.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapdata.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapdata.beatmapset_id})`)
-					.addField(`**[__${mapdata.version}__]**`, `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **98**%-${sr.S3} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, false)
+					.addField(`**[__${mapdata.version}__]**`, `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, false)
 					.setTimestamp()
 					.setImage(`https://assets.ppy.sh/beatmaps/${mapdata.beatmapset_id}/covers/cover.jpg`)
 					.setFooter(`${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}`);
