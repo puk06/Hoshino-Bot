@@ -913,7 +913,7 @@ client.on("message", async(message) =>
 					Mods = [message.content.split(" ")[2].toUpperCase()];
 					Mods = splitString(Mods);
 					if (!checkStrings(Mods)) {
-						message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。")
+						message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
 						return
 					}
 					if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")))) {
@@ -1661,7 +1661,7 @@ client.on("message", async(message) =>
 
 					//Modsが正しいかどうか判別する処理
 					if (!checkStrings(mods)) {
-						message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。")
+						message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
 						return
 					}
 					if ((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")) )) {
@@ -1773,7 +1773,7 @@ client.on("message", async(message) =>
 
 				//Modsが正しいかどうか判別する処理
 				if (!checkStrings(mods)) {
-					message.reply("入力されたModは存在しません。存在するModを指定するようにしてください。")
+					message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
 					return
 				}
 				if ((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")))) {
@@ -2087,6 +2087,99 @@ client.on("message", async(message) =>
 				return
 			}
 		}
+
+		//!m <Mods>コマンドの処理(osu!BOT)
+		if (message.content.startsWith("!m")) {
+			try {
+				//!mのみ入力された時の処理
+				if (message.content == "!m") {
+					message.reply("使い方: !m <Mods>")
+					return
+				}
+
+				//チャンネルidを取得
+				const channelid = message.channel.id;
+
+				//全ての登録済みのチャンネルを取得、チャンネルidがにChannels.txtになかった場合の処理
+				const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+				if (!allchannels.includes(channelid)) return;
+
+				//チャンネルから直近の50件のメッセージを取得する
+				const messagedata = await message.channel.messages.fetch();
+				const maplinks = messagedata.filter(function(message) {return message.content.startsWith("https://osu.ppy.sh/beatmapsets/")}).array();
+				const recentmaplink = maplinks[0].toString();
+				if (recentmaplink == undefined) {
+					message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。")
+					return
+				}
+
+				//Modsが入力されてなかったときの処理
+				if (message.content.split(" ")[1] == undefined) {
+					message.reply("Modsを入力してください。")
+					return
+				}
+				
+				//Modsの前に空白が1つより多かったときの処理
+				if (message.content.split(" ")[1] == "") {
+					message.reply("Modsの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//Modsの処理
+				let Mods = [];
+				Mods = [message.content.split(" ")[1].toUpperCase()];
+				Mods = splitString(Mods);
+				if (!checkStrings(Mods)) {
+					message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
+					return
+				}
+				if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")))) {
+					message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
+					return
+				}
+				if (Mods.includes("NC")) {
+					Mods.push("DT")
+					let modsnotNC = Mods.filter((item) => /NC/.exec(item) == null)
+					Mods = modsnotNC
+				}
+
+				//マップ情報を取得
+				const mapdata = await getMapInfo(recentmaplink, apikey, Mods);
+
+				//マッパー情報を取得
+				const mapperdata = await getplayersdata(apikey, mapdata.mapper);
+
+				//SRを計算
+				const sr = await calculateSR(mapdata.beatmapId, parseModString(Mods), modeconvert(mapdata.mode));
+
+				//マップの時間の秒数を分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
+				let lengthsec;
+				if (numDigits(parseFloat(mapdata.lengthsec.toFixed(0))) == 1) {
+					lengthsec = ('00' + mapdata.lengthsec.toString()).slice(-2)
+				} else {
+					lengthsec = parseFloat(mapdata.lengthsec.toString()).toFixed(0)
+				}
+
+				//表示用のMod欄を作成
+				const showonlymods = message.content.split(" ")[1].toUpperCase();
+
+				//メッセージを送信
+				const embed = new MessageEmbed()
+					.setColor("BLUE")
+					.setAuthor(`${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, mapperdata.iconurl, recentmaplink)
+					.setDescription(`**Length**: ${mapdata.lengthmin}:${lengthsec} **BPM**: ${mapdata.bpm} **Mods**: ${showonlymods}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapdata.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapdata.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapdata.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapdata.beatmapset_id})`)
+					.addField(`**[__${mapdata.version}__]**`, `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, false)
+					.setTimestamp()
+					.setImage(`https://assets.ppy.sh/beatmaps/${mapdata.beatmapset_id}/covers/cover.jpg`)
+					.setFooter(`${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}`);
+				message.channel.send(embed)
+			} catch(e) {
+				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+				console.log(e)
+				return
+			}
+		}
+
 
 		//!linkコマンド(osu!BOT)
 		if (message.content.startsWith("!link")) {
@@ -2557,7 +2650,7 @@ client.on("message", async(message) =>
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock>")
 		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。")
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。")
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
 		} else if (message.content == "!bothelp furry") {
