@@ -3,7 +3,7 @@ module.exports.modeconvert = (mode) => {
         return "0"
     }else if(mode == "taiko"){
         return "1"
-    }else if(mode == "ctb"){
+    }else if(mode == "fruits"){
         return "2"
     }else if(mode == "mania"){
         return "3"
@@ -12,7 +12,7 @@ module.exports.modeconvert = (mode) => {
     }else if(mode == "1"){
         return "taiko"
     }else if(mode == "2"){
-        return "ctb"
+        return "fruits"
     }else if(mode == "3"){
         return "mania"
     }else if(mode == "o"){
