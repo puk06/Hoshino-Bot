@@ -653,10 +653,10 @@ client.on("message", async(message) =>
 				const text = fs.readFileSync(`./Furry/Furry.txt`, 'utf-8');
 
 				//一覧を配列に変換
-				const lines = text.split(" ");
+				const lines = text.split(" ").filter((function(link) {return link !== "";}));
 
 				//配列の要素数を取得
-				const lineCount = lines.length - 1;
+				const lineCount = lines.length;
 
 				//配列の要素数からランダムな数字を生成
 				const randomLineNumber = Math.floor(Math.random() * lineCount);
@@ -748,10 +748,10 @@ client.on("message", async(message) =>
 				const text = fs.readFileSync(`./Furry/Furry.txt`, 'utf-8');
 
 				//一覧を配列に変換
-				const lines = text.split(" ");
+				const lines = text.split(" ").filter((function(link) {return link !== "";}));
 
 				//配列の要素数を取得
-				const lineCount = lines.length -1;
+				const lineCount = lines.length;
 
 				//要素数の結果を送信
 				message.channel.send(`今まで追加した画像や映像、gifの合計枚数は${lineCount}枚です。`);
@@ -2111,7 +2111,7 @@ client.on("message", async(message) =>
 					message.reply("モードの指定方法が間違っています。osu, taiko, catch, maniaのどれかを入力してください。")
 					return
 				}
-				const allchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8").split(" ")
+				const allchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
 				if (allchannels.includes(channelid)) {
 					message.reply("このチャンネルは既にQualfiedチェックチャンネルとして登録されています。")
 					return
@@ -2148,7 +2148,7 @@ client.on("message", async(message) =>
 					message.reply("モードの指定方法が間違っています。osu, taiko, catch, maniaのどれかを入力してください。")
 					return
 				}
-				const allchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8").split(" ")
+				const allchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
 				if (allchannels.includes(channelid)) {
 					const currentchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8")
 					const newchannels = currentchannels.replace(`${channelid} `, "")
@@ -2397,7 +2397,7 @@ client.on("message", async(message) =>
 				}
 
 				//メッセージからユーザー名を取得
-				const username = message.content.split(" ")[1]
+				const username = message.content.split(" ")[1];
 
 				//ユーザー名が入力されてなかった時、の処理
 				if (username == undefined) {
@@ -2650,7 +2650,7 @@ async function checkqualfiedosu () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (element of fs.readFileSync(`./QualfiedChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channels) {return channels !== "";}))) {
+		for (const element of fs.readFileSync(`./QualfiedChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -2757,7 +2757,7 @@ async function checkqualfiedtaiko () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channels) {return channels !== "";}))) {
+		for (const element of fs.readFileSync(`./QualfiedChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -2864,7 +2864,7 @@ async function checkqualfiedcatch () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channels) {return channels !== "";}))) {
+		for (const element of fs.readFileSync(`./QualfiedChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -2971,7 +2971,7 @@ async function checkqualfiedmania () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channels) {return channels !== "";}))) {
+		for (const element of fs.readFileSync(`./QualfiedChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
 		}
