@@ -836,7 +836,7 @@ client.on("message", async(message) =>
 				}
 
 				//タグの削除
-				fs.rmdir(`./tag/${message.channel.name}`, { recursive: true });
+				fs.rmdirSync(`./tag/${message.channel.name}`, { recursive: true });
 
 				//タグの削除が完了したことを知らせるメッセージを送信
 				message.reply("タグが正常に削除されました。")
@@ -1063,12 +1063,6 @@ client.on("message", async(message) =>
 				message.reply("コマンド処理中にエラーが発生しました。")
 				return
 			}
-		}
-
-		//メッセージが特定の文字列だったら、という処理(おふざけBOT)
-		if (message.content == "おい") {
-			message.channel.send("電話だ")
-			return
 		}
 
 		//!mapコマンドの処理(osu!BOT)
