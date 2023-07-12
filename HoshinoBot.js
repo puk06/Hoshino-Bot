@@ -5,6 +5,7 @@ const fs = require("fs");
 const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
 const axios = require("./node_modules/axios");
 const path = require('path');
+const util = require('util');
 
 //必要なファイルの読み込み
 const { calculateSR, calculateSRwithacc } = require("./CalculateSR/CalculateSRPP");
@@ -729,7 +730,7 @@ client.on("message", async(message) =>
 					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
 					const newtext = currenttext.replace(`${wannadelete} `, "")
 					fs.writeFileSync(`./Furry/Furry.txt`, newtext)
-					message.reply("削除が完了しました");
+					message.reply("ファイルの削除が完了しました");
 				} else {
 					message.reply("そのリンクはリンク一覧に存在しません。")
 					return
@@ -758,6 +759,225 @@ client.on("message", async(message) =>
 			} catch (e) {
 				console.log(e)
 				message.channel.send('ファイルを読み込む際にエラーが発生しました。')
+				return
+			}
+		}
+
+		//!picコマンドの処理(All picture Bot)
+		if(message.content.startsWith("!pic")){
+            try {
+				//コマンドのみ入力された場合の処理
+				if (message.content == "!pic") {
+					message.reply("使い方: !pic <タグ名>")
+					return
+				}
+
+				//メッセージからタグを取得
+                const tag = message.content.split(" ")[1]
+                if (tag == undefined) {
+                    message.reply("タグを指定してください。")
+                    return
+                }
+				
+				//タグの前の空白が1つ多い場合の処理
+				if (tag == "") {
+					message.reply("タグの前の空白が1つ多い可能性があります。")
+				}
+
+				//タグが存在するかの確認
+				if (!fs.existsSync(`./tag/${tag}/picture.txt`)) {
+					message.reply("このタグは存在しません。")
+					return
+				}
+
+				//タグの中身が空の場合の処理
+                const text = fs.readFileSync(`./tag/${tag}/picture.txt`, 'utf-8').split(" ").filter((function(link) {return link !== "";}));
+                if (text.length == 0) {
+                    message.reply("このタグにはファイルがないみたいです。")
+                    return
+                }
+
+				//タグの中身のファイルからランダムで画像を選択
+                const lineCount = text.length;
+                const randomLineNumber = Math.floor(Math.random() * lineCount);
+                const randomLine = text[randomLineNumber];
+
+				//画像を送信
+                message.channel.send(randomLine);
+            } catch(e) {
+                console.log(e)
+                message.reply("エラーが発生しました。")
+				return
+            }
+        }
+
+		//!settagコマンドの処理(All picture Bot)
+		if (message.content.startsWith("!createtag")) {
+            try {
+				//ディリクトリ、ファイルの作成
+				const mkdir = util.promisify(fs.mkdir);
+				const writeFile = util.promisify(fs.writeFile);
+				await mkdir(`./tag/${message.channel.name}`);
+				await writeFile(`./tag/${message.channel.name}/picture.txt`, "");
+				message.reply("タグが正常に作成されました。")
+			} catch (e) {
+				message.reply("このタグは既に存在します。")
+				return
+			}
+        }
+
+		//!deltagコマンドの処理(All picture Bot)
+		if (message.content.startsWith("!deltag")) {
+			try {
+				//タグが存在するかの確認、しなかった場合の処理
+				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
+					message.reply("このタグは存在しません。")
+					return
+				}
+
+				//タグの削除
+				fs.rmdir(`./tag/${message.channel.name}`, { recursive: true });
+
+				//タグの削除が完了したことを知らせるメッセージを送信
+				message.reply("タグが正常に削除されました。")
+			} catch (e) {
+				console.log(e)
+				message.reply("エラーが発生しました。")
+				return
+			}
+		}
+
+		//画像が送信された時の処理(All picture Bot)
+		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.endsWith('.avi') || attachment.url.endsWith('.mov') || attachment.url.endsWith('.mp4') || attachment.url.endsWith('.png') || attachment.url.endsWith('.jpg') || attachment.url.endsWith('.gif'))) {
+			try {
+				//Botが送った画像に対しての処理をブロック
+				if (message.author.bot) return;
+
+				//写真が送信されたチャンネルがタグとして登録されてなかった場合の処理
+				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) return;
+
+				//画像のURLを取得
+				const attachment = message.attachments.first();
+				const imageURL = attachment.url;
+
+				//画像のURLをテキストファイルに保存
+				fs.appendFile(`./tag/${message.channel.name}/picture.txt`, `${imageURL} `, function (err) {
+					if (err) throw err
+				})
+
+				//画像の保存が完了したことを知らせるメッセージを送信
+				message.reply(`ファイルが保存されました`);
+			} catch (e) {
+				console.log(e)
+				message.reply("ファイルの保存中にエラーが発生しました。")
+				return
+			}
+		}
+
+		//!picdeleteコマンドの処理(All picture Bot)
+		if (message.content.startsWith("!delpic")) {
+			try{
+				//Botが送ったコマンドに対しての処理をブロック
+				if (message.author.bot) return;
+
+				//タグ(チャンネル)が登録されていなかった場合の処理
+				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) return;
+
+				//コマンドのみ入力された場合の処理
+				if (message.content == "!picdelete") {
+					message.reply("使い方: !picdelete <メディアリンク>")
+					return
+				}
+
+				//コマンドの後の空白が1つ多い場合の処理
+				if (!message.content.split(" ")[0] == "!picdelete") {
+					message.reply("!picdeleteとリンクの間には空白を入れてください。")
+					return
+				}
+
+				//削除したいリンクを取得
+				const wannadelete = message.content.split(" ")[1];
+
+				//削除したいリンクの前の空白が1つ多い場合の処理
+				if (wannadelete == "") {
+					message.reply("削除したいリンクの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//リンクを削除する処理
+				if (fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, "utf-8").includes(wannadelete)) {
+					const currenttext = fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, "utf-8")
+					const newtext = currenttext.replace(`${wannadelete} `, "")
+					fs.writeFileSync(`./tag/${message.channel.name}/picture.txt`, newtext)
+					message.reply("ファイルの削除が完了しました");
+				} else {
+					message.reply("そのリンクはリンク一覧に存在しません。")
+					return
+				}
+			}catch (e){
+				console.log(e)
+				message.reply("ファイルの削除中にエラーが発生しました。")
+				return
+			}
+		}
+
+		//!piccountコマンドの処理(All picture Bot)
+		if (message.content == "!allcount") {
+			try {
+
+				//タグ(チャンネル)が登録されていなかった場合の処理
+				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
+					message.reply("このタグは登録されていません。")
+					return;
+				}
+				//テキストファイルから一覧を取得
+				const text = fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, 'utf-8');
+
+				//一覧を配列に変換
+				const lines = text.split(" ").filter((function(link) {return link !== "";}));
+
+				//配列の要素数を取得
+				const lineCount = lines.length;
+
+				if (lineCount == 0) {
+					message.reply("このタグにはファイルがないみたいです。")
+					return
+				}
+
+				//要素数の結果を送信
+				message.channel.send(`今まで${message.channel.name}タグに追加した画像や映像、gifの合計枚数は${lineCount}枚です。`);
+			} catch (e) {
+				console.log(e)
+				message.channel.send('ファイルを読み込む際にエラーが発生しました。')
+				return
+			}
+		}
+
+		//!alltagsコマンドの処理(All picture Bot)
+		if (message.content == "!alltags") {
+			try {
+				//全てのフォルダー名からタグを取得
+				const tags = fs.readdirSync(`./tag/`, { withFileTypes: true })
+
+				//タグの数が0だった場合
+				if (tags.length == 0) {
+					message.reply("タグが存在しません。")
+					return
+				}
+
+				//タグの一覧を格納する配列を作成
+				let taglist = [];
+
+				//タグの一覧を作成
+				for (let i = 0; i < tags.length; i++ ) {
+					taglist.push(`${i + 1}: ${tags[i].name}\n`);
+				}
+
+				//タグの一覧を送信
+				message.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
+			} catch (e) {
+				console.log(e)
+				message.reply("エラーが発生しました。")
 				return
 			}
 		}
@@ -2659,6 +2879,8 @@ client.on("message", async(message) =>
 			message.reply("__**おふざけコマンドの使い方**__ \n1: `!kunii <単語(2つ以上)>` それぞれの単語の1文字目を入れ替えることが出来ます。")
 		} else if (message.content == "!bothelp Skyblock") {
 			message.reply("__**Skyblockコマンドの使い方**__ \n1: `?profile <Minecraftユーザー名>` SkyblockのプロファイルのIDを知ることが出来ます。?slayerコマンドで使います。\n2: `?slayer <Minecraftユーザー名> <スレイヤーのID(1（ゾンスレ）, 2（クモスレ）, 3（ウルフスレ）, 4（エンスレ）, 5（ブレイズスレ）)> <プロファイルID>` Skyblockのスレイヤーのレベルを上げるのに必要な経験値、周回数を知ることが出来ます。")
+		} else if (message.content == "!bothelp pic") {
+			message.reply("__**All pictureコマンドの使い方**__ \n1: `!pic <タグ名>` そのタグに追加されたファイルを見ることができます。/kemoコマンドの拡張版のようなものです。\n2: `!createtag` 入力されたチャンネルの名前でタグが作成され、そこで画像や動画を送信すると自動的に保存されるようになります。\n3: `!delpic <メディアリンク>` そのタグ(チャンネル)に登録されたファイルを削除することができます。\n4: `!deltag` タグを削除することができます。また追加されない限り、送られたファイルが保存されなくなります。\n5: `!allcount` 送信されたチャンネルのタグに登録されているファイルの数がしれます。\n5: `!alltags` タグ一覧を見ることができます。")
 		}
 	}
 );
@@ -3177,6 +3399,5 @@ function createProgressBar(percent) {
 	const emptyProgressText = "-".repeat(emptyProgress)
 	return `[${progressText}${emptyProgressText}]`
 }
-
 //discord bot login
 client.login(token);
