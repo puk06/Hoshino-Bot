@@ -3454,7 +3454,7 @@ function createProgressBar(percent) {
 	return `[${progressText}${emptyProgressText}]`
 }
 
-//バックアップを6時間ごとに作成する関数
+//バックアップを1時間ごとに作成する関数
 async function makeBackup() {
 	const now = new Date();
 	const year = now.getFullYear();
