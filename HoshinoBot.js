@@ -28,6 +28,7 @@ const osuclientsecret = process.env.CLIENTSECRET;
 const appid = process.env.APPID;
 const hypixelapikey = process.env.HYPIXELAPI;
 const BotadminId = process.env.BOTADMINID;
+const Furrychannel = process.env.FURRYCHANNEL;
 
 //discord.jsのインテンツを指定
 const client = new Client({ intents: Intents.ALL });
@@ -678,7 +679,7 @@ client.on("message", async(message) =>
 		}
 
 		//特定のチェンネルに添付画像などが送られたら実行する処理(FurryBOT)
-		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.endsWith('.avi') || attachment.url.endsWith('.mov') || attachment.url.endsWith('.mp4') || attachment.url.endsWith('.png') || attachment.url.endsWith('.jpg') || attachment.url.endsWith('.gif')) && message.channel.id == "1106519942058229784") {
+		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.endsWith('.avi') || attachment.url.endsWith('.mov') || attachment.url.endsWith('.mp4') || attachment.url.endsWith('.png') || attachment.url.endsWith('.jpg') || attachment.url.endsWith('.gif')) && message.channel.id == Furrychannel) {
 			try {
 				//Botが送った画像に対しての処理をブロック
 				if (message.author.bot) return;
