@@ -27,6 +27,7 @@ const osuclientid = process.env.CLIENTID;
 const osuclientsecret = process.env.CLIENTSECRET;
 const appid = process.env.APPID;
 const hypixelapikey = process.env.HYPIXELAPI;
+const BotadminId = process.env.BOTADMINID;
 
 //discord.jsのインテンツを指定
 const client = new Client({ intents: Intents.ALL });
@@ -39,7 +40,9 @@ client.on("ready", async () => {
 	setInterval(checkqualfiedtaiko, 60000);
 	setInterval(checkqualfiedcatch, 60000);
 	setInterval(checkqualfiedmania, 60000);
+	setInterval(makeBackup, 3600000);
 });
+
 //カジノの絵文字
 const symbols = ['🍒', '🍊', '🍇', '🔔', '💰', '⌚', '⛵'];
 
@@ -2322,7 +2325,7 @@ client.on("message", async(message) =>
 				//チャンネルidを取得
 				const channelid = message.channel.id;
 
-				//全ての登録済みのチャンネルを取得、チャンネルidがにChannels.txtになかった場合の処理
+				//全ての登録済みのチャンネルを取得、チャンネルidがChannels.txtになかった場合の処理
 				const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
 				if (!allchannels.includes(channelid)) return;
 
@@ -2884,6 +2887,52 @@ client.on("message", async(message) =>
 		} else if (message.content == "!bothelp pic") {
 			message.reply("__**All pictureコマンドの使い方**__ \n1: `!pic <タグ名>` そのタグに追加されたファイルを見ることができます。/kemoコマンドの拡張版のようなものです。\n2: `!createtag` 入力されたチャンネルの名前でタグが作成され、そこで画像や動画を送信すると自動的に保存されるようになります。\n3: `!delpic <メディアリンク>` そのタグ(チャンネル)に登録されたファイルを削除することができます。\n4: `!deltag` タグを削除することができます。また追加されない限り、送られたファイルが保存されなくなります。\n5: `!allcount` 送信されたチャンネルのタグに登録されているファイルの数がしれます。\n5: `!alltags` タグ一覧を見ることができます。")
 		}
+
+		//^backupコマンドの処理(復元用)
+		if (message.content.startsWith("^backup")) {
+			try {
+				//管理者のみ実行するようにする
+				if (message.author.id != BotadminId) {
+					message.reply("このコマンドはBOT管理者のみ実行できます。")
+					return
+				}
+
+				//^backupのみ入力された時の処理
+				if (message.content == "^backup") {
+					message.reply("使い方: ^backup <何時間前か> ※管理者のみ実行できます。")
+					return
+				}
+
+				//バックアップファイルの中身を取得
+				const backupfiles = fs.readdirSync("./Backups").reverse()
+				const wannabackuptime = message.content.split(" ")[1] - 1
+				const wannabackup = backupfiles[wannabackuptime]
+
+				//バックアップファイルが存在しなかった時の処理
+				if (wannabackup == undefined) {
+					message.reply("その期間のバックアップファイルは存在しません。")
+					return
+				}
+
+				//復元作業
+				message.reply(`${wannabackup}のバックアップを復元中です。(0%)`);
+				await fs.copy(`./Backups/${wannabackup}/Player infomation`,`./Player infomation`);
+				message.reply("Player infomationフォルダの復元が完了しました。(20%)");
+				await fs.copy(`./Backups/${wannabackup}/QualfiedChannels`,`./QualfiedChannels`);
+				message.reply("QualfiedChannelsフォルダの復元が完了しました。(40%)");
+				await fs.copy(`./Backups/${wannabackup}/BeatmapLinkChannels`,`./BeatmapLinkChannels`);
+				message.reply("BeatmapLinkChannelsフォルダの復元が完了しました。(60%)");
+				await fs.copy(`./Backups/${wannabackup}/Player Bank`, `./Player Bank`);
+				message.reply("Player Bankフォルダの復元が完了しました。(80%)");
+				await fs.copy(`./Backups/${wannabackup}/tag`, `./tag`);
+				message.reply("tagフォルダの復元が完了しました。(100%)");
+				message.reply(`${wannabackup}のバックアップの全ての復元が完了しました。`)
+			} catch (e) {
+				console.log(e)
+				message.reply("バックアップの復元中にエラーが発生しました。")
+				return
+			}
+		}
 	}
 );
 
@@ -3401,5 +3450,28 @@ function createProgressBar(percent) {
 	const emptyProgressText = "-".repeat(emptyProgress)
 	return `[${progressText}${emptyProgressText}]`
 }
+
+//バックアップを6時間ごとに作成する関数
+async function makeBackup() {
+	const now = new Date();
+	const year = now.getFullYear();
+	const month = now.getMonth();
+	const day = now.getDate();
+	const hours = now.getHours();
+	const minutes = now.getMinutes();
+	const dateString = `${year}-${month}-${day} ${hours} ${minutes}`;
+	await fs.mkdir(`./Backups/${dateString}`);
+	await fs.mkdir(`./Backups/${dateString}/Player infomation`);
+	await fs.mkdir(`./Backups/${dateString}/QualfiedChannels`);
+	await fs.mkdir(`./Backups/${dateString}/BeatmapLinkChannels`);
+	await fs.mkdir(`./Backups/${dateString}/Player Bank`);
+	await fs.mkdir(`./Backups/${dateString}/tag`);
+	await fs.copy(`./Player infomation`, `./Backups/${dateString}/Player infomation`);
+	await fs.copy(`./QualfiedChannels`, `./Backups/${dateString}/QualfiedChannels`);
+	await fs.copy(`./BeatmapLinkChannels`, `./Backups/${dateString}/BeatmapLinkChannels`);
+	await fs.copy(`./Player Bank`, `./Backups/${dateString}/Player Bank`);
+	await fs.copy(`./tag`, `./Backups/${dateString}/tag`);
+}
+
 //discord bot login
 client.login(token);
