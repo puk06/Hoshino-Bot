@@ -1,7 +1,7 @@
 //必要となるライブラリ
 const { Client, Intents, MessageEmbed } = require("./node_modules/discord.js");
 require('./node_modules/dotenv').config();
-const fs = require("fs");
+const fs = require("fs-extra");
 const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
 const axios = require("./node_modules/axios");
 const path = require('path');
@@ -836,7 +836,13 @@ client.on("message", async(message) =>
 				}
 
 				//タグの削除
-				fs.rmdirSync(`./tag/${message.channel.name}`, { recursive: true });
+				fs.remove(`./tag/${message.channel.name}/picture.txt`, (err) => {
+					if (err) {
+						console.log(err)
+						message.reply("ファイルを削除する際にエラーが発生しました。")
+						return
+					}
+				})
 
 				//タグの削除が完了したことを知らせるメッセージを送信
 				message.reply("タグが正常に削除されました。")
@@ -957,7 +963,9 @@ client.on("message", async(message) =>
 		if (message.content == "!alltags") {
 			try {
 				//全てのフォルダー名からタグを取得
-				const tags = fs.readdirSync(`./tag/`, { withFileTypes: true })
+				const tags = fs.readdirSync(`./tag/`, { withFileTypes: true }).filter((function(tag) {
+					return fs.readdirSync(`./tag/${tag.name}`).length !== 0;
+				}));
 
 				//タグの数が0だった場合
 				if (tags.length == 0) {
