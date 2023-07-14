@@ -20,6 +20,7 @@ const { ODscaled } = require("./OD/ODscaled");
 const { getOsuBeatmapFile, checkStream } = require("./Streamcheck/Streamcheck");
 const { checkFileExists } = require("./Checkuser/CheckUser");
 const { calculateScorePP } = require("./CalcGlobalPP/calculateglobalPP");
+const { downloadHoshinobotFile, getCommitDiffofHoshinobot } = require("./HoshinoBot updater");
 
 //APIキーやTOKENなど
 const apikey = process.env.APIKEY;
@@ -30,6 +31,8 @@ const appid = process.env.APPID;
 const hypixelapikey = process.env.HYPIXELAPI;
 const BotadminId = process.env.BOTADMINID;
 const Furrychannel = process.env.FURRYCHANNEL;
+const Githuburl = process.env.GITHUBURL;
+const botfilepath = process.env.BOTFILEPATH;
 
 //discord.jsのインテンツを指定
 const client = new Client({ intents: Intents.ALL });
@@ -845,7 +848,6 @@ client.on("message", async(message) =>
 					if (err) {
 						console.log(err)
 						message.reply("ファイルを削除する際にエラーが発生しました。")
-						return
 					}
 				})
 
@@ -3094,7 +3096,7 @@ client.on("message", async(message) =>
 		} else if (message.content == "!bothelp pic") {
 			message.reply("__**All pictureコマンドの使い方**__ \n1: `!pic <タグ名>` そのタグに追加されたファイルを見ることができます。/kemoコマンドの拡張版のようなものです。\n2: `!createtag` 入力されたチャンネルの名前でタグが作成され、そこで画像や動画を送信すると自動的に保存されるようになります。\n3: `!delpic <メディアリンク>` そのタグ(チャンネル)に登録されたファイルを削除することができます。\n4: `!deltag` タグを削除することができます。また追加されない限り、送られたファイルが保存されなくなります。\n5: `!allcount` 送信されたチャンネルのタグに登録されているファイルの数がしれます。\n5: `!alltags` タグ一覧を見ることができます。")
 		} else if (message.content == "!bothelp Admin") {
-			message.reply("__**Adminコマンドの使い方**__ \n1: `^backup <何時間前のバックアップを復元するか>` 指定した期間のバックアップを復元することが出来ます。")
+			message.reply("__**Adminコマンドの使い方**__ \n1: `^backup <何時間前のバックアップを復元するか>` 指定した期間のバックアップを復元することが出来ます。\n2: `^update` 最新のファイルデータをダウンロードし、Botをアップデートします。")
 		}
 		
 		//^backupコマンドの処理(復元用)
@@ -3139,6 +3141,45 @@ client.on("message", async(message) =>
 			} catch (e) {
 				console.log(e)
 				message.reply("バックアップの復元中にエラーが発生しました。")
+				return
+			}
+		}
+
+		//^updateコマンドの処理(更新用)
+		if (message.content == "^update") {
+			try {
+				//管理者のみ実行するようにする
+				if (message.author.id != BotadminId) {
+					message.reply("このコマンドはBOT管理者のみ実行できます。")
+					return
+				}
+
+				//更新処理
+				message.reply("更新中です。");
+
+				//ファイルの指定、保存先の指定
+				const fileUrl = Githuburl;
+				const savePath = botfilepath;
+
+				//ファイルのダウンロード
+				message.reply("ファイルのダウンロード中です。")
+				downloadHoshinobotFile(fileUrl, savePath, (error) => {
+					if (error) {
+						message.reply("ファイルのダウンロードに失敗しました。");
+					} else {
+						getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
+							if (error) {
+								console.log(error);
+								message.reply("ファイルのダウンロードに成功しました。\nアップデート内容: 取得できませんでした。");
+							} else {
+								message.reply(`ファイルのダウンロードに成功しました。\nアップデート内容: ${diff}}`);
+							}
+						});
+					}
+				});
+			} catch (e) {
+				console.log(e)
+				message.reply("更新中にエラーが発生しました。")
 				return
 			}
 		}
