@@ -3173,9 +3173,9 @@ client.on("message", async(message) =>
 						getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
 							if (error) {
 								console.log(error);
-								message.reply("ファイルのダウンロードに成功しました。\nアップデート内容: 取得できませんでした。");
+								message.reply("ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
 							} else {
-								message.reply(`ファイルのダウンロードに成功しました。\nアップデート内容: **${diff}**`);
+								message.reply(`ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}** ※アップデート後はPM2上でサーバーの再起動をしてください。`);
 							}
 						});
 					}
