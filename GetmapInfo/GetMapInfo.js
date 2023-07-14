@@ -1,6 +1,6 @@
 //require ribrary
 const axios = require("axios");
-const { modeconvert, modeconvertforlinks } = require("../Mode/Mode");
+const { modeconvertforlinks } = require("../Mode/Mode");
 
 module.exports.getMapInfo = async (maplink, apikey, mods) => {
 	const beatmapId = maplink.split("#")[1].split("/")[1];
