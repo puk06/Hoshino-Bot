@@ -33,6 +33,9 @@ const BotadminId = process.env.BOTADMINID;
 const Furrychannel = process.env.FURRYCHANNEL;
 const Githuburl = process.env.GITHUBURL;
 const botfilepath = process.env.BOTFILEPATH;
+const owner = process.env.OWNER;
+const repo = process.env.REPO;
+const file = process.env.FILE;
 
 //discord.jsのインテンツを指定
 const client = new Client({ intents: Intents.ALL });
