@@ -3175,7 +3175,7 @@ client.on("message", async(message) =>
 								console.log(error);
 								message.reply("ファイルのダウンロードに成功しました。\nアップデート内容: 取得できませんでした。");
 							} else {
-								message.reply(`ファイルのダウンロードに成功しました。\nアップデート内容: ${diff}}`);
+								message.reply(`ファイルのダウンロードに成功しました。\nアップデート内容: **${diff}**`);
 							}
 						});
 					}

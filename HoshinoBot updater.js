@@ -77,9 +77,9 @@ module.exports.getCommitDiffofHoshinobot = (owner, repo, file, callback) => {
             
                     const fileDiff = files.find((f) => f.filename === file);
                     if (fileDiff) {
-                        const updateContent = fileDiff.patch;
+                        const commitMessage = commitDiff.commit.message;
             
-                        callback(null, updateContent);
+                        callback(null, commitMessage);
                     } else {
                         callback(new Error('File not found in the commit diff.'));
                     }
