@@ -19,6 +19,7 @@ const { numDigits } = require("./numDigit/numDigit");
 const { ODscaled } = require("./OD/ODscaled");
 const { getOsuBeatmapFile, checkStream } = require("./Streamcheck/Streamcheck");
 const { checkFileExists } = require("./Checkuser/CheckUser");
+const { calculateScorePP } = require("./CalcGlobalPP/calculateglobalPP");
 
 //APIキーやTOKENなど
 const apikey = process.env.APIKEY;
@@ -2406,7 +2407,6 @@ client.on("message", async(message) =>
 			}
 		}
 
-
 		//!linkコマンド(osu!BOT)
 		if (message.content.startsWith("!link")) {
 			try {
@@ -2606,6 +2606,152 @@ client.on("message", async(message) =>
 				message.channel.send(`https://assets.ppy.sh/beatmaps/${BeatmapId}/covers/raw.jpg`)
 			} catch (e) {
 				console.log(e)
+				return
+			}
+		}
+
+		//!wi + o,t,c,mコマンドの処理
+		if (message.content.startsWith("!wi")) {
+			try {
+				//!wiのみ入力された時の処理
+				if (message.content == "!wi") {
+					message.reply("使い方: !wi◯<モード(o, t, c, m)>")
+					return
+				}
+
+				//ユーザーネームを取得
+				let playername;
+				try {
+					let username = message.author.id
+					let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
+					playername = osuid
+				} catch (e) {
+					console.log(e)
+					message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
+					return
+				}
+
+				//ppが入力されなかったときの処理、されたときの処理
+				let enteredpp = "";
+				if (message.content.split(" ")[1] == undefined) {
+					message.reply("ppを入力してください。")
+					return
+				}
+
+				//ppの前の空白が1つ多かった時の処理
+				if (message.content.split(" ")[1] == "") {
+					message.reply("ppの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//ppが数字と"."だけで構成されているか確認
+				enteredpp = message.content.split(" ")[1];
+				if (!RegExp(/^\d+$/).exec(enteredpp)) {
+					message.reply("ppは数字のみで構成されている必要があります。")
+					return
+				}
+
+				//モードが入力されなかったときの処理、されたときの処理
+				let mode = "";
+				let modeforranking = "";
+				if (message.content.startsWith("!wio")) {
+					mode = "0"
+					modeforranking = "osu"
+				} else if (message.content.startsWith("!wit")) {
+					mode = "1"
+					modeforranking = "taiko"
+				} else if (message.content.startsWith("!wic")) {
+					mode = "2"
+					modeforranking = "fruits"
+				} else if (message.content.startsWith("!wim")) {
+					mode = "3"
+					modeforranking = "mania"
+				} else {
+					message.reply("モードの指定方法が間違っています。ちゃんと存在するモードを選択してください。")
+					return
+				}
+
+				//ユーザー情報、PPなどを取得
+				const response = await axios.get(
+					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${mode}&u=${playername}&limit=100`
+				);
+				const userplays = response.data;
+				let pp = [];
+				for (const element of userplays) {
+					pp.push(element.pp)
+				}
+				let oldpp = [];
+				for (const element of userplays) {
+					oldpp.push(element.pp)
+				}
+				pp.push(enteredpp)
+				pp.sort((a, b) => b - a)
+
+				//PPが変動しないときの処理(101個目のものと同じ場合)
+				if (enteredpp == pp[pp.length - 1]) {
+					message.reply("PPに変動は有りません。")
+					return
+				} else {
+					pp.pop()
+				}
+
+				//BPtop何位かを取得するための配列を作成
+				const forbpranking = [];
+				for (const element of userplays) {
+					forbpranking.push(element.pp)
+				}
+				forbpranking.push(enteredpp)
+				forbpranking.sort((a, b) => b - a)
+
+				//GlobalPPやBonusPPなどを計算する
+				const userdata = await getplayersdata(apikey, playername, mode);
+				const playcount = userdata.count_rank_ss + userdata.count_rank_ssh + userdata.count_rank_s + userdata.count_rank_sh + userdata.count_rank_a;
+				const oldglobalPPwithoutBonusPP = calculateScorePP(oldpp, playcount);
+				const globalPPwithoutBonusPP = calculateScorePP(pp, playcount + 1);
+				const bonusPP = userdata.pp_raw - oldglobalPPwithoutBonusPP + ((416.6667 * (1 - (0.9994 ** (playcount + 1)))) - (416.6667 * (1 - (0.9994 ** playcount))));
+				const globalPP = globalPPwithoutBonusPP + bonusPP;
+
+				//ランキングを取得
+				let ranking = 0;
+				await auth.login(osuclientid, osuclientsecret);
+				let foundflag = false;
+				for (let page = 0; page <= 30; page++) {
+					const object = { "cursor[page]": page + 1 };
+					let rankingdata = await v2.ranking.details(modeforranking, "performance", object);
+					if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) {
+						foundflag = true;
+						for (let position = 0; position < 50; position++) {
+							if (globalPP > rankingdata.ranking[position].pp) {
+								ranking = (page * 50) + position + 1;
+								break;
+							}
+						}
+					}
+					
+					if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) break;
+				}
+
+				if(!foundflag) {
+					const notfoundembed = new MessageEmbed()
+						.setColor("BLUE")
+						.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
+						.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${forbpranking.indexOf(enteredpp) + 1} best play.\nTheir pp would change by **+${parseFloat((globalPP - userdata.pp_raw).toFixed(2)).toLocaleString()}** to **${parseFloat(globalPP.toFixed(2)).toLocaleString()}pp** and they would reach approx. rank <#3000(Calculations are not available after page 60.).`)
+						.setThumbnail(userdata.iconurl)
+						.setAuthor(`${userdata.username}: ${userdata.pp_raw.toLocaleString()}pp (#${userdata.pp_rank.toLocaleString()} ${userdata.country}${userdata.pp_country_rank.toLocaleString()})`, userdata.iconurl, userdata.playerurl)
+					message.channel.send(notfoundembed)
+					return
+				}
+
+				const embed = new MessageEmbed()
+					.setColor("BLUE")
+					.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
+					.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${forbpranking.indexOf(enteredpp) + 1} best play.\nTheir pp would change by **+${parseFloat((globalPP - userdata.pp_raw).toFixed(2)).toLocaleString()}** to **${parseFloat(globalPP.toFixed(2)).toLocaleString()}pp** and they would reach approx. rank #${ranking.toLocaleString()} (+${(userdata.pp_rank - ranking).toLocaleString()}).`)
+					.setThumbnail(userdata.iconurl)
+					.setAuthor(`${userdata.username}: ${userdata.pp_raw.toLocaleString()}pp (#${userdata.pp_rank.toLocaleString()} ${userdata.country}${userdata.pp_country_rank.toLocaleString()})`, userdata.iconurl, userdata.playerurl)
+				message.channel.send(embed)
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
 			}
 		}
@@ -2876,7 +3022,7 @@ client.on("message", async(message) =>
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin>")
 		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。")
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!linkコマンドが必須です。")
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
 		} else if (message.content == "!bothelp furry") {
@@ -3454,7 +3600,7 @@ function createProgressBar(percent) {
 	return `[${progressText}${emptyProgressText}]`
 }
 
-//バックアップを1時間ごとに作成する関数
+//バックアップを6時間ごとに作成する関数
 async function makeBackup() {
 	const now = new Date();
 	const year = now.getFullYear();
