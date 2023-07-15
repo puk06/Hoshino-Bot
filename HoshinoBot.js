@@ -3186,63 +3186,63 @@ client.on("message", async(message) =>
 				message.reply("更新中にエラーが発生しました。")
 				return
 			}
+		}
 
-			//^allupdateコマンドの処理
-			if (message.content == ("^allupdate")) {
-				try {
-					//管理者のみ実行するようにする
-					if (message.author.id != BotadminId) {
-						message.reply("このコマンドはBOT管理者のみ実行できます。")
-						return
-					}
-
-					//更新処理
-					message.reply("全ファイル更新中です。");
-					git(`https://github.com/${owner}/${repo}.git`, './updatetmp', {}, (error) => {
-						if (error) {
-							console.log(error);
-							message.reply("リポジトリのクローン時に失敗しました");
-							return;
-						}
-
-						message.reply("リポジトリをクローンしました");
-
-						// ファイルとフォルダのコピー
-						const sourceDir = './updatetmp';
-						const destinationDir = './';
-						const excludedFiles = ['(dotenv).env'];
-						const excludedFolders = ['Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'QualfiedChannels', 'tag', 'updatetemp'];
-
-						message.reply("ファイルのコピー中です。")
-						fs.copy(sourceDir, destinationDir, {
-							filter: (src, dest) => {
-								if (fs.lstatSync(src).isDirectory()) {
-									return !excludedFolders.includes(fs.basename(src));
-								} else {
-									return !excludedFiles.includes(fs.basename(src));
-								}
-							},
-						})
-						.then(() => {
-							getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
-								if (error) {
-									console.log(error);
-									message.reply("全ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
-								} else {
-									message.reply(`全ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
-								}
-							});
-						})
-						.catch((e) => {
-							console.log(e);
-							message.reply("ファイルのコピー中にエラーが発生しました");
-						});
-					});
-				} catch (e) {
-					console.log(e)
-					message.reply("更新中にエラーが発生しました。")
+		//^allupdateコマンドの処理
+		if (message.content == ("^allupdate")) {
+			try {
+				//管理者のみ実行するようにする
+				if (message.author.id != BotadminId) {
+					message.reply("このコマンドはBOT管理者のみ実行できます。")
 					return
 				}
+
+				//更新処理
+				message.reply("全ファイル更新中です。");
+				git(`https://github.com/${owner}/${repo}.git`, './updatetmp', {}, (error) => {
+					if (error) {
+						console.log(error);
+						message.reply("リポジトリのクローン時に失敗しました");
+						return;
+					}
+
+					message.reply("リポジトリをクローンしました");
+
+					// ファイルとフォルダのコピー
+					const sourceDir = './updatetmp';
+					const destinationDir = './';
+					const excludedFiles = ['(dotenv).env'];
+					const excludedFolders = ['Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'QualfiedChannels', 'tag', 'updatetemp'];
+
+					message.reply("ファイルのコピー中です。")
+					fs.copy(sourceDir, destinationDir, {
+						filter: (src, dest) => {
+							if (fs.lstatSync(src).isDirectory()) {
+								return !excludedFolders.includes(fs.basename(src));
+							} else {
+								return !excludedFiles.includes(fs.basename(src));
+							}
+						},
+					})
+					.then(() => {
+						getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
+							if (error) {
+								console.log(error);
+								message.reply("全ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
+							} else {
+								message.reply(`全ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
+							}
+						});
+					})
+					.catch((e) => {
+						console.log(e);
+						message.reply("ファイルのコピー中にエラーが発生しました");
+					});
+				});
+			} catch (e) {
+				console.log(e)
+				message.reply("更新中にエラーが発生しました。")
+				return
 			}
 		}
 	}
