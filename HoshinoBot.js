@@ -3209,7 +3209,7 @@ client.on("message", async(message) =>
 						return;
 					}
 
-					message.reply("リポジトリをクローンが完了しました。");
+					message.reply("リポジトリのクローンが完了しました。");
 
 					// ファイルとフォルダのコピー
 					const sourceDir = './updatetemp';
@@ -3217,17 +3217,53 @@ client.on("message", async(message) =>
 					const excludedFiles = ['(dotenv).env'];
 					const excludedFolders = ['Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'QualfiedChannels', 'tag', 'updatetemp'];
 
-					message.reply("ファイルのコピー中です。")
-					fs.copy(sourceDir, destinationDir, {
-						filter: (src, dest) => {
-							if (fs.lstatSync(src).isDirectory()) {
-								return !excludedFolders.includes(path.basename(src));
-							} else {
-								return !excludedFiles.includes(path.basename(src));
+					fs.readdir(sourceDir, (err, files) => {
+						message.reply("ディリクトリを読み込んでいます。")
+						if (err) {
+							console.log(err);
+							message.reply("ディレクトリの読み込み中にエラーが発生しました");
+							return;
+						}
+						message.reply("ディリクトリの読み込みが完了しました。")
+
+						//ファイルのコピー
+						const copyFile = (src, dest) => {
+							if (!excludedFiles.includes(path.basename(src))) {
+								fs.copy(src, dest)
+								.catch((err) => {
+									throw err;
+								});
 							}
-						},
-					})
-					.then(() => {
+						};
+
+						//フォルダのコピー
+						const copyFolder = (src, dest) => {
+							if (!excludedFolders.includes(path.basename(src))) {
+								fs.copy(src, dest)
+								.catch((err) => {
+									throw err;
+								});
+							}
+						};
+
+						message.reply("ファイルのコピー中です。")
+
+						files.forEach((file) => {
+							const srcPath = path.join(sourceDir, file);
+							const destPath = path.join(destinationDir, file);
+							try {
+								if (fs.lstatSync(srcPath).isDirectory()) {
+									copyFolder(srcPath, destPath);
+								} else {
+									copyFile(srcPath, destPath);
+								}
+							} catch (err) {
+								console.log(err);
+								message.reply("ファイルのコピー中にエラーが発生しました。")
+								return;
+							}
+						});
+
 						getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
 							if (error) {
 								console.log(error);
@@ -3236,10 +3272,6 @@ client.on("message", async(message) =>
 								message.reply(`全ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
 							}
 						});
-					})
-					.catch((e) => {
-						console.log(e);
-						message.reply("ファイルのコピー中にエラーが発生しました");
 					});
 				});
 			} catch (e) {
