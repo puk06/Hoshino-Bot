@@ -3100,7 +3100,7 @@ client.on("message", async(message) =>
 		} else if (message.content == "!bothelp pic") {
 			message.reply("__**All pictureコマンドの使い方**__ \n1: `!pic <タグ名>` そのタグに追加されたファイルを見ることができます。/kemoコマンドの拡張版のようなものです。\n2: `!createtag` 入力されたチャンネルの名前でタグが作成され、そこで画像や動画を送信すると自動的に保存されるようになります。\n3: `!delpic <メディアリンク>` そのタグ(チャンネル)に登録されたファイルを削除することができます。\n4: `!deltag` タグを削除することができます。また追加されない限り、送られたファイルが保存されなくなります。\n5: `!allcount` 送信されたチャンネルのタグに登録されているファイルの数がしれます。\n5: `!alltags` タグ一覧を見ることができます。")
 		} else if (message.content == "!bothelp Admin") {
-			message.reply("__**Adminコマンドの使い方**__ \n1: `^backup <何時間前のバックアップを復元するか>` 指定した期間のバックアップを復元することが出来ます。\n2: `^update` 最新のファイルデータをダウンロードし、Botをアップデートします。")
+			message.reply("__**Adminコマンドの使い方**__ \n1: `^backup <何時間前のバックアップを復元するか>` 指定した期間のバックアップを復元することが出来ます。\n2: `^update` 最新のファイルデータをダウンロードし、Botをアップデートします。\n3: `^allupdate` ^updateはHoshinoBot.jsのみのアップデートで、こちらは全データのアップデートを行います。")
 		}
 		
 		//^backupコマンドの処理(復元用)
@@ -3189,7 +3189,7 @@ client.on("message", async(message) =>
 		}
 
 		//^allupdateコマンドの処理
-		if (message.content == ("^allupdate")) {
+		if (message.content == "^allupdate") {
 			try {
 				//管理者のみ実行するようにする
 				if (message.author.id != BotadminId) {
@@ -3198,18 +3198,21 @@ client.on("message", async(message) =>
 				}
 
 				//更新処理
-				message.reply("全ファイル更新中です。");
-				git(`https://github.com/${owner}/${repo}.git`, './updatetmp', {}, (error) => {
+				message.reply("Updateフォルダをリセットしています。")
+				await fs.remove('./updatetemp');
+				message.reply("Updateフォルダのリセットが完了しました。")
+				message.reply("リポジトリのクローン中です。");
+				git(`https://github.com/${owner}/${repo}.git`, './updatetemp', {}, (error) => {
 					if (error) {
 						console.log(error);
 						message.reply("リポジトリのクローン時に失敗しました");
 						return;
 					}
 
-					message.reply("リポジトリをクローンしました");
+					message.reply("リポジトリをクローンが完了しました。");
 
 					// ファイルとフォルダのコピー
-					const sourceDir = './updatetmp';
+					const sourceDir = './updatetemp';
 					const destinationDir = './';
 					const excludedFiles = ['(dotenv).env'];
 					const excludedFolders = ['Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'QualfiedChannels', 'tag', 'updatetemp'];
