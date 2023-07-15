@@ -3218,9 +3218,9 @@ client.on("message", async(message) =>
 					fs.copy(sourceDir, destinationDir, {
 						filter: (src, dest) => {
 							if (fs.lstatSync(src).isDirectory()) {
-								return !excludedFolders.includes(fs.basename(src));
+								return !excludedFolders.includes(path.basename(src));
 							} else {
-								return !excludedFiles.includes(fs.basename(src));
+								return !excludedFiles.includes(path.basename(src));
 							}
 						},
 					})
