@@ -2780,7 +2780,7 @@ client.on("message", async(message) =>
 				let ranking = 0;
 				await auth.login(osuclientid, osuclientsecret);
 				let foundflag = false;
-				for (let page = 0; page <= 30; page++) {
+				for (let page = 0; page <= 120; page++) {
 					const object = { "cursor[page]": page + 1 };
 					let rankingdata = await v2.ranking.details(modeforranking, "performance", object);
 					if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) {
@@ -2800,7 +2800,7 @@ client.on("message", async(message) =>
 					const notfoundembed = new MessageEmbed()
 						.setColor("BLUE")
 						.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
-						.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${forbpranking.indexOf(enteredpp) + 1} best play.\nTheir pp would change by **+${parseFloat((globalPP - userdata.pp_raw).toFixed(2)).toLocaleString()}** to **${parseFloat(globalPP.toFixed(2)).toLocaleString()}pp** and they would reach approx. rank <#3000(Calculations are not available after page 60.).`)
+						.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${forbpranking.indexOf(enteredpp) + 1} best play.\nTheir pp would change by **+${parseFloat((globalPP - userdata.pp_raw).toFixed(2)).toLocaleString()}** to **${parseFloat(globalPP.toFixed(2)).toLocaleString()}pp** and they would reach approx. rank <#6000(Calculations are not available after page 120.).`)
 						.setThumbnail(userdata.iconurl)
 						.setAuthor(`${userdata.username}: ${userdata.pp_raw.toLocaleString()}pp (#${userdata.pp_rank.toLocaleString()} ${userdata.country}${userdata.pp_country_rank.toLocaleString()})`, userdata.iconurl, userdata.playerurl)
 					message.channel.send(notfoundembed)
