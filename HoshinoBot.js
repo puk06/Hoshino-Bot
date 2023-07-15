@@ -3200,6 +3200,9 @@ client.on("message", async(message) =>
 				//更新処理
 				message.reply("Updateフォルダをリセットしています。")
 				await fs.remove('./updatetemp');
+				if (!fs.existsSync('./updatetemp')) {
+					fs.mkdirSync('./updatetemp');
+				}
 				message.reply("Updateフォルダのリセットが完了しました。")
 				message.reply("リポジトリのクローン中です。");
 				git(`https://github.com/${owner}/${repo}.git`, './updatetemp', {}, (error) => {
