@@ -1,3 +1,4 @@
+//これらのコードはGithubにあるRoanH/osu-BonusPPのJavaコード(https://github.com/RoanH/osu-BonusPP)をJSに変換したものになります。GPL-3.0ライセンスの下で利用しています。
 module.exports.calculateScorePP = (scores, userplaycount) => {
     let scorepp = 0.0;
 

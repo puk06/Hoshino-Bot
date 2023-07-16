@@ -6,5 +6,5 @@ module.exports.ODscaled = (od, mods) => {
 		od *= 1.4
 	}
 	od = Math.max(Math.min(od, 10), 0);
-	return od;
+	return od
 }

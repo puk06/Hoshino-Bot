@@ -4,17 +4,22 @@ const axios = require("axios");
 
 //SRとPPを計算する関数
 module.exports.calculateSR = async (beatmapId, mods, mode) => {
-	const beatmapFile = await getOsuBeatmapFile(beatmapId);
-	const srppdata = calculateStarRating(beatmapFile, mods, mode);
-	return {
-		sr: parseFloat(srppdata.sr.toFixed(2)),
-		S0: parseFloat(srppdata.S0.toFixed(2)),
-		S1: parseFloat(srppdata.S1.toFixed(2)),
-		S2: parseFloat(srppdata.S2.toFixed(2)),
-		S3: parseFloat(srppdata.S3.toFixed(2)),
-		S4: parseFloat(srppdata.S4.toFixed(2)),
-		S5: parseFloat(srppdata.S5.toFixed(2))
-	};
+	try {
+		const beatmapFile = await getOsuBeatmapFile(beatmapId);
+		const srppdata = calculateStarRating(beatmapFile, mods, mode);
+		return {
+			sr: parseFloat(srppdata.sr.toFixed(2)),
+			S0: parseFloat(srppdata.S0.toFixed(2)),
+			S1: parseFloat(srppdata.S1.toFixed(2)),
+			S2: parseFloat(srppdata.S2.toFixed(2)),
+			S3: parseFloat(srppdata.S3.toFixed(2)),
+			S4: parseFloat(srppdata.S4.toFixed(2)),
+			S5: parseFloat(srppdata.S5.toFixed(2))
+		};
+	} catch (e) {
+		console.log(e);
+		throw new Error("calculateSR関数内でエラーが発生しました。");
+	}
 };
 
 //osuのbeatmapファイルを取得する関数
@@ -59,16 +64,21 @@ function calculateStarRatingwithacc (beatmap, mods, mode, Acc, misses, maxcombo)
 		sr: parseFloat(Calculated.difficulty.stars.toFixed(2)),
 		ppwithacc: parseFloat(calc.acc(Acc).combo(maxcombo).nMisses(misses).performance(map).pp.toFixed(2)),
 		SSPP: parseFloat(calc.acc(100).nMisses(0).performance(map).pp.toFixed(2))
-	};
-};
+	}
+}
 
 //SRとPPを計算する関数(Accは指定)
 module.exports.calculateSRwithacc = async (beatmapId, mods, mode, acc, misses, maxcombo) => {
-	const beatmapFile = await getOsuBeatmapFile(beatmapId);
-	const srppdata = calculateStarRatingwithacc(beatmapFile, mods, mode, acc, misses, maxcombo);
-	return {
-		sr: parseFloat(srppdata.sr.toFixed(2)),
-		ppwithacc: parseFloat(srppdata.ppwithacc.toFixed(2)),
-		SSPP: parseFloat(srppdata.SSPP.toFixed(2))
-	};
-};
+	try {
+		const beatmapFile = await getOsuBeatmapFile(beatmapId);
+		const srppdata = calculateStarRatingwithacc(beatmapFile, mods, mode, acc, misses, maxcombo);
+		return {
+			sr: parseFloat(srppdata.sr.toFixed(2)),
+			ppwithacc: parseFloat(srppdata.ppwithacc.toFixed(2)),
+			SSPP: parseFloat(srppdata.SSPP.toFixed(2))
+		}
+	} catch (e) {
+		console.log(e)
+		throw new Error("calculateSRwithacc関数内でエラーが発生しました。")
+	}
+}

@@ -27,16 +27,17 @@ const ModStrings = {
 };
 
 module.exports.parseModString = (modStringArray) => {
-	const mods = modStringArray.reduce((acc, modString) => {
-		const modValue = ModtoStrings[modString];
-		if (modValue) {
-			return acc | modValue;
-		};
-		return acc;
+	const mods = modStringArray.reduce((acc, modString) =>
+		{
+			const modValue = ModtoStrings[modString];
+			if (modValue) {
+				return acc | modValue
+			}
+			return acc;
 		}, 0
-	);
-	return mods;
-};
+	)
+	return mods
+}
 
 const ModtoStrings = {
 	"NM": 0,
@@ -78,14 +79,14 @@ module.exports.splitString = (modstrings) => {
 		if (typeof str === "string" && RegExp(/^[a-zA-Z]+$/).exec(str)) {
 			modstring = str;
 			break;
-		};
-	};
+		}
+	}
 	if (modstring === null) {
-		throw new Error("配列の中に処理対象の文字列が含まれていません。");
-	};
+		throw new Error("配列の中に処理対象の文字列が含まれていません。")
+	}
 	const result = [];
 	for (let i = 0; i < modstring.length; i += 2) {
-		result.push(modstring.substring(i, i + 2));
-	};
-	return result;
-};
+		result.push(modstring.substring(i, i + 2))
+	}
+	return result
+}

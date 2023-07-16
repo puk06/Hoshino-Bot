@@ -174,7 +174,7 @@ client.on("message", async(message) =>
 
 				//betAmountがマイナスの場合の処理
 				if (betAmount < 0) {
-					message.reply("^^;")
+					message.reply("マイナスの金額を賭け金にすることは出来ません。")
 					return
 				}
 
@@ -1149,10 +1149,12 @@ client.on("message", async(message) =>
 						message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
 						return
 					}
+
 					if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")))) {
 						message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
 						return
 					}
+
 					if (Mods.includes("NC")) {
 						Mods.push("DT")
 						let modsnotNC = Mods.filter((item) => /NC/.exec(item) == null)
@@ -1173,6 +1175,12 @@ client.on("message", async(message) =>
 
 				//マッパーやppなどを取得
 				const mapperdata = await getplayersdata(apikey, MapInfo.mapper);
+
+				if (mapperdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
+
 				const Modsconverted = parseModString(Mods);
 				const srpps = await calculateSR(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode));
 				const Mapstatus = mapstatus(MapInfo.approved);
@@ -1255,6 +1263,7 @@ client.on("message", async(message) =>
 					} catch (e) {
 						console.log(e)
 						message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
+						return
 					}
 				} else {
 					playername = message.content.split(" ")[1]
@@ -1269,7 +1278,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 0);
-				if (recentplay == 0) {
+				if (recentplay == undefined) {
 					message.reply(`${playername}さんには24時間以内にプレイしたosu!譜面がないようです。`)
 					return
 				}
@@ -1279,7 +1288,20 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (playersdata == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mappersdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
 
 				//Accを計算
 				const acc = tools.accuracy({300: recentplay.count300.toFixed(0), 100: recentplay.count100.toFixed(0), 50: recentplay.count50.toFixed(0), 0: recentplay.countmiss.toFixed(0), geki: recentplay.countgeki.toFixed(0), katu: recentplay.countkatu.toFixed(0)}, "osu");
@@ -1414,7 +1436,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 1);
-				if (recentplay == 0) {
+				if (recentplay == undefined) {
 					message.reply(`${playername}さんには24時間以内にプレイしたTaiko譜面がないようです。`)
 					return
 				}
@@ -1424,7 +1446,20 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (playersdata == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mappersdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
 
 				//Accを計算
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "taiko");
@@ -1558,7 +1593,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 2);
-				if (recentplay == 0) {
+				if (recentplay == undefined) {
 					message.reply(`${playername}さんには24時間以内にプレイしたCatch譜面がないようです。`)
 					return
 				}
@@ -1568,7 +1603,21 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (playersdata == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mappersdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
+
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "fruits")
 				
 				//BPM、Modの処理
@@ -1706,7 +1755,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 3);
-				if (recentplay == 0) {
+				if (recentplay == undefined) {
 					message.reply(`${playername}さんには24時間以内にプレイしたMania譜面がないようです。`)
 					return
 				}
@@ -1716,7 +1765,21 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (playersdata == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mappersdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
+
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "mania")
 				
 				//BPM、Modの処理
@@ -1843,17 +1906,30 @@ client.on("message", async(message) =>
 			if (message.content == "!reg") {
 				message.reply("使い方: !reg <osu!ユーザーネーム>")
 				return
-			} else {
-				const username = message.author.id
-				const osuid = message.content.split(" ")[1]
-				try {
-					fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
-					message.reply(`${message.author.username} さんは ${osuid} として保存されました!`)
-				} catch (e) {
-					console.log(e)
-					message.reply("ユーザーを登録する際にエラーが発生しました。")
-					return
-				}
+			}
+
+			const username = message.author.id
+			const osuid = message.content.split(" ")[1]
+
+			//ユーザー名が入力されなかったときの処理
+			if (osuid == undefined) {
+				message.reply("ユーザー名を入力してください。")
+				return
+			}
+
+			//ユーザー名の前に空白1つ多く入っていた時の処理
+			if (osuid == "") {
+				message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
+				return
+			}
+
+			try {
+				fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
+				message.reply(`${message.author.username} さんは ${osuid} として保存されました!`)
+			} catch (e) {
+				console.log(e)
+				message.reply("ユーザーを登録する際にエラーが発生しました。")
+				return
 			}
 		}
 
@@ -2024,6 +2100,13 @@ client.on("message", async(message) =>
 				//マップリンクから必要な情報を取得
 				const Mapinfo = await getMapInfo(maplink, apikey, mods);
 				const mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mapperinfo == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
+
 				const mapsetlink = Mapinfo.maplink.split("/")[4].split("#")[0];
 
 				//SR、BPMを計算
@@ -2042,6 +2125,11 @@ client.on("message", async(message) =>
 
 				//top5を取得
 				const resulttop5 = await GetMapScore(beatmapid, parseModString(mods), apikey, Mapinfo.mode);
+
+				if (resulttop5 == undefined) {
+					message.reply("この譜面には選択されたModの記録が無いようです")
+					return
+				}
 
 				//ModsにDT、NCの療法が含まれていたときの処理
 				if (mods.includes("DT") && mods.includes("NC")) {
@@ -2123,7 +2211,7 @@ client.on("message", async(message) =>
 							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
-				} else if (resulttop5.length == 1) {
+				} else {
 					acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
 					const embed = new MessageEmbed()
 						.setColor("BLUE")
@@ -2134,9 +2222,6 @@ client.on("message", async(message) =>
 						.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
 						.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 					message.channel.send(embed)
-					return
-				} else {
-					message.reply("この譜面には選択されたModの記録が無いようです")
 					return
 				}
 			} catch (e) {
@@ -2200,14 +2285,27 @@ client.on("message", async(message) =>
 				const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
 
 				//スコア情報がなかった時の処理
-				if (playersscore == 0) {
+				if (playersscore == undefined) {
 					message.reply(`${playername}さんのスコアが見つかりませんでした。`)
 					return
 				}
 
 				//マップ情報、プレイヤー情報、マッパー情報を取得
-				const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
-				const Mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
+				const Playersinfo = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (Playersinfo == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
+				const Mapperinfo = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (Mapperinfo == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
 
 				//Accを計算
 				const acc = tools.accuracy({300: playersscore.count300.toString(), 100: playersscore.count100.toString(), 50: playersscore.count50.toString(), 0: playersscore.countmiss.toString(), geki : playersscore.countgeki.toString(), katu: playersscore.countgeki.toString()}, modeconvert(Mapinfo.mode));
