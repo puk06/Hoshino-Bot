@@ -49,6 +49,10 @@ client.on("ready", async () => {
 	setInterval(checkqualfiedtaiko, 60000);
 	setInterval(checkqualfiedcatch, 60000);
 	setInterval(checkqualfiedmania, 60000);
+	setInterval(checkrankedosu, 60000);
+	setInterval(checkrankedtaiko, 60000);
+	setInterval(checkrankedcatch, 60000);
+	setInterval(checkrankedmania, 60000);
 	setInterval(makeBackup, 3600000);
 });
 
@@ -59,7 +63,7 @@ const symbols = ['🍒', '🍊', '🍇', '🔔', '💰', '⌚', '⛵'];
 client.on("message", async(message) =>
 	{
 		//slotコマンドの処理(カジノBOT)
-		if (message.content.split(" ")[0] == "/slot") {
+		if (message.content.startsWith("/slot")) {
 			try {
 				//slotのみ入力された場合の処理
 				if (message.content == "/slot") {
@@ -155,7 +159,7 @@ client.on("message", async(message) =>
 		}
 
 		//safeslotコマンドの処理(カジノBOT)
-		if (message.content.split(" ")[0] == "!safeslot") {
+		if (message.content.startsWith("/safeslot")) {
 			try {
 				//safeslotのみ入力された場合の処理
 				if (message.content == "/safeslot") {
@@ -174,7 +178,7 @@ client.on("message", async(message) =>
 
 				//betAmountがマイナスの場合の処理
 				if (betAmount < 0) {
-					message.reply("マイナスの金額を賭け金にすることは出来ません。")
+					message.reply("^^;")
 					return
 				}
 
@@ -433,7 +437,7 @@ client.on("message", async(message) =>
 				const recommend = (userbank / 15n).toString();
 
 				//slotコマンドの送信
-				message.reply(`おすすめのslotコマンド: !slot ${recommend}`);
+				message.reply(`おすすめのslotコマンド: /slot ${recommend}`);
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中にエラーが発生しました。")
@@ -464,7 +468,7 @@ client.on("message", async(message) =>
 		}
 
 		//amountコマンドの処理(カジノBOT)
-		if (message.content.split(" ")[0] == "/amount") {
+		if (message.content.startsWith("/amount")) {
 			try {
 
 				//amountのみ入力された場合の処理
@@ -517,8 +521,8 @@ client.on("message", async(message) =>
 			}
 		}
 
-		//!sendコマンドの処理(カジノBOT)
-		if(message.content.split(" ")[0] == "/send"){
+		//sendコマンドの処理(カジノBOT)
+		if(message.content.startsWith("/send")){
 			try {
 				//sendのみ入力された場合の処理
 				if (message.content == "/send") {
@@ -624,7 +628,7 @@ client.on("message", async(message) =>
 			}
 		}
 
-		//!diceコマンドの処理(カジノBOT)
+		//diceコマンドの処理(カジノBOT)
 		if (message.content == "/dice") {
 			try {
 				//diceの結果を送信
@@ -711,7 +715,7 @@ client.on("message", async(message) =>
 		}
 
 		//!deleteコマンドの処理(FurryBOT)
-		if (message.content.split(" ")[0] == "!delete") {
+		if (message.content.startsWith("!delete")) {
 			try{
 				//Botが送ったコマンドに対しての処理をブロック
 				if (message.author.bot) return;
@@ -776,7 +780,7 @@ client.on("message", async(message) =>
 		}
 
 		//!picコマンドの処理(All picture Bot)
-		if(message.content.split(" ")[0] == "!pic"){
+		if(message.content.startsWith("!pic")){
             try {
 				//コマンドのみ入力された場合の処理
 				if (message.content == "!pic") {
@@ -824,7 +828,7 @@ client.on("message", async(message) =>
         }
 
 		//!settagコマンドの処理(All picture Bot)
-		if (message.content.split(" ")[0] == "!settag") {
+		if (message.content.startsWith("!createtag")) {
             try {
 				//ディリクトリ、ファイルの作成
 				const mkdir = util.promisify(fs.mkdir);
@@ -839,7 +843,7 @@ client.on("message", async(message) =>
         }
 
 		//!deltagコマンドの処理(All picture Bot)
-		if (message.content.split(" ")[0] == "!deltag") {
+		if (message.content.startsWith("!deltag")) {
 			try {
 				//タグが存在するかの確認、しなかった場合の処理
 				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
@@ -891,8 +895,8 @@ client.on("message", async(message) =>
 			}
 		}
 
-		//!delpicコマンドの処理(All picture Bot)
-		if (message.content.split(" ")[0] == "!delpic") {
+		//!picdeleteコマンドの処理(All picture Bot)
+		if (message.content.startsWith("!delpic")) {
 			try{
 				//Botが送ったコマンドに対しての処理をブロック
 				if (message.author.bot) return;
@@ -1002,7 +1006,7 @@ client.on("message", async(message) =>
 		}
 
 		//!kuniiコマンドの処理(おふざけBOT)
-		if (message.content.split(" ")[0] == "!kunii") {
+		if (message.content.startsWith("!kunii")) {
 			try{
 				//コマンドのみ送られた場合の処理
 				if (message.content == "!kunii") {
@@ -1085,7 +1089,7 @@ client.on("message", async(message) =>
 		}
 
 		//!mapコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!map") {
+		if (message.content.startsWith("!map")) {
 			try {
 				//コマンドのみ入力された場合の処理
 				if (message.content == "!map") {
@@ -1149,12 +1153,10 @@ client.on("message", async(message) =>
 						message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
 						return
 					}
-
 					if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")))) {
 						message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
 						return
 					}
-
 					if (Mods.includes("NC")) {
 						Mods.push("DT")
 						let modsnotNC = Mods.filter((item) => /NC/.exec(item) == null)
@@ -1175,12 +1177,6 @@ client.on("message", async(message) =>
 
 				//マッパーやppなどを取得
 				const mapperdata = await getplayersdata(apikey, MapInfo.mapper);
-
-				if (mapperdata == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
-					return
-				}
-
 				const Modsconverted = parseModString(Mods);
 				const srpps = await calculateSR(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode));
 				const Mapstatus = mapstatus(MapInfo.approved);
@@ -1251,7 +1247,7 @@ client.on("message", async(message) =>
 		}
 
 		//!roコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!ro") {
+		if (message.content.startsWith("!ro")) {
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
@@ -1263,7 +1259,6 @@ client.on("message", async(message) =>
 					} catch (e) {
 						console.log(e)
 						message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
-						return
 					}
 				} else {
 					playername = message.content.split(" ")[1]
@@ -1278,7 +1273,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 0);
-				if (recentplay == undefined) {
+				if (recentplay == 0) {
 					message.reply(`${playername}さんには24時間以内にプレイしたosu!譜面がないようです。`)
 					return
 				}
@@ -1288,20 +1283,7 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
-
-				//プレイヤーの情報の取得中にエラーが発生した場合の処理
-				if (playersdata == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
-					return
-				}
-
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
-
-				//マッパーの情報の取得中にエラーが発生した場合の処理
-				if (mappersdata == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
-					return
-				}
 
 				//Accを計算
 				const acc = tools.accuracy({300: recentplay.count300.toFixed(0), 100: recentplay.count100.toFixed(0), 50: recentplay.count50.toFixed(0), 0: recentplay.countmiss.toFixed(0), geki: recentplay.countgeki.toFixed(0), katu: recentplay.countkatu.toFixed(0)}, "osu");
@@ -1409,7 +1391,7 @@ client.on("message", async(message) =>
 		}
 
 		//!rtコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!rt") {
+		if (message.content.startsWith("!rt")) {
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
@@ -1436,7 +1418,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 1);
-				if (recentplay == undefined) {
+				if (recentplay == 0) {
 					message.reply(`${playername}さんには24時間以内にプレイしたTaiko譜面がないようです。`)
 					return
 				}
@@ -1446,20 +1428,7 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
-
-				//プレイヤーの情報の取得中にエラーが発生した場合の処理
-				if (playersdata == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
-					return
-				}
-
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
-
-				//マッパーの情報の取得中にエラーが発生した場合の処理
-				if (mappersdata == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
-					return
-				}
 
 				//Accを計算
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "taiko");
@@ -1566,7 +1535,7 @@ client.on("message", async(message) =>
 		}
 
 		//!rcコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!rc") {
+		if (message.content.startsWith("!rc")) {
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
@@ -1593,7 +1562,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 2);
-				if (recentplay == undefined) {
+				if (recentplay == 0) {
 					message.reply(`${playername}さんには24時間以内にプレイしたCatch譜面がないようです。`)
 					return
 				}
@@ -1603,21 +1572,7 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
-
-				//プレイヤーの情報の取得中にエラーが発生した場合の処理
-				if (playersdata == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
-					return
-				}
-
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
-
-				//マッパーの情報の取得中にエラーが発生した場合の処理
-				if (mappersdata == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
-					return
-				}
-
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "fruits")
 				
 				//BPM、Modの処理
@@ -1728,7 +1683,7 @@ client.on("message", async(message) =>
 		}
 
 		//!rmコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!rm") {
+		if (message.content.startsWith("!rm")) {
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
@@ -1755,7 +1710,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 3);
-				if (recentplay == undefined) {
+				if (recentplay == 0) {
 					message.reply(`${playername}さんには24時間以内にプレイしたMania譜面がないようです。`)
 					return
 				}
@@ -1765,21 +1720,7 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
-
-				//プレイヤーの情報の取得中にエラーが発生した場合の処理
-				if (playersdata == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
-					return
-				}
-
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
-
-				//マッパーの情報の取得中にエラーが発生した場合の処理
-				if (mappersdata == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
-					return
-				}
-
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "mania")
 				
 				//BPM、Modの処理
@@ -1901,40 +1842,27 @@ client.on("message", async(message) =>
 		}
 
 		//!regコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!reg") {
+		if (message.content.startsWith("!reg")) {
 			//ユーザー名が入力されなかったときの処理、されたときの処理
 			if (message.content == "!reg") {
 				message.reply("使い方: !reg <osu!ユーザーネーム>")
 				return
-			}
-
-			const username = message.author.id
-			const osuid = message.content.split(" ")[1]
-
-			//ユーザー名が入力されなかったときの処理
-			if (osuid == undefined) {
-				message.reply("ユーザー名を入力してください。")
-				return
-			}
-
-			//ユーザー名の前に空白1つ多く入っていた時の処理
-			if (osuid == "") {
-				message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-				return
-			}
-
-			try {
-				fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
-				message.reply(`${message.author.username} さんは ${osuid} として保存されました!`)
-			} catch (e) {
-				console.log(e)
-				message.reply("ユーザーを登録する際にエラーが発生しました。")
-				return
+			} else {
+				const username = message.author.id
+				const osuid = message.content.split(" ")[1]
+				try {
+					fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
+					message.reply(`${message.author.username} さんは ${osuid} として保存されました!`)
+				} catch (e) {
+					console.log(e)
+					message.reply("ユーザーを登録する際にエラーが発生しました。")
+					return
+				}
 			}
 		}
 
 		//PP譜面か判断するコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!ispp") {
+		if (message.content.startsWith("!ispp")) {
 			try {
 				//!isppのみ入力された場合の処理
 				if (message.content == "!ispp") {
@@ -2039,7 +1967,7 @@ client.on("message", async(message) =>
 		}
 
 		//Mods別ランキングを作成するコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!lb") {
+		if (message.content.startsWith("!lb")) {
 			try {
 				//!lbのみ入力された場合の処理
 				if (message.content == "!lb") {
@@ -2100,13 +2028,6 @@ client.on("message", async(message) =>
 				//マップリンクから必要な情報を取得
 				const Mapinfo = await getMapInfo(maplink, apikey, mods);
 				const mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
-
-				//マッパーの情報の取得中にエラーが発生した場合の処理
-				if (mapperinfo == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
-					return
-				}
-
 				const mapsetlink = Mapinfo.maplink.split("/")[4].split("#")[0];
 
 				//SR、BPMを計算
@@ -2125,11 +2046,6 @@ client.on("message", async(message) =>
 
 				//top5を取得
 				const resulttop5 = await GetMapScore(beatmapid, parseModString(mods), apikey, Mapinfo.mode);
-
-				if (resulttop5 == undefined) {
-					message.reply("この譜面には選択されたModの記録が無いようです")
-					return
-				}
 
 				//ModsにDT、NCの療法が含まれていたときの処理
 				if (mods.includes("DT") && mods.includes("NC")) {
@@ -2211,7 +2127,7 @@ client.on("message", async(message) =>
 							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
-				} else {
+				} else if (resulttop5.length == 1) {
 					acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
 					const embed = new MessageEmbed()
 						.setColor("BLUE")
@@ -2223,6 +2139,9 @@ client.on("message", async(message) =>
 						.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
+				} else {
+					message.reply("この譜面には選択されたModの記録が無いようです")
+					return
 				}
 			} catch (e) {
 				console.log(e)
@@ -2232,7 +2151,7 @@ client.on("message", async(message) =>
 		}
 
 		//ユーザーの最高記録を表示するコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!s") {
+		if (message.content.startsWith("!s")) {
 			try {
 				//!sのみ入力された場合の処理
 				if (message.content == "!s") {
@@ -2285,27 +2204,14 @@ client.on("message", async(message) =>
 				const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
 
 				//スコア情報がなかった時の処理
-				if (playersscore == undefined) {
+				if (playersscore == 0) {
 					message.reply(`${playername}さんのスコアが見つかりませんでした。`)
 					return
 				}
 
 				//マップ情報、プレイヤー情報、マッパー情報を取得
-				const Playersinfo = await getplayersdata(apikey, playername, GetMapInfo.mode);
-
-				//プレイヤーの情報の取得中にエラーが発生した場合の処理
-				if (Playersinfo == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
-					return
-				}
-
-				const Mapperinfo = await getplayersdata(apikey, GetMapInfo.mapper);
-
-				//マッパーの情報の取得中にエラーが発生した場合の処理
-				if (Mapperinfo == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
-					return
-				}
+				const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
+				const Mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
 
 				//Accを計算
 				const acc = tools.accuracy({300: playersscore.count300.toString(), 100: playersscore.count100.toString(), 50: playersscore.count50.toString(), 0: playersscore.countmiss.toString(), geki : playersscore.countgeki.toString(), katu: playersscore.countgeki.toString()}, modeconvert(Mapinfo.mode));
@@ -2376,7 +2282,7 @@ client.on("message", async(message) =>
 		}
 
 		//!previewコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!preview") {
+		if (message.content.startsWith("!preview")) {
 			try {
 				//!previewのみ入力された時の処理
 				if (message.content == "!preview") {
@@ -2480,7 +2386,7 @@ client.on("message", async(message) =>
 		}
 
 		//!m <Mods>コマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!m") {
+		if (message.content.startsWith("!m")) {
 			try {
 				//!mのみ入力された時の処理
 				if (message.content == "!m") {
@@ -2498,11 +2404,11 @@ client.on("message", async(message) =>
 				//チャンネルから直近の50件のメッセージを取得する
 				const messagedata = await message.channel.messages.fetch();
 				const maplinks = messagedata.filter(function(message) {return message.content.startsWith("https://osu.ppy.sh/beatmapsets/")}).array();
-				if (maplinks[0] == undefined) {
+				const recentmaplink = maplinks[0].toString();
+				if (recentmaplink == undefined) {
 					message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。")
 					return
 				}
-				const recentmaplink = maplinks[0].toString();
 
 				//Modsが入力されてなかったときの処理
 				if (message.content.split(" ")[1] == undefined) {
@@ -2572,7 +2478,7 @@ client.on("message", async(message) =>
 		}
 
 		//!linkコマンド(osu!BOT)
-		if (message.content == "!link") {
+		if (message.content.startsWith("!link")) {
 			try {
 				//チャンネルidを取得
 				const channelid = message.channel.id;
@@ -2598,7 +2504,7 @@ client.on("message", async(message) =>
 		}
 
 		//!unlinkコマンド(osu!BOT)
-		if (message.content == "!unlink") {
+		if (message.content.startsWith("!unlink")) {
 			try {
 				//チャンネルidを取得
 				const channelid = message.channel.id
@@ -2623,7 +2529,7 @@ client.on("message", async(message) =>
 		}
 
 		//Streamの長さをチェックするコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!check") {
+		if (message.content.startsWith("!check")) {
 			try {
 				//!checkのみ入力された時の処理
 				if (message.content == "!check") {
@@ -2668,7 +2574,7 @@ client.on("message", async(message) =>
 		}
 
 		//!qfコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!qf") {
+		if (message.content.startsWith("!qf")) {
 			try {
 				//!qfのみ入力された時の処理
 				if (message.content == "!qf") {
@@ -2689,15 +2595,15 @@ client.on("message", async(message) =>
 					message.reply("モードの指定方法が間違っています。osu, taiko, catch, maniaのどれかを入力してください。")
 					return
 				}
-				const allchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+				const allchannels = fs.readFileSync(`./MapcheckChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
 				if (allchannels.includes(channelid)) {
-					message.reply("このチャンネルは既にQualfiedチェックチャンネルとして登録されています。")
+					message.reply("このチャンネルは既にQualfied、Rankedチェックチャンネルとして登録されています。")
 					return
 				}
-				fs.appendFile(`./QualfiedChannels/${mode}/Channels.txt`, `${channelid} `, function (err) {
+				fs.appendFile(`./MapcheckChannels/${mode}/Channels.txt`, `${channelid} `, function (err) {
 					if (err) throw err
 				})
-				message.reply(`このチャンネルを${mode}のQualfiedチェックチャンネルとして登録しました。`)
+				message.reply(`このチャンネルを${mode}のQualfied、Rankedチェックチャンネルとして登録しました。`)
 			} catch (e){
 				console.log(e)
 				return
@@ -2705,7 +2611,7 @@ client.on("message", async(message) =>
 		}
 
 		//!deqfコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!deqf") {
+		if (message.content.startsWith("!deqf")) {
 			try {
 				//!qfのみ入力された時の処理
 				if (message.content == "!deqf") {
@@ -2726,13 +2632,13 @@ client.on("message", async(message) =>
 					message.reply("モードの指定方法が間違っています。osu, taiko, catch, maniaのどれかを入力してください。")
 					return
 				}
-				const allchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+				const allchannels = fs.readFileSync(`./MapcheckChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
 				if (allchannels.includes(channelid)) {
-					const currentchannels = fs.readFileSync(`./QualfiedChannels/${mode}/Channels.txt`, "utf-8")
+					const currentchannels = fs.readFileSync(`./MapcheckChannels/${mode}/Channels.txt`, "utf-8")
 					const newchannels = currentchannels.replace(`${channelid} `, "")
-					fs.writeFileSync(`./QualfiedChannels/${mode}/Channels.txt`, newchannels)
+					fs.writeFileSync(`./MapcheckChannels/${mode}/Channels.txt`, newchannels)
 				} else {
-					message.reply("このチャンネルはQualfiedチェックチャンネルとして登録されていません。")
+					message.reply("このチャンネルはQualfied、Rankedチェックチャンネルとして登録されていません。")
 					return
 				}
 				message.reply(`このチャンネルを${mode}のQualfiedチェックチャンネルから削除しました。`)
@@ -2743,7 +2649,7 @@ client.on("message", async(message) =>
 		}
 
 		//!bgコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!bg") {
+		if (message.content.startsWith("!bg")) {
 			try {
 				//!bgのみ入力された時の処理
 				if (message.content == "!bg") {
@@ -2921,7 +2827,7 @@ client.on("message", async(message) =>
 		}
 
 		//?slayerコマンド(Hypixel Skyblock)
-		if (message.content.split(" ")[0] == "?slayer") {
+		if (message.content.startsWith("?slayer")) {
 			try {
 				//?slayerのみ入力された時の処理
 				if (message.content == "?slayer") {
@@ -3112,7 +3018,7 @@ client.on("message", async(message) =>
 		}
 
 		//?profileコマンド(Hypixel Skyblock)
-		if (message.content.split(" ")[0] == "?profile") {
+		if (message.content.startsWith("?profile")) {
 			try {
 				//?profileのみ入力された時の処理
 				if (message.content == "?profile") {
@@ -3186,7 +3092,7 @@ client.on("message", async(message) =>
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin>")
 		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。")
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfied、Rankedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。")
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
 		} else if (message.content == "!bothelp furry") {
@@ -3202,7 +3108,7 @@ client.on("message", async(message) =>
 		}
 		
 		//^backupコマンドの処理(復元用)
-		if (message.content.split(" ")[0] == "^backup") {
+		if (message.content.startsWith("^backup")) {
 			try {
 				//管理者のみ実行するようにする
 				if (message.author.id != BotadminId) {
@@ -3298,6 +3204,9 @@ client.on("message", async(message) =>
 				//更新処理
 				message.reply("Updateフォルダをリセットしています。")
 				await fs.remove('./updatetemp');
+				if (!fs.existsSync('./updatetemp')) {
+					fs.mkdirSync('./updatetemp');
+				}
 				message.reply("Updateフォルダのリセットが完了しました。")
 				message.reply("リポジトリのクローン中です。");
 				git(`https://github.com/${owner}/${repo}.git`, './updatetemp', {}, (error) => {
@@ -3313,7 +3222,7 @@ client.on("message", async(message) =>
 					const sourceDir = './updatetemp';
 					const destinationDir = './';
 					const excludedFiles = ['(dotenv).env'];
-					const excludedFolders = ['Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'QualfiedChannels', 'tag', 'updatetemp'];
+					const excludedFolders = ['Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
 
 					fs.readdir(sourceDir, (err, files) => {
 						message.reply("ディリクトリを読み込んでいます。")
@@ -3459,7 +3368,7 @@ function findDifferentElements(array1, array2) {
 }
 
 //Qualfiedチェックをする関数(全mode対応)
-async function checkqualfiedosu () {
+async function checkqualfiedosu() {
 	try {
 		//V2にアクセスするためのログイン処理
 		await auth.login(osuclientid, osuclientsecret);
@@ -3548,7 +3457,7 @@ async function checkqualfiedosu () {
 		//メッセージの送信
 		const embed = new MessageEmbed()
 			.setColor("BLUE")
-			.setAuthor(`🎉New Qualfied osu Map🎉`)
+			.setAuthor(`🎉New Qualfied Osu Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
@@ -3556,7 +3465,7 @@ async function checkqualfiedosu () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -3566,7 +3475,7 @@ async function checkqualfiedosu () {
 	}
 }
 
-async function checkqualfiedtaiko () {
+async function checkqualfiedtaiko() {
 	try {
 		//V2にアクセスするためのログイン処理
 		await auth.login(osuclientid, osuclientsecret);
@@ -3663,7 +3572,7 @@ async function checkqualfiedtaiko () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -3673,7 +3582,7 @@ async function checkqualfiedtaiko () {
 	}
 }
 
-async function checkqualfiedcatch () {
+async function checkqualfiedcatch() {
 	try {
 		//V2にアクセスするためのログイン処理
 		await auth.login(osuclientid, osuclientsecret);
@@ -3770,7 +3679,7 @@ async function checkqualfiedcatch () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
 		}
@@ -3780,7 +3689,7 @@ async function checkqualfiedcatch () {
 	}
 }
 
-async function checkqualfiedmania () {
+async function checkqualfiedmania() {
 	try {
 		//V2にアクセスするためのログイン処理
 		await auth.login(osuclientid, osuclientsecret);
@@ -3877,7 +3786,396 @@ async function checkqualfiedmania () {
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
-		for (const element of fs.readFileSync(`./QualfiedChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+			if (client.channels.cache.get(element) == undefined) continue;
+			client.channels.cache.get(element).send(embed);
+		}
+	} catch(e) {
+		console.log(e)
+		return
+	}
+}
+
+//Rankedチェックをする関数(全mode対応)
+async function checkrankedosu() {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objectosu = {
+			mode: "osu",
+			section: "ranked"
+		};
+
+		//検索結果を取得
+		const rankeddatalist = await v2.beatmap.search(objectosu);
+
+		//検索結果からIDのみを取得
+		let rankedarray = [];
+		for (const element of rankeddatalist.beatmapsets) {
+			rankedarray.push(element.id)
+		}
+
+		//現在のRankedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentrankedlistfile = fs.readFileSync(`./RankedBeatmaps/osu.txt`, 'utf8');
+		const currentrankedlistarray = currentrankedlistfile.split(",");
+
+		//先程の検索結果と現在のRankedのIDを比較し、違う物を取得
+		const differentranked = findDifferentElements(currentrankedlistarray, rankedarray);
+		fs.writeFileSync(`./RankedBeatmaps/osu.txt`, rankedarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentranked == null) return;
+
+		//違う物があった場合の処理(SRやPPの計算過程)
+		let rankedbeatmapsmaxsrId;
+		let rankedbeatmapsminsrId;
+
+		//BeatmapIdを取得
+		await v2.beatmap.set(differentranked).then(async (res) => {
+			const array = res.beatmaps;
+			array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+			const maxRatingObj = array[array.length - 1];
+			const minRatingObj = array[0];
+			rankedbeatmapsmaxsrId = maxRatingObj.id;
+			rankedbeatmapsminsrId = minRatingObj.id;
+		});
+
+		//なんらかのエラーでundefinedだった場合の処理
+		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return;
+
+		//マップ情報を取得(タイトルなど)
+		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
+		const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "osu");
+		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "osu");
+		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "osu");
+		const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "osu");
+
+		//ranked時の日時を取得
+		const now = new Date();
+		const month = now.getMonth() + 1;
+		const day = now.getDate();
+		const hours = now.getHours();
+		const minutes = now.getMinutes();
+		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+		//表示用の文字列を作成
+		let srstring;
+		let ppstring;
+		if (maxsr.sr == minsr.sr) {
+			srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+		} else {
+			srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+		}
+		if (maxsr.S0 == minsr.S0) {
+			ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+		} else {
+			ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+		}
+
+		//メッセージの送信
+		const embed = new MessageEmbed()
+			.setColor("YELLOW")
+			.setAuthor(`🎉New Ranked Osu Map🎉`)
+			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+			.setURL(GetMapInfo.maplink)
+			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`PP`", `**${ppstring}**`, false)
+			.addField("`Ranked 日時`",`**${dateString}**`, true)
+		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+			if (client.channels.cache.get(element) == undefined) continue;
+			client.channels.cache.get(element).send(embed);
+		}
+	} catch(e) {
+		console.log(e)
+		return
+	}
+}
+
+async function checkrankedtaiko() {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objecttaiko = {
+			mode: "taiko",
+			section: "ranked"
+		};
+
+		//検索結果を取得
+		const rankeddatalist = await v2.beatmap.search(objecttaiko);
+
+		//検索結果からIDのみを取得
+		let rankedarray = [];
+		for (const element of rankeddatalist.beatmapsets) {
+			rankedarray.push(element.id)
+		}
+
+		//現在のRankedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentrankedlistfile = fs.readFileSync(`./RankedBeatmaps/taiko.txt`, 'utf8');
+		const currentrankedlistarray = currentrankedlistfile.split(",");
+
+		//先程の検索結果と現在のRankedのIDを比較し、違う物を取得
+		const differentranked = findDifferentElements(currentrankedlistarray, rankedarray);
+		fs.writeFileSync(`./RankedBeatmaps/taiko.txt`, rankedarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentranked == null) return;
+
+		//違う物があった場合の処理(SRやPPの計算過程)
+		let rankedbeatmapsmaxsrId;
+		let rankedbeatmapsminsrId;
+
+		//BeatmapIdを取得
+		await v2.beatmap.set(differentranked).then(async (res) => {
+			const array = res.beatmaps;
+			array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+			const maxRatingObj = array[array.length - 1];
+			const minRatingObj = array[0];
+			rankedbeatmapsmaxsrId = maxRatingObj.id;
+			rankedbeatmapsminsrId = minRatingObj.id;
+		});
+
+		//なんらかのエラーでundefinedだった場合の処理
+		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return;
+
+		//マップ情報を取得(タイトルなど)
+		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
+		const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "taiko");
+		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "taiko");
+		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "taiko");
+		const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "taiko");
+
+		//ranked時の日時を取得
+		const now = new Date();
+		const month = now.getMonth() + 1;
+		const day = now.getDate();
+		const hours = now.getHours();
+		const minutes = now.getMinutes();
+		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+		//表示用の文字列を作成
+		let srstring;
+		let ppstring;
+		if (maxsr.sr == minsr.sr) {
+			srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+		} else {
+			srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+		}
+		if (maxsr.S0 == minsr.S0) {
+			ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+		} else {
+			ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+		}
+
+		//メッセージの送信
+		const embed = new MessageEmbed()
+			.setColor("YELLOW")
+			.setAuthor(`🎉New Ranked Taiko Map🎉`)
+			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+			.setURL(GetMapInfo.maplink)
+			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`PP`", `**${ppstring}**`, false)
+			.addField("`Ranked 日時`",`**${dateString}**`, true)
+		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+			if (client.channels.cache.get(element) == undefined) continue;
+			client.channels.cache.get(element).send(embed);
+		}
+	} catch(e) {
+		console.log(e)
+		return
+	}
+}
+
+async function checkrankedcatch() {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objectcatch = {
+			mode: "fruits",
+			section: "ranked"
+		};
+
+		//検索結果を取得
+		const rankeddatalist = await v2.beatmap.search(objectcatch);
+
+		//検索結果からIDのみを取得
+		let rankedarray = [];
+		for (const element of rankeddatalist.beatmapsets) {
+			rankedarray.push(element.id)
+		}
+
+		//現在のRankedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentrankedlistfile = fs.readFileSync(`./RankedBeatmaps/catch.txt`, 'utf8');
+		const currentrankedlistarray = currentrankedlistfile.split(",");
+
+		//先程の検索結果と現在のRankedのIDを比較し、違う物を取得
+		const differentranked = findDifferentElements(currentrankedlistarray, rankedarray);
+		fs.writeFileSync(`./RankedBeatmaps/catch.txt`, rankedarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentranked == null) return;
+
+		//違う物があった場合の処理(SRやPPの計算過程)
+		let rankedbeatmapsmaxsrId;
+		let rankedbeatmapsminsrId;
+
+		//BeatmapIdを取得
+		await v2.beatmap.set(differentranked).then(async (res) => {
+			const array = res.beatmaps;
+			array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+			const maxRatingObj = array[array.length - 1];
+			const minRatingObj = array[0];
+			rankedbeatmapsmaxsrId = maxRatingObj.id;
+			rankedbeatmapsminsrId = minRatingObj.id;
+		});
+
+		//なんらかのエラーでundefinedだった場合の処理
+		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return;
+
+		//マップ情報を取得(タイトルなど)
+		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
+		const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "catch");
+		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "catch");
+		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "catch");
+		const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "catch");
+
+		//ranked時の日時を取得
+		const now = new Date();
+		const month = now.getMonth() + 1;
+		const day = now.getDate();
+		const hours = now.getHours();
+		const minutes = now.getMinutes();
+		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+		//表示用の文字列を作成
+		let srstring;
+		let ppstring;
+		if (maxsr.sr == minsr.sr) {
+			srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+		} else {
+			srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+		}
+		if (maxsr.S0 == minsr.S0) {
+			ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+		} else {
+			ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+		}
+
+		//メッセージの送信
+		const embed = new MessageEmbed()
+			.setColor("YELLOW")
+			.setAuthor(`🎉New Ranked Catch Map🎉`)
+			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+			.setURL(GetMapInfo.maplink)
+			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`PP`", `**${ppstring}**`, false)
+			.addField("`Ranked 日時`",`**${dateString}**`, true)
+		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+			if (client.channels.cache.get(element) == undefined) continue;
+			client.channels.cache.get(element).send(embed);
+		}
+	} catch(e) {
+		console.log(e)
+		return
+	}
+}
+
+async function checkrankedmania() {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objectmania = {
+			mode: "mania",
+			section: "ranked"
+		};
+
+		//検索結果を取得
+		const rankeddatalist = await v2.beatmap.search(objectmania);
+
+		//検索結果からIDのみを取得
+		let rankedarray = [];
+		for (const element of rankeddatalist.beatmapsets) {
+			rankedarray.push(element.id)
+		}
+
+		//現在のRankedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentrankedlistfile = fs.readFileSync(`./RankedBeatmaps/mania.txt`, 'utf8');
+		const currentrankedlistarray = currentrankedlistfile.split(",");
+
+		//先程の検索結果と現在のRankedのIDを比較し、違う物を取得
+		const differentranked = findDifferentElements(currentrankedlistarray, rankedarray);
+		fs.writeFileSync(`./RankedBeatmaps/mania.txt`, rankedarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentranked == null) return;
+
+		//違う物があった場合の処理(SRやPPの計算過程)
+		let rankedbeatmapsmaxsrId;
+		let rankedbeatmapsminsrId;
+
+		//BeatmapIdを取得
+		await v2.beatmap.set(differentranked).then(async (res) => {
+			const array = res.beatmaps;
+			array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+			const maxRatingObj = array[array.length - 1];
+			const minRatingObj = array[0];
+			rankedbeatmapsmaxsrId = maxRatingObj.id;
+			rankedbeatmapsminsrId = minRatingObj.id;
+		});
+
+		//なんらかのエラーでundefinedだった場合の処理
+		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return;
+
+		//マップ情報を取得(タイトルなど)
+		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
+		const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "mania");
+		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "mania");
+		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "mania");
+		const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "mania");
+
+		//ranked時の日時を取得
+		const now = new Date();
+		const month = now.getMonth() + 1;
+		const day = now.getDate();
+		const hours = now.getHours();
+		const minutes = now.getMinutes();
+		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+		//表示用の文字列を作成
+		let srstring;
+		let ppstring;
+		if (maxsr.sr == minsr.sr) {
+			srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+		} else {
+			srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+		}
+		if (maxsr.S0 == minsr.S0) {
+			ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+		} else {
+			ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+		}
+
+		//メッセージの送信
+		const embed = new MessageEmbed()
+			.setColor("YELLOW")
+			.setAuthor(`🎉New Ranked Mania Map🎉`)
+			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+			.setURL(GetMapInfo.maplink)
+			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`PP`", `**${ppstring}**`, false)
+			.addField("`Ranked 日時`",`**${dateString}**`, true)
+		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
 		}
