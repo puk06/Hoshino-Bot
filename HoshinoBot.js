@@ -63,7 +63,7 @@ const symbols = ['🍒', '🍊', '🍇', '🔔', '💰', '⌚', '⛵'];
 client.on("message", async(message) =>
 	{
 		//slotコマンドの処理(カジノBOT)
-		if (message.content.startsWith("/slot")) {
+		if (message.content.split(" ")[0] == "/slot") {
 			try {
 				//slotのみ入力された場合の処理
 				if (message.content == "/slot") {
@@ -159,7 +159,7 @@ client.on("message", async(message) =>
 		}
 
 		//safeslotコマンドの処理(カジノBOT)
-		if (message.content.startsWith("/safeslot")) {
+		if (message.content.split(" ")[0] == "!safeslot") {
 			try {
 				//safeslotのみ入力された場合の処理
 				if (message.content == "/safeslot") {
@@ -178,7 +178,7 @@ client.on("message", async(message) =>
 
 				//betAmountがマイナスの場合の処理
 				if (betAmount < 0) {
-					message.reply("^^;")
+					message.reply("マイナスの金額を賭け金にすることは出来ません。")
 					return
 				}
 
@@ -437,7 +437,7 @@ client.on("message", async(message) =>
 				const recommend = (userbank / 15n).toString();
 
 				//slotコマンドの送信
-				message.reply(`おすすめのslotコマンド: /slot ${recommend}`);
+				message.reply(`おすすめのslotコマンド: !slot ${recommend}`);
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中にエラーが発生しました。")
@@ -468,7 +468,7 @@ client.on("message", async(message) =>
 		}
 
 		//amountコマンドの処理(カジノBOT)
-		if (message.content.startsWith("/amount")) {
+		if (message.content.split(" ")[0] == "/amount") {
 			try {
 
 				//amountのみ入力された場合の処理
@@ -521,8 +521,8 @@ client.on("message", async(message) =>
 			}
 		}
 
-		//sendコマンドの処理(カジノBOT)
-		if(message.content.startsWith("/send")){
+		//!sendコマンドの処理(カジノBOT)
+		if(message.content.split(" ")[0] == "/send"){
 			try {
 				//sendのみ入力された場合の処理
 				if (message.content == "/send") {
@@ -628,7 +628,7 @@ client.on("message", async(message) =>
 			}
 		}
 
-		//diceコマンドの処理(カジノBOT)
+		//!diceコマンドの処理(カジノBOT)
 		if (message.content == "/dice") {
 			try {
 				//diceの結果を送信
@@ -715,7 +715,7 @@ client.on("message", async(message) =>
 		}
 
 		//!deleteコマンドの処理(FurryBOT)
-		if (message.content.startsWith("!delete")) {
+		if (message.content.split(" ")[0] == "!delete") {
 			try{
 				//Botが送ったコマンドに対しての処理をブロック
 				if (message.author.bot) return;
@@ -780,7 +780,7 @@ client.on("message", async(message) =>
 		}
 
 		//!picコマンドの処理(All picture Bot)
-		if(message.content.startsWith("!pic")){
+		if(message.content.split(" ")[0] == "!pic"){
             try {
 				//コマンドのみ入力された場合の処理
 				if (message.content == "!pic") {
@@ -828,7 +828,7 @@ client.on("message", async(message) =>
         }
 
 		//!settagコマンドの処理(All picture Bot)
-		if (message.content.startsWith("!createtag")) {
+		if (message.content.split(" ")[0] == "!settag") {
             try {
 				//ディリクトリ、ファイルの作成
 				const mkdir = util.promisify(fs.mkdir);
@@ -843,7 +843,7 @@ client.on("message", async(message) =>
         }
 
 		//!deltagコマンドの処理(All picture Bot)
-		if (message.content.startsWith("!deltag")) {
+		if (message.content.split(" ")[0] == "!deltag") {
 			try {
 				//タグが存在するかの確認、しなかった場合の処理
 				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
@@ -895,8 +895,8 @@ client.on("message", async(message) =>
 			}
 		}
 
-		//!picdeleteコマンドの処理(All picture Bot)
-		if (message.content.startsWith("!delpic")) {
+		//!delpicコマンドの処理(All picture Bot)
+		if (message.content.split(" ")[0] == "!delpic") {
 			try{
 				//Botが送ったコマンドに対しての処理をブロック
 				if (message.author.bot) return;
@@ -1006,7 +1006,7 @@ client.on("message", async(message) =>
 		}
 
 		//!kuniiコマンドの処理(おふざけBOT)
-		if (message.content.startsWith("!kunii")) {
+		if (message.content.split(" ")[0] == "!kunii") {
 			try{
 				//コマンドのみ送られた場合の処理
 				if (message.content == "!kunii") {
@@ -1089,7 +1089,7 @@ client.on("message", async(message) =>
 		}
 
 		//!mapコマンドの処理(osu!BOT)
-		if (message.content.startsWith("!map")) {
+		if (message.content.split(" ")[0] == "!map") {
 			try {
 				//コマンドのみ入力された場合の処理
 				if (message.content == "!map") {
@@ -1153,10 +1153,12 @@ client.on("message", async(message) =>
 						message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
 						return
 					}
+
 					if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")))) {
 						message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
 						return
 					}
+
 					if (Mods.includes("NC")) {
 						Mods.push("DT")
 						let modsnotNC = Mods.filter((item) => /NC/.exec(item) == null)
@@ -1177,6 +1179,12 @@ client.on("message", async(message) =>
 
 				//マッパーやppなどを取得
 				const mapperdata = await getplayersdata(apikey, MapInfo.mapper);
+
+				if (mapperdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
+
 				const Modsconverted = parseModString(Mods);
 				const srpps = await calculateSR(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode));
 				const Mapstatus = mapstatus(MapInfo.approved);
@@ -1247,7 +1255,7 @@ client.on("message", async(message) =>
 		}
 
 		//!roコマンドの処理(osu!BOT)
-		if (message.content.startsWith("!ro")) {
+		if (message.content.split(" ")[0] == "!ro") {
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
@@ -1259,6 +1267,7 @@ client.on("message", async(message) =>
 					} catch (e) {
 						console.log(e)
 						message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
+						return
 					}
 				} else {
 					playername = message.content.split(" ")[1]
@@ -1273,7 +1282,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 0);
-				if (recentplay == 0) {
+				if (recentplay == undefined) {
 					message.reply(`${playername}さんには24時間以内にプレイしたosu!譜面がないようです。`)
 					return
 				}
@@ -1283,7 +1292,20 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (playersdata == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mappersdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
 
 				//Accを計算
 				const acc = tools.accuracy({300: recentplay.count300.toFixed(0), 100: recentplay.count100.toFixed(0), 50: recentplay.count50.toFixed(0), 0: recentplay.countmiss.toFixed(0), geki: recentplay.countgeki.toFixed(0), katu: recentplay.countkatu.toFixed(0)}, "osu");
@@ -1391,7 +1413,7 @@ client.on("message", async(message) =>
 		}
 
 		//!rtコマンドの処理(osu!BOT)
-		if (message.content.startsWith("!rt")) {
+		if (message.content.split(" ")[0] == "!rt") {
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
@@ -1418,7 +1440,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 1);
-				if (recentplay == 0) {
+				if (recentplay == undefined) {
 					message.reply(`${playername}さんには24時間以内にプレイしたTaiko譜面がないようです。`)
 					return
 				}
@@ -1428,7 +1450,20 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (playersdata == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mappersdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
 
 				//Accを計算
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "taiko");
@@ -1535,7 +1570,7 @@ client.on("message", async(message) =>
 		}
 
 		//!rcコマンドの処理(osu!BOT)
-		if (message.content.startsWith("!rc")) {
+		if (message.content.split(" ")[0] == "!rc") {
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
@@ -1562,7 +1597,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 2);
-				if (recentplay == 0) {
+				if (recentplay == undefined) {
 					message.reply(`${playername}さんには24時間以内にプレイしたCatch譜面がないようです。`)
 					return
 				}
@@ -1572,7 +1607,21 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (playersdata == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mappersdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
+
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "fruits")
 				
 				//BPM、Modの処理
@@ -1683,7 +1732,7 @@ client.on("message", async(message) =>
 		}
 
 		//!rmコマンドの処理(osu!BOT)
-		if (message.content.startsWith("!rm")) {
+		if (message.content.split(" ")[0] == "!rm") {
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
@@ -1710,7 +1759,7 @@ client.on("message", async(message) =>
 
 				//ユーザー名からRecentplayを情報を取得
 				const recentplay = await Recentplay(apikey, playername, 3);
-				if (recentplay == 0) {
+				if (recentplay == undefined) {
 					message.reply(`${playername}さんには24時間以内にプレイしたMania譜面がないようです。`)
 					return
 				}
@@ -1720,7 +1769,21 @@ client.on("message", async(message) =>
 				let modforresult = parseMods(recentplay.enabled_mods);
 				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
 				const playersdata = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (playersdata == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
 				const mappersdata = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mappersdata == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
+
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "mania")
 				
 				//BPM、Modの処理
@@ -1842,27 +1905,40 @@ client.on("message", async(message) =>
 		}
 
 		//!regコマンドの処理(osu!BOT)
-		if (message.content.startsWith("!reg")) {
+		if (message.content.split(" ")[0] == "!reg") {
 			//ユーザー名が入力されなかったときの処理、されたときの処理
 			if (message.content == "!reg") {
 				message.reply("使い方: !reg <osu!ユーザーネーム>")
 				return
-			} else {
-				const username = message.author.id
-				const osuid = message.content.split(" ")[1]
-				try {
-					fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
-					message.reply(`${message.author.username} さんは ${osuid} として保存されました!`)
-				} catch (e) {
-					console.log(e)
-					message.reply("ユーザーを登録する際にエラーが発生しました。")
-					return
-				}
+			}
+
+			const username = message.author.id
+			const osuid = message.content.split(" ")[1]
+
+			//ユーザー名が入力されなかったときの処理
+			if (osuid == undefined) {
+				message.reply("ユーザー名を入力してください。")
+				return
+			}
+
+			//ユーザー名の前に空白1つ多く入っていた時の処理
+			if (osuid == "") {
+				message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
+				return
+			}
+
+			try {
+				fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
+				message.reply(`${message.author.username} さんは ${osuid} として保存されました!`)
+			} catch (e) {
+				console.log(e)
+				message.reply("ユーザーを登録する際にエラーが発生しました。")
+				return
 			}
 		}
 
 		//PP譜面か判断するコマンド(osu!BOT)
-		if (message.content.startsWith("!ispp")) {
+		if (message.content.split(" ")[0] == "!ispp") {
 			try {
 				//!isppのみ入力された場合の処理
 				if (message.content == "!ispp") {
@@ -1967,7 +2043,7 @@ client.on("message", async(message) =>
 		}
 
 		//Mods別ランキングを作成するコマンド(osu!BOT)
-		if (message.content.startsWith("!lb")) {
+		if (message.content.split(" ")[0] == "!lb") {
 			try {
 				//!lbのみ入力された場合の処理
 				if (message.content == "!lb") {
@@ -2028,6 +2104,13 @@ client.on("message", async(message) =>
 				//マップリンクから必要な情報を取得
 				const Mapinfo = await getMapInfo(maplink, apikey, mods);
 				const mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (mapperinfo == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
+
 				const mapsetlink = Mapinfo.maplink.split("/")[4].split("#")[0];
 
 				//SR、BPMを計算
@@ -2046,6 +2129,11 @@ client.on("message", async(message) =>
 
 				//top5を取得
 				const resulttop5 = await GetMapScore(beatmapid, parseModString(mods), apikey, Mapinfo.mode);
+
+				if (resulttop5 == undefined) {
+					message.reply("この譜面には選択されたModの記録が無いようです")
+					return
+				}
 
 				//ModsにDT、NCの療法が含まれていたときの処理
 				if (mods.includes("DT") && mods.includes("NC")) {
@@ -2127,7 +2215,7 @@ client.on("message", async(message) =>
 							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
-				} else if (resulttop5.length == 1) {
+				} else {
 					acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
 					const embed = new MessageEmbed()
 						.setColor("BLUE")
@@ -2139,9 +2227,6 @@ client.on("message", async(message) =>
 						.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
-				} else {
-					message.reply("この譜面には選択されたModの記録が無いようです")
-					return
 				}
 			} catch (e) {
 				console.log(e)
@@ -2151,7 +2236,7 @@ client.on("message", async(message) =>
 		}
 
 		//ユーザーの最高記録を表示するコマンド(osu!BOT)
-		if (message.content.startsWith("!s")) {
+		if (message.content.split(" ")[0] == "!s") {
 			try {
 				//!sのみ入力された場合の処理
 				if (message.content == "!s") {
@@ -2204,14 +2289,27 @@ client.on("message", async(message) =>
 				const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
 
 				//スコア情報がなかった時の処理
-				if (playersscore == 0) {
+				if (playersscore == undefined) {
 					message.reply(`${playername}さんのスコアが見つかりませんでした。`)
 					return
 				}
 
 				//マップ情報、プレイヤー情報、マッパー情報を取得
-				const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
-				const Mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
+				const Playersinfo = await getplayersdata(apikey, playername, GetMapInfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (Playersinfo == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
+				const Mapperinfo = await getplayersdata(apikey, GetMapInfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (Mapperinfo == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
 
 				//Accを計算
 				const acc = tools.accuracy({300: playersscore.count300.toString(), 100: playersscore.count100.toString(), 50: playersscore.count50.toString(), 0: playersscore.countmiss.toString(), geki : playersscore.countgeki.toString(), katu: playersscore.countgeki.toString()}, modeconvert(Mapinfo.mode));
@@ -2282,7 +2380,7 @@ client.on("message", async(message) =>
 		}
 
 		//!previewコマンドの処理(osu!BOT)
-		if (message.content.startsWith("!preview")) {
+		if (message.content.split(" ")[0] == "!preview") {
 			try {
 				//!previewのみ入力された時の処理
 				if (message.content == "!preview") {
@@ -2386,7 +2484,7 @@ client.on("message", async(message) =>
 		}
 
 		//!m <Mods>コマンドの処理(osu!BOT)
-		if (message.content.startsWith("!m")) {
+		if (message.content.split(" ")[0] == "!m") {
 			try {
 				//!mのみ入力された時の処理
 				if (message.content == "!m") {
@@ -2404,11 +2502,11 @@ client.on("message", async(message) =>
 				//チャンネルから直近の50件のメッセージを取得する
 				const messagedata = await message.channel.messages.fetch();
 				const maplinks = messagedata.filter(function(message) {return message.content.startsWith("https://osu.ppy.sh/beatmapsets/")}).array();
-				const recentmaplink = maplinks[0].toString();
-				if (recentmaplink == undefined) {
+				if (maplinks[0] == undefined) {
 					message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。")
 					return
 				}
+				const recentmaplink = maplinks[0].toString();
 
 				//Modsが入力されてなかったときの処理
 				if (message.content.split(" ")[1] == undefined) {
@@ -2478,7 +2576,7 @@ client.on("message", async(message) =>
 		}
 
 		//!linkコマンド(osu!BOT)
-		if (message.content.startsWith("!link")) {
+		if (message.content == "!link") {
 			try {
 				//チャンネルidを取得
 				const channelid = message.channel.id;
@@ -2504,7 +2602,7 @@ client.on("message", async(message) =>
 		}
 
 		//!unlinkコマンド(osu!BOT)
-		if (message.content.startsWith("!unlink")) {
+		if (message.content == "!unlink") {
 			try {
 				//チャンネルidを取得
 				const channelid = message.channel.id
@@ -2529,7 +2627,7 @@ client.on("message", async(message) =>
 		}
 
 		//Streamの長さをチェックするコマンド(osu!BOT)
-		if (message.content.startsWith("!check")) {
+		if (message.content.split(" ")[0] == "!check") {
 			try {
 				//!checkのみ入力された時の処理
 				if (message.content == "!check") {
@@ -2574,7 +2672,7 @@ client.on("message", async(message) =>
 		}
 
 		//!qfコマンド(osu!BOT)
-		if (message.content.startsWith("!qf")) {
+		if (message.content.split(" ")[0] == "!qf") {
 			try {
 				//!qfのみ入力された時の処理
 				if (message.content == "!qf") {
@@ -2611,7 +2709,7 @@ client.on("message", async(message) =>
 		}
 
 		//!deqfコマンド(osu!BOT)
-		if (message.content.startsWith("!deqf")) {
+		if (message.content.split(" ")[0] == "!deqf") {
 			try {
 				//!qfのみ入力された時の処理
 				if (message.content == "!deqf") {
@@ -2649,7 +2747,7 @@ client.on("message", async(message) =>
 		}
 
 		//!bgコマンド(osu!BOT)
-		if (message.content.startsWith("!bg")) {
+		if (message.content.split(" ")[0] == "!bg") {
 			try {
 				//!bgのみ入力された時の処理
 				if (message.content == "!bg") {
@@ -2827,7 +2925,7 @@ client.on("message", async(message) =>
 		}
 
 		//?slayerコマンド(Hypixel Skyblock)
-		if (message.content.startsWith("?slayer")) {
+		if (message.content.split(" ")[0] == "?slayer") {
 			try {
 				//?slayerのみ入力された時の処理
 				if (message.content == "?slayer") {
@@ -3018,7 +3116,7 @@ client.on("message", async(message) =>
 		}
 
 		//?profileコマンド(Hypixel Skyblock)
-		if (message.content.startsWith("?profile")) {
+		if (message.content.split(" ")[0] == "?profile") {
 			try {
 				//?profileのみ入力された時の処理
 				if (message.content == "?profile") {
@@ -3092,7 +3190,7 @@ client.on("message", async(message) =>
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin>")
 		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfied、Rankedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。")
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。")
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
 		} else if (message.content == "!bothelp furry") {
@@ -3108,7 +3206,7 @@ client.on("message", async(message) =>
 		}
 		
 		//^backupコマンドの処理(復元用)
-		if (message.content.startsWith("^backup")) {
+		if (message.content.split(" ")[0] == "^backup") {
 			try {
 				//管理者のみ実行するようにする
 				if (message.author.id != BotadminId) {
@@ -3137,8 +3235,8 @@ client.on("message", async(message) =>
 				message.reply(`${wannabackup}のバックアップを復元中です。(0%)`);
 				await fs.copy(`./Backups/${wannabackup}/Player infomation`,`./Player infomation`);
 				message.reply("Player infomationフォルダの復元が完了しました。(20%)");
-				await fs.copy(`./Backups/${wannabackup}/QualfiedChannels`,`./QualfiedChannels`);
-				message.reply("QualfiedChannelsフォルダの復元が完了しました。(40%)");
+				await fs.copy(`./Backups/${wannabackup}/MapcheckChannels`,`./MapcheckChannels`);
+				message.reply("MapcheckChannelsフォルダの復元が完了しました。(40%)");
 				await fs.copy(`./Backups/${wannabackup}/BeatmapLinkChannels`,`./BeatmapLinkChannels`);
 				message.reply("BeatmapLinkChannelsフォルダの復元が完了しました。(60%)");
 				await fs.copy(`./Backups/${wannabackup}/Player Bank`, `./Player Bank`);
@@ -3204,9 +3302,6 @@ client.on("message", async(message) =>
 				//更新処理
 				message.reply("Updateフォルダをリセットしています。")
 				await fs.remove('./updatetemp');
-				if (!fs.existsSync('./updatetemp')) {
-					fs.mkdirSync('./updatetemp');
-				}
 				message.reply("Updateフォルダのリセットが完了しました。")
 				message.reply("リポジトリのクローン中です。");
 				git(`https://github.com/${owner}/${repo}.git`, './updatetemp', {}, (error) => {
@@ -4205,12 +4300,12 @@ async function makeBackup() {
 	const dateString = `${year}-${month}-${day} ${hours} ${minutes}`;
 	await fs.mkdir(`./Backups/${dateString}`);
 	await fs.mkdir(`./Backups/${dateString}/Player infomation`);
-	await fs.mkdir(`./Backups/${dateString}/QualfiedChannels`);
+	await fs.mkdir(`./Backups/${dateString}/MapcheckChannels`);
 	await fs.mkdir(`./Backups/${dateString}/BeatmapLinkChannels`);
 	await fs.mkdir(`./Backups/${dateString}/Player Bank`);
 	await fs.mkdir(`./Backups/${dateString}/tag`);
 	await fs.copy(`./Player infomation`, `./Backups/${dateString}/Player infomation`);
-	await fs.copy(`./QualfiedChannels`, `./Backups/${dateString}/QualfiedChannels`);
+	await fs.copy(`./MapcheckChannels`, `./Backups/${dateString}/MapcheckChannels`);
 	await fs.copy(`./BeatmapLinkChannels`, `./Backups/${dateString}/BeatmapLinkChannels`);
 	await fs.copy(`./Player Bank`, `./Backups/${dateString}/Player Bank`);
 	await fs.copy(`./tag`, `./Backups/${dateString}/tag`);
