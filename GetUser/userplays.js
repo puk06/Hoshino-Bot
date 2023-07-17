@@ -2,7 +2,7 @@
 const axios = require("axios");
 
 //プレイヤーの情報を取得する関数
-module.exports.getplayersdata = async (apikey, username, mode) =>{
+module.exports.getplayersdata = async (apikey, username, mode) => {
     //osuのAPIからプレイヤー情報を取得
     const response = await axios.get(
         `https://osu.ppy.sh/api/get_user?&k=${apikey}&type=string&m=${mode}&u=${username}`
