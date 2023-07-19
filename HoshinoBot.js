@@ -3094,7 +3094,6 @@ client.on("message", async(message) =>
 						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
-					return
 				}
 
 				if (!pp.indexOf(Math.round(PPbefore.ppwithacc)) == -1) {
@@ -3687,7 +3686,7 @@ function formatBigInt(num) {
 
 //osu!BOTの関数
 function checkStrings(array) {
-	const targetStrings = ['EZ', 'HT', 'NF', 'HR', 'SD', 'DT', 'NC', 'FL', 'SO', 'PF', 'V2', 'TD', 'HD', 'FI', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9'];
+	const targetStrings = ['NM', 'EZ', 'HT', 'NF', 'HR', 'SD', 'DT', 'NC', 'FL', 'SO', 'PF', 'V2', 'TD', 'HD', 'FI', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9'];
 	for (const element of array) {
 		if (!targetStrings.includes(element)) {
 			return false
