@@ -3518,7 +3518,7 @@ async function checkqualfiedosu() {
 		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "osu");
 		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "osu");
 		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "osu");
-		const BPM = `${GetMapInfo.bpm}BPM (DT ${((GetMapInfo.bpm * 1.5).toFixed(0)).toFixed(0)}BPM)`;
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 		const minobject = GetMapInfomin.combo;
 		const maxobject = GetMapInfo.combo;
 		let Objectstring;
@@ -3527,8 +3527,8 @@ async function checkqualfiedosu() {
 		} else {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
-		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length / 1.5;
+		const lengthsec = GetMapInfo.totallength;
+		const lengthsecDT = GetMapInfo.totallength / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -3571,8 +3571,8 @@ async function checkqualfiedosu() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
-			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addField("`SR`", `**${srstring}**`, false)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
@@ -3641,7 +3641,7 @@ async function checkqualfiedtaiko() {
 		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "taiko");
 		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "taiko");
 		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "taiko");
-		const BPM = `${GetMapInfo.bpm}BPM (DT ${((GetMapInfo.bpm * 1.5).toFixed(0)).toFixed(0)}BPM)`;
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 		const minobject = GetMapInfomin.combo;
 		const maxobject = GetMapInfo.combo;
 		let Objectstring;
@@ -3650,8 +3650,8 @@ async function checkqualfiedtaiko() {
 		} else {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
-		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length / 1.5;
+		const lengthsec = GetMapInfo.totallength;
+		const lengthsecDT = GetMapInfo.totallength / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -3695,8 +3695,8 @@ async function checkqualfiedtaiko() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
-			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addField("`SR`", `**${srstring}**`, false)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
@@ -3774,8 +3774,8 @@ async function checkqualfiedcatch() {
 		} else {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
-		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length / 1.5;
+		const lengthsec = GetMapInfo.totallength;
+		const lengthsecDT = GetMapInfo.totallength / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -3819,8 +3819,8 @@ async function checkqualfiedcatch() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
-			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addField("`SR`", `**${srstring}**`, false)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
@@ -3898,8 +3898,8 @@ async function checkqualfiedmania() {
 		} else {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
-		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length / 1.5;
+		const lengthsec = GetMapInfo.totallength;
+		const lengthsecDT = GetMapInfo.totallength / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -3943,8 +3943,8 @@ async function checkqualfiedmania() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
-			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addField("`SR`", `**${srstring}**`, false)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
 			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
@@ -4023,8 +4023,8 @@ async function checkrankedosu() {
 		} else {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
-		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length / 1.5;
+		const lengthsec = GetMapInfo.totallength;
+		const lengthsecDT = GetMapInfo.totallength / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -4059,8 +4059,8 @@ async function checkrankedosu() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
-			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addField("`SR`", `**${srstring}**`, false)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Ranked 日時`",`**${dateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
@@ -4137,8 +4137,8 @@ async function checkrankedtaiko() {
 		} else {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
-		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length / 1.5;
+		const lengthsec = GetMapInfo.totallength;
+		const lengthsecDT = GetMapInfo.totallength / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -4172,8 +4172,8 @@ async function checkrankedtaiko() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
-			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addField("`SR`", `**${srstring}**`, false)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Ranked 日時`",`**${dateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
@@ -4250,8 +4250,8 @@ async function checkrankedcatch() {
 		} else {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
-		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length / 1.5;
+		const lengthsec = GetMapInfo.totallength;
+		const lengthsecDT = GetMapInfo.totallength / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -4285,8 +4285,8 @@ async function checkrankedcatch() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
-			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addField("`SR`", `**${srstring}**`, false)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Ranked 日時`",`**${dateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
@@ -4363,8 +4363,8 @@ async function checkrankedmania() {
 		} else {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
-		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length / 1.5;
+		const lengthsec = GetMapInfo.totallength;
+		const lengthsecDT = GetMapInfo.totallength / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -4398,8 +4398,8 @@ async function checkrankedmania() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true)
-			.addField("`SR`", `**${srstring}**`, true)
+			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addField("`SR`", `**${srstring}**`, false)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Ranked 日時`",`**${dateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
@@ -4445,12 +4445,10 @@ async function makeBackup() {
 
 //時間を分と秒に変換する関数
 function timeconvert(totallength) {
-	let lengthminutes = Math.floor(totallength / 60);
-	let remainingSeconds = totallength % 60;
+	let lengthminutes = Math.floor(totallength / 60).toString();
+	let remainingSeconds = (totallength % 60).toString();
 	if (remainingSeconds.length == 1) {
-		remainingSeconds = ('00' + remainingSeconds.toString()).slice(-2)
-	} else {
-		remainingSeconds = remainingSeconds.toString()
+		remainingSeconds = ('00' + remainingSeconds).slice(-2)
 	}
 	return {
 		minutes: lengthminutes,
