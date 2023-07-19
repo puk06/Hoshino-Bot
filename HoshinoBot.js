@@ -3513,10 +3513,25 @@ async function checkqualfiedosu() {
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
+		const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 		const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "osu");
 		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "osu");
 		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "osu");
 		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "osu");
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${GetMapInfo.bpm * 1.5}BPM)`;
+		const minobject = GetMapInfomin.combo;
+		const maxobject = GetMapInfo.combo;
+		let Objectstring;
+		if (minobject == maxobject) {
+			Objectstring = `${maxobject}`
+		} else {
+			Objectstring = `${minobject} ~ ${maxobject}`
+		}
+		const lengthsec = GetMapInfo.total_length;
+		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const maptime = timeconvert(lengthsec);
+		const maptimeDT = timeconvert(lengthsecDT);
+		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
 
 		//QF時の日時を取得
 		const now = new Date();
@@ -3556,6 +3571,7 @@ async function checkqualfiedosu() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
+			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
 			.addField("`SR`", `**${srstring}**`, true)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
@@ -3624,6 +3640,21 @@ async function checkqualfiedtaiko() {
 		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "taiko");
 		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "taiko");
 		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "taiko");
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${GetMapInfo.bpm * 1.5}BPM)`;
+		const minobject = GetMapInfomin.combo;
+		const maxobject = GetMapInfo.combo;
+		let Objectstring;
+		if (minobject == maxobject) {
+			Objectstring = `${maxobject}`
+		} else {
+			Objectstring = `${minobject} ~ ${maxobject}`
+		}
+		const lengthsec = GetMapInfo.total_length;
+		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const maptime = timeconvert(lengthsec);
+		const maptimeDT = timeconvert(lengthsecDT);
+		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
+
 
 		//QF時の日時を取得
 		const now = new Date();
@@ -3663,6 +3694,7 @@ async function checkqualfiedtaiko() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
+			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
 			.addField("`SR`", `**${srstring}**`, true)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
@@ -3731,6 +3763,21 @@ async function checkqualfiedcatch() {
 		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "catch");
 		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "catch");
 		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "catch");
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${GetMapInfo.bpm * 1.5}BPM)`;
+		const minobject = GetMapInfomin.combo;
+		const maxobject = GetMapInfo.combo;
+		let Objectstring;
+		if (minobject == maxobject) {
+			Objectstring = `${maxobject}`
+		} else {
+			Objectstring = `${minobject} ~ ${maxobject}`
+		}
+		const lengthsec = GetMapInfo.total_length;
+		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const maptime = timeconvert(lengthsec);
+		const maptimeDT = timeconvert(lengthsecDT);
+		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
+
 
 		//QF時の日時を取得
 		const now = new Date();
@@ -3770,6 +3817,7 @@ async function checkqualfiedcatch() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
+			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
 			.addField("`SR`", `**${srstring}**`, true)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
@@ -3838,6 +3886,21 @@ async function checkqualfiedmania() {
 		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "mania");
 		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "mania");
 		const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "mania");
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${GetMapInfo.bpm * 1.5}BPM)`;
+		const minobject = GetMapInfomin.combo;
+		const maxobject = GetMapInfo.combo;
+		let Objectstring;
+		if (minobject == maxobject) {
+			Objectstring = `${maxobject}`
+		} else {
+			Objectstring = `${minobject} ~ ${maxobject}`
+		}
+		const lengthsec = GetMapInfo.total_length;
+		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const maptime = timeconvert(lengthsec);
+		const maptimeDT = timeconvert(lengthsecDT);
+		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
+
 
 		//QF時の日時を取得
 		const now = new Date();
@@ -3877,6 +3940,7 @@ async function checkqualfiedmania() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
+			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
 			.addField("`SR`", `**${srstring}**`, true)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Qualfied 日時`",`**${dateString}**`, true)
@@ -3946,6 +4010,21 @@ async function checkrankedosu() {
 		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "osu");
 		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "osu");
 		const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "osu");
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${GetMapInfo.bpm * 1.5}BPM)`;
+		const minobject = GetMapInfomin.combo;
+		const maxobject = GetMapInfo.combo;
+		let Objectstring;
+		if (minobject == maxobject) {
+			Objectstring = `${maxobject}`
+		} else {
+			Objectstring = `${minobject} ~ ${maxobject}`
+		}
+		const lengthsec = GetMapInfo.total_length;
+		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const maptime = timeconvert(lengthsec);
+		const maptimeDT = timeconvert(lengthsecDT);
+		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
+
 
 		//ranked時の日時を取得
 		const now = new Date();
@@ -3976,6 +4055,7 @@ async function checkrankedosu() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
+			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
 			.addField("`SR`", `**${srstring}**`, true)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Ranked 日時`",`**${dateString}**`, true)
@@ -4043,6 +4123,20 @@ async function checkrankedtaiko() {
 		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "taiko");
 		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "taiko");
 		const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "taiko");
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${GetMapInfo.bpm * 1.5}BPM)`;
+		const minobject = GetMapInfomin.combo;
+		const maxobject = GetMapInfo.combo;
+		let Objectstring;
+		if (minobject == maxobject) {
+			Objectstring = `${maxobject}`
+		} else {
+			Objectstring = `${minobject} ~ ${maxobject}`
+		}
+		const lengthsec = GetMapInfo.total_length;
+		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const maptime = timeconvert(lengthsec);
+		const maptimeDT = timeconvert(lengthsecDT);
+		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
 
 		//ranked時の日時を取得
 		const now = new Date();
@@ -4073,6 +4167,7 @@ async function checkrankedtaiko() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
+			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
 			.addField("`SR`", `**${srstring}**`, true)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Ranked 日時`",`**${dateString}**`, true)
@@ -4140,6 +4235,20 @@ async function checkrankedcatch() {
 		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "catch");
 		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "catch");
 		const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "catch");
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${GetMapInfo.bpm * 1.5}BPM)`;
+		const minobject = GetMapInfomin.combo;
+		const maxobject = GetMapInfo.combo;
+		let Objectstring;
+		if (minobject == maxobject) {
+			Objectstring = `${maxobject}`
+		} else {
+			Objectstring = `${minobject} ~ ${maxobject}`
+		}
+		const lengthsec = GetMapInfo.total_length;
+		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const maptime = timeconvert(lengthsec);
+		const maptimeDT = timeconvert(lengthsecDT);
+		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
 
 		//ranked時の日時を取得
 		const now = new Date();
@@ -4170,6 +4279,7 @@ async function checkrankedcatch() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
+			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true )
 			.addField("`SR`", `**${srstring}**`, true)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Ranked 日時`",`**${dateString}**`, true)
@@ -4237,6 +4347,20 @@ async function checkrankedmania() {
 		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "mania");
 		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "mania");
 		const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "mania");
+		const BPM = `${GetMapInfo.bpm}BPM (DT ${GetMapInfo.bpm * 1.5}BPM)`;
+		const minobject = GetMapInfomin.combo;
+		const maxobject = GetMapInfo.combo;
+		let Objectstring;
+		if (minobject == maxobject) {
+			Objectstring = `${maxobject}`
+		} else {
+			Objectstring = `${minobject} ~ ${maxobject}`
+		}
+		const lengthsec = GetMapInfo.total_length;
+		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const maptime = timeconvert(lengthsec);
+		const maptimeDT = timeconvert(lengthsecDT);
+		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
 
 		//ranked時の日時を取得
 		const now = new Date();
@@ -4267,6 +4391,7 @@ async function checkrankedmania() {
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
+			.addField("`Mapinfo`", `BPM: \`${BPM}\` Length: \`${maptimestring}\` Combo:\`${Objectstring}\``, true)
 			.addField("`SR`", `**${srstring}**`, true)
 			.addField("`PP`", `**${ppstring}**`, false)
 			.addField("`Ranked 日時`",`**${dateString}**`, true)
@@ -4309,6 +4434,21 @@ async function makeBackup() {
 	await fs.copy(`./BeatmapLinkChannels`, `./Backups/${dateString}/BeatmapLinkChannels`);
 	await fs.copy(`./Player Bank`, `./Backups/${dateString}/Player Bank`);
 	await fs.copy(`./tag`, `./Backups/${dateString}/tag`);
+}
+
+//時間を分と秒に変換する関数
+function timeconvert(totallength) {
+	let lengthminutes = Math.floor(totallength / 60);
+	let remainingSeconds = totallength % 60;
+	if (remainingSeconds.length == 1) {
+		remainingSeconds = ('00' + MapInfo.lengthsec.toString()).slice(-2)
+	} else {
+		remainingSeconds = MapInfo.lengthsec.toString()
+	}
+	return {
+		minutes: lengthminutes,
+		seconds: remainingSeconds
+	}
 }
 
 //discord bot login
