@@ -2924,6 +2924,127 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//!ifmodコマンドの処理(osu!BOT)
+		if (message.content.split(" ")[0] == "!ifmod") {
+			try{
+				let playername;
+				try {
+					let username = message.author.id
+					let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
+					playername = osuid
+				} catch (e) {
+					console.log(e)
+					message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
+					return
+				}
+
+				//メッセージからマップリンクを取得
+				const maplink = message.content.split(" ")[1];
+				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
+
+				//メッセージからMODを取得
+				const modmessage = [message.content.split(" ")[2].toUpperCase()];
+				let modforcalc = splitString(modmessage)
+
+				if (!checkStrings(modforcalc)) {
+					message.reply("Modが存在しないか、指定できないModです。")
+					return
+				}
+
+				if (modforcalc.includes("DT") && modforcalc.includes("NC")) {
+					let modsnotDT = modforcalc.filter((item) => /DT/.exec(item) == null)
+					modforcalc = modsnotDT
+				} else if (modforcalc.length == 0) {
+					modforcalc.push("NM")
+				}
+				
+				//MODが入力されてなかったときの処理
+				if (modmessage == undefined) {
+					message.reply("MODを入力してください。")
+					return
+				}
+
+				//MODの前に空白が1つより多かったときの処理
+				if (modmessage == "") {
+					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//マップリンクが入力されてなかったときの処理
+				if (maplink == undefined) {
+					message.reply("マップリンクを入力してください。")
+					return
+				}
+
+				//マップリンクの前に空白が1つより多かったときの処理
+				if (maplink == "") {
+					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//マップ情報、スコア情報を取得
+				const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
+				const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
+
+				//スコア情報がなかった時の処理
+				if (playersscore == undefined) {
+					message.reply(`${playername}さんのスコアが見つかりませんでした。`)
+					return
+				}
+
+				//マップ情報、プレイヤー情報、マッパー情報を取得
+				const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
+
+				//プレイヤーの情報の取得中にエラーが発生した場合の処理
+				if (Playersinfo == undefined) {
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					return
+				}
+
+				const Mapperinfo = await getplayersdata(apikey, Mapinfo.mapper);
+
+				//マッパーの情報の取得中にエラーが発生した場合の処理
+				if (Mapperinfo == undefined) {
+					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					return
+				}
+
+				//Accを計算
+				const acc = tools.accuracy({300: playersscore.count300.toString(), 100: playersscore.count100.toString(), 50: playersscore.count50.toString(), 0: playersscore.countmiss.toString(), geki : playersscore.countgeki.toString(), katu: playersscore.countgeki.toString()}, modeconvert(Mapinfo.mode));
+				
+				//Modsを取得
+				let stringmodsbefore = playersscore.enabled_mods;
+				let stringmodsafter = modforcalc;
+
+				//SS時のPPを取得
+				const PPbefore = await calculateSRwithacc(beatmapId, stringmodsbefore, modeconvert(Mapinfo.mode), acc, playersscore.countmiss, playersscore.maxcombo);
+				const PPafter = await calculateSRwithacc(beatmapId, parseModString(stringmodsafter), modeconvert(Mapinfo.mode), acc, playersscore.countmiss, playersscore.maxcombo);
+
+				//表示専用のMod欄を作成
+				let showonlymodsforbefore = parseMods(playersscore.enabled_mods);
+				if (showonlymodsforbefore.includes("DT") && showonlymodsforbefore.includes("NC")) {
+					let modsnotDT = showonlymodsforbefore.filter((item) => item.match("DT") == null)
+					showonlymodsforbefore = modsnotDT
+				} else if (showonlymodsforbefore.length == 0) {
+					showonlymodsforbefore.push("NM")
+				}
+
+				const embed = new MessageEmbed()
+					.setColor("BLUE")
+					.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+					.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
+					.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP} → **${PPafter.ppwithacc}**/${PPafter.SSPP}`, true)
+					.setURL(Mapinfo.maplink)
+					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper_id}`)
+					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
+				message.channel.send(embed)
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
+				return
+			}
+		}
+
 		//?slayerコマンド(Hypixel Skyblock)
 		if (message.content.split(" ")[0] == "?slayer") {
 			try {
@@ -3190,7 +3311,7 @@ client.on("message", async(message) =>
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin>")
 		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。")
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。\n16: `!ifmod <マップリンク> <Mod>` あなたのその譜面での最高記録(精度, ミス)で、指定されたModだった時のPPを計算してくれます。!regコマンドが必須です。")
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
 		} else if (message.content == "!bothelp furry") {
