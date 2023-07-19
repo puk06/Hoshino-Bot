@@ -2428,7 +2428,7 @@ client.on("message", async(message) =>
 					.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 					.setDescription(`Combo: \`${Mapinfo.combo}\` Stars: \`${SR.sr}\` \n Length: \`${Mapinfo.lengthmin}:${lengthsec}\` BPM: \`${Mapinfo.bpm}\` Objects: \`${Mapinfo.combo}\` \n CS: \`${Mapinfo.cs}\` AR: \`${Mapinfo.ar}\` OD: \`${Mapinfo.od.toFixed(1)}\` HP: \`${Mapinfo.hp}\` Spinners: \`${Mapinfo.countspinner}\``)
 					.setURL(Mapinfo.maplink)
-					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper_id}`)
+					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
 					.addField("Preview link", `[Preview this map!](${previewlink})`, true)
 					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
 				message.channel.send(embed)
@@ -3090,7 +3090,7 @@ client.on("message", async(message) =>
 						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
 						.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, true)
 						.setURL(Mapinfo.maplink)
-						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
+						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
 						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
@@ -3149,7 +3149,7 @@ client.on("message", async(message) =>
 						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
 						.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, true)
 						.setURL(Mapinfo.maplink)
-						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
+						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
 						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
@@ -3162,7 +3162,7 @@ client.on("message", async(message) =>
 					.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, true)
 					.addField(`Rank`, `**${userdata.pp_raw}**pp (#${userdata.pp_rank}) → **${globalPP.toFixed(1)}**pp +${(globalPP - userdata.pp_raw).toFixed(1)} (#${ranking} +${userdata.pp_rank - ranking})`, false)
 					.setURL(Mapinfo.maplink)
-					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
+					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
 					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
 				message.channel.send(embed)
 			} catch (e) {
