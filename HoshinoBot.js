@@ -4446,7 +4446,7 @@ async function makeBackup() {
 //時間を分と秒に変換する関数
 function timeconvert(totallength) {
 	let lengthminutes = Math.floor(totallength / 60).toString();
-	let remainingSeconds = (totallength % 60).toString();
+	let remainingSeconds = Math.round(totallength % 60).toString();
 	if (remainingSeconds.length == 1) {
 		remainingSeconds = ('00' + remainingSeconds).slice(-2)
 	}
