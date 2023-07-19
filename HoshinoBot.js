@@ -2927,6 +2927,13 @@ client.on("message", async(message) =>
 		//!ifmodコマンドの処理(osu!BOT)
 		if (message.content.split(" ")[0] == "!ifmod") {
 			try{
+				//!ifmodのみ入力された時の処理
+				if (message.content == "!ifmod") {
+					message.reply("使い方: !ifmod <マップリンク> <MOD>")
+					return
+				}
+
+				//ユーザーネームを取得
 				let playername;
 				try {
 					let username = message.author.id
@@ -2946,11 +2953,13 @@ client.on("message", async(message) =>
 				const modmessage = [message.content.split(" ")[2].toUpperCase()];
 				let modforcalc = splitString(modmessage)
 
+				//MODが存在するか、指定できないMODが指定されていないか確認
 				if (!checkStrings(modforcalc)) {
 					message.reply("Modが存在しないか、指定できないModです。")
 					return
 				}
 
+				//modsforcalcにDTとNCの両方があった場合の処理
 				if (modforcalc.includes("DT") && modforcalc.includes("NC")) {
 					let modsnotDT = modforcalc.filter((item) => /DT/.exec(item) == null)
 					modforcalc = modsnotDT
