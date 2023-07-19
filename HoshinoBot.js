@@ -2947,6 +2947,11 @@ client.on("message", async(message) =>
 
 				//メッセージからマップリンクを取得
 				const maplink = message.content.split(" ")[1];
+				if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+					message.reply(`これはマップリンクではない可能性があります。`)
+					return
+				}
+
 				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
 
 				//メッセージからMODを取得
@@ -2959,10 +2964,16 @@ client.on("message", async(message) =>
 					return
 				}
 
+				if((modforcalc.includes("NC") && modforcalc.includes("HT")) || (modforcalc.includes("DT") && modforcalc.includes("HT") || (modforcalc.includes("DT") && modforcalc.includes("NC")) || (modforcalc.includes("EZ") && modforcalc.includes("HR")))) {
+					message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
+					return
+				}
+
 				//modsforcalcにDTとNCの両方があった場合の処理
-				if (modforcalc.includes("DT") && modforcalc.includes("NC")) {
-					let modsnotDT = modforcalc.filter((item) => /DT/.exec(item) == null)
-					modforcalc = modsnotDT
+				if (modforcalc.includes("NC")) {
+					let modsnotNC = modforcalc.filter((item) => /NC/.exec(item) == null)
+					modsnotNC.push("DT")
+					modforcalc = modsnotNC
 				} else if (modforcalc.length == 0) {
 					modforcalc.push("NM")
 				}
@@ -3038,11 +3049,119 @@ client.on("message", async(message) =>
 					showonlymodsforbefore.push("NM")
 				}
 
+				//モードを取得
+				let mode = "";
+				let modeforranking = "";
+				if (modeconvert(Mapinfo.mode) == "osu") {
+					mode = "0"
+					modeforranking = "osu"
+				} else if (modeconvert(Mapinfo.mode) == "taiko") {
+					mode = "1"
+					modeforranking = "taiko"
+				} else if (modeconvert(Mapinfo.mode) == "catch") {
+					mode = "2"
+					modeforranking = "fruits"
+				} else {
+					mode = "3"
+					modeforranking = "mania"
+				}
+				message.reply(`${playername}さんのランキングを計算中です。`)
+				//ユーザー情報、PPなどを取得
+				const response = await axios.get(
+					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${mode}&u=${playername}&limit=100`
+				);
+				const userplays = response.data;
+				let pp = [];
+				let oldpp = [];
+				for (const element of userplays) {
+					pp.push(Math.round(element.pp))
+					oldpp.push(Math.round(element.pp))
+				}
+
+				pp.push(Math.round(PPafter.ppwithacc))
+				pp.sort((a, b) => b - a)
+
+				//PPが変動しないときの処理(101個目のものと同じ場合)
+				if (Math.round(PPafter.ppwithacc) == pp[pp.length - 1]) {
+					message.reply("PPに変動は有りません。")
+					const embed = new MessageEmbed()
+						.setColor("BLUE")
+						.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
+						.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP} → **${PPafter.ppwithacc}**/${PPafter.SSPP}`, true)
+						.setURL(Mapinfo.maplink)
+						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper_id}`)
+						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
+					message.channel.send(embed)
+					return
+					return
+				}
+
+				if (!pp.indexOf(Math.round(PPbefore.ppwithacc)) == -1) {
+					pp.pop()
+				} else {
+					//ppからPPbeforeを削除
+					for (let i = 0; i < pp.length; i++) {
+						let foundflag = false;
+						if (pp[i] == Math.round(PPbefore.ppwithacc) && !foundflag) {
+							foundflag = true;
+							pp.splice(i, 1)
+						}
+						if (foundflag) {
+							break;
+						}
+					}
+				}
+
+				pp.sort((a, b) => b - a)
+
+				//GlobalPPやBonusPPなどを計算する
+				const userdata = await getplayersdata(apikey, playername, mode);
+				const playcount = userdata.count_rank_ss + userdata.count_rank_ssh + userdata.count_rank_s + userdata.count_rank_sh + userdata.count_rank_a;
+				const oldglobalPPwithoutBonusPP = calculateScorePP(oldpp, playcount);
+				const globalPPwithoutBonusPP = calculateScorePP(pp, playcount);
+				const bonusPP = userdata.pp_raw - oldglobalPPwithoutBonusPP;
+				const globalPP = globalPPwithoutBonusPP + bonusPP;
+
+				//ランキングを取得
+				let ranking = 0;
+				await auth.login(osuclientid, osuclientsecret);
+				let foundflagforranking = false;
+				for (let page = 0; page <= 120; page++) {
+					const object = { "cursor[page]": page + 1 };
+					let rankingdata = await v2.ranking.details(modeforranking, "performance", object);
+					if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp && !foundflagforranking) {
+						foundflagforranking = true;
+						for (let position = 0; position < 50; position++) {
+							if (globalPP > rankingdata.ranking[position].pp) {
+								ranking = (page * 50) + position + 1;
+								break;
+							}
+						}
+					}
+					
+					if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) break;
+				}
+
+				if(!foundflagforranking) {
+					const embed = new MessageEmbed()
+						.setColor("BLUE")
+						.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
+						.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP} → **${PPafter.ppwithacc}**/${PPafter.SSPP}`, true)
+						.setURL(Mapinfo.maplink)
+						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper_id}`)
+						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
+					message.channel.send(embed)
+					return
+				}
+
 				const embed = new MessageEmbed()
 					.setColor("BLUE")
 					.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 					.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
 					.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP} → **${PPafter.ppwithacc}**/${PPafter.SSPP}`, true)
+					.addField(`Rank`, `**${userdata.pp_raw}**pp (#${userdata.pp_rank}) → **${globalPP.toFixed(1)}**pp +${(globalPP - userdata.pp_raw).toFixed(1)} (#${ranking} +${userdata.pp_rank - ranking})`, false)
 					.setURL(Mapinfo.maplink)
 					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper_id}`)
 					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
@@ -3568,7 +3687,7 @@ function formatBigInt(num) {
 
 //osu!BOTの関数
 function checkStrings(array) {
-	const targetStrings = ['EZ', 'HT', 'NF', 'HR', 'SD', 'DT', 'NC', 'FL', 'SO', 'PF', 'V2', 'TD', 'HD', 'FI', 'RX', 'AP', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9'];
+	const targetStrings = ['EZ', 'HT', 'NF', 'HR', 'SD', 'DT', 'NC', 'FL', 'SO', 'PF', 'V2', 'TD', 'HD', 'FI', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9'];
 	for (const element of array) {
 		if (!targetStrings.includes(element)) {
 			return false
