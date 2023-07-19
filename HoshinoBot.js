@@ -3099,7 +3099,7 @@ client.on("message", async(message) =>
 					return
 				}
 
-				if (!pp.indexOf(Math.round(PPbefore.ppwithacc)) == -1) {
+				if (pp.indexOf(Math.round(PPbefore.ppwithacc)) == -1) {
 					pp.pop()
 				} else {
 					//ppからPPbeforeを削除
