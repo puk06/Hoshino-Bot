@@ -828,7 +828,7 @@ client.on("message", async(message) =>
         }
 
 		//!settagコマンドの処理(All picture Bot)
-		if (message.content.split(" ")[0] == "!settag") {
+		if (message.content == "!settag") {
             try {
 				//ディリクトリ、ファイルの作成
 				const mkdir = util.promisify(fs.mkdir);
@@ -843,7 +843,7 @@ client.on("message", async(message) =>
         }
 
 		//!deltagコマンドの処理(All picture Bot)
-		if (message.content.split(" ")[0] == "!deltag") {
+		if (message.content == "!deltag") {
 			try {
 				//タグが存在するかの確認、しなかった場合の処理
 				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
