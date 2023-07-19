@@ -3024,7 +3024,7 @@ client.on("message", async(message) =>
 				const Mapperinfo = await getplayersdata(apikey, Mapinfo.mapper);
 
 				//マッパーの情報の取得中にエラーが発生した場合の処理
-				if (Mapperinfo == undefined) {
+				if (Mapperinfo == 0) {
 					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
 					return
 				}
@@ -3090,7 +3090,7 @@ client.on("message", async(message) =>
 						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
 						.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, true)
 						.setURL(Mapinfo.maplink)
-						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper_id}`)
+						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
 						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
@@ -3149,7 +3149,7 @@ client.on("message", async(message) =>
 						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
 						.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, true)
 						.setURL(Mapinfo.maplink)
-						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper_id}`)
+						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
 						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
 					message.channel.send(embed)
 					return
@@ -3162,7 +3162,7 @@ client.on("message", async(message) =>
 					.addField(`Mods: ${showonlymodsforbefore} → ${modmessage.join("")} Acc: ${acc} Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, true)
 					.addField(`Rank`, `**${userdata.pp_raw}**pp (#${userdata.pp_rank}) → **${globalPP.toFixed(1)}**pp +${(globalPP - userdata.pp_raw).toFixed(1)} (#${ranking} +${userdata.pp_rank - ranking})`, false)
 					.setURL(Mapinfo.maplink)
-					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper_id}`)
+					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${Mapinfo.mapper_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
 					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
 				message.channel.send(embed)
 			} catch (e) {
