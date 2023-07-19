@@ -3528,7 +3528,7 @@ async function checkqualfiedosu() {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
 		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const lengthsecDT = GetMapInfo.total_length / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -3636,6 +3636,7 @@ async function checkqualfiedtaiko() {
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
+		const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 		const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "taiko");
 		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "taiko");
 		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "taiko");
@@ -3650,7 +3651,7 @@ async function checkqualfiedtaiko() {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
 		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const lengthsecDT = GetMapInfo.total_length / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -3759,6 +3760,7 @@ async function checkqualfiedcatch() {
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
+		const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 		const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "catch");
 		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "catch");
 		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "catch");
@@ -3773,7 +3775,7 @@ async function checkqualfiedcatch() {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
 		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const lengthsecDT = GetMapInfo.total_length / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -3882,6 +3884,7 @@ async function checkqualfiedmania() {
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
+		const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 		const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "mania");
 		const minsr = await calculateSR(QFbeatmapsminsrId, 0, "mania");
 		const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "mania");
@@ -3896,7 +3899,7 @@ async function checkqualfiedmania() {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
 		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const lengthsecDT = GetMapInfo.total_length / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -4006,6 +4009,7 @@ async function checkrankedosu() {
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
+		const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 		const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "osu");
 		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "osu");
 		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "osu");
@@ -4020,7 +4024,7 @@ async function checkrankedosu() {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
 		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const lengthsecDT = GetMapInfo.total_length / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -4119,6 +4123,7 @@ async function checkrankedtaiko() {
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
+		const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 		const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "taiko");
 		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "taiko");
 		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "taiko");
@@ -4133,7 +4138,7 @@ async function checkrankedtaiko() {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
 		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const lengthsecDT = GetMapInfo.total_length / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -4231,6 +4236,7 @@ async function checkrankedcatch() {
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
+		const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 		const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "catch");
 		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "catch");
 		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "catch");
@@ -4245,7 +4251,7 @@ async function checkrankedcatch() {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
 		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const lengthsecDT = GetMapInfo.total_length / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
@@ -4343,6 +4349,7 @@ async function checkrankedmania() {
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
+		const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 		const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "mania");
 		const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "mania");
 		const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "mania");
@@ -4357,7 +4364,7 @@ async function checkrankedmania() {
 			Objectstring = `${minobject} ~ ${maxobject}`
 		}
 		const lengthsec = GetMapInfo.total_length;
-		const lengthsecDT = GetMapInfo.total_length /= 1.5;
+		const lengthsecDT = GetMapInfo.total_length / 1.5;
 		const maptime = timeconvert(lengthsec);
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
