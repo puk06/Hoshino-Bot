@@ -2949,16 +2949,40 @@ client.on("message", async(message) =>
 
 				//メッセージからマップリンクを取得
 				const maplink = message.content.split(" ")[1];
+
+				//マップリンクが入力されてなかったときの処理
+				if (maplink == undefined) {
+					message.reply("マップリンクを入力してください。")
+					return
+				}
+
+				//マップリンクの前に空白が1つより多かったときの処理
+				if (maplink == "") {
+					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
+					return
+				}
 				if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
 					message.reply(`これはマップリンクではない可能性があります。`)
 					return
 				}
 
-				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
+				//MODが入力されてなかったときの処理
+				if (message.content.split(" ")[2] == undefined) {
+					message.reply("MODを入力してください。")
+					return
+				}
+
+				//MODの前に空白が1つより多かったときの処理
+				if (message.content.split(" ")[2] == "") {
+					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
+					return
+				}
 
 				//メッセージからMODを取得
 				const modmessage = [message.content.split(" ")[2].toUpperCase()];
 				let modforcalc = splitString(modmessage)
+
+				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
 
 				//MODが存在するか、指定できないMODが指定されていないか確認
 				if (!checkStrings(modforcalc)) {
@@ -2978,30 +3002,6 @@ client.on("message", async(message) =>
 					modforcalc = modsnotNC
 				} else if (modforcalc.length == 0) {
 					modforcalc.push("NM")
-				}
-				
-				//MODが入力されてなかったときの処理
-				if (modmessage == undefined) {
-					message.reply("MODを入力してください。")
-					return
-				}
-
-				//MODの前に空白が1つより多かったときの処理
-				if (modmessage == "") {
-					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//マップリンクが入力されてなかったときの処理
-				if (maplink == undefined) {
-					message.reply("マップリンクを入力してください。")
-					return
-				}
-
-				//マップリンクの前に空白が1つより多かったときの処理
-				if (maplink == "") {
-					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
-					return
 				}
 
 				//マップ情報、スコア情報を取得
@@ -3068,6 +3068,7 @@ client.on("message", async(message) =>
 					modeforranking = "mania"
 				}
 				message.reply(`${playername}さんのランキングを計算中です。`)
+
 				//ユーザー情報、PPなどを取得
 				const response = await axios.get(
 					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${mode}&u=${playername}&limit=100`
