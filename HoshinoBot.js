@@ -2974,7 +2974,7 @@ client.on("message", async(message) =>
 
 				//MODの前に空白が1つより多かったときの処理
 				if (message.content.split(" ")[2] == "") {
-					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
+					message.reply("MODの前の空白が1つ多い可能性があります。")
 					return
 				}
 
