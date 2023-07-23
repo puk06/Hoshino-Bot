@@ -3412,7 +3412,7 @@ client.on("message", async(message) =>
 
 					return
 				} else {
-					message.reply(`不正解です;-;答えの${matchPercentage(answer, currentanswer)}%を入力しています。`)
+					message.reply(`不正解です;-;答えの約${Math.round(matchPercentage(answer, currentanswer))}%を入力しています。`)
 					return
 				}
 			} catch (e) {
