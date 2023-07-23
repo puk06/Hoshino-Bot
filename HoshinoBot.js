@@ -3201,7 +3201,7 @@ client.on("message", async(message) =>
 				} else if (message.content.split(" ")[2] == "") {
 					message.reply("モードの前の空白が1つ多い可能性があります。")
 					return
-				} else if (message.content.split(" ")[2] != "o" || message.content.split(" ")[2] != "t" || message.content.split(" ")[2] != "c" || message.content.split(" ")[2] != "m") {
+				} else if (!(message.content.split(" ")[2] == "o" || message.content.split(" ")[2] == "t" || message.content.split(" ")[2] == "c" || message.content.split(" ")[2] == "m")) {
 					message.reply("モードはo, t, c, mのいずれかで指定してください。")
 					return
 				}
