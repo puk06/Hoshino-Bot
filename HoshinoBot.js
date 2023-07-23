@@ -3176,6 +3176,332 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//!osuquizコマンドの処理(osu!BOT)
+		if (message.content.split(" ")[0] == "!osuquiz") {
+			try {
+				//!osuquizのみ入力された時の処理
+				if (message.content == "!osuquiz") {
+					message.reply("使い方: !osuquiz <ユーザー名> <モード(o, t, c, m)>")
+					return
+				}
+
+				//ユーザー名が入力されなかったときの処理
+				if (message.content.split(" ")[1] == undefined) {
+					message.reply("ユーザー名を入力してください。")
+					return
+				} else if (message.content.split(" ")[1] == "") {
+					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//モードが入力されなかったときの処理
+				if (message.content.split(" ")[2] == undefined) {
+					message.reply("モードを入力してください。")
+					return
+				} else if (message.content.split(" ")[2] == "") {
+					message.reply("モードの前の空白が1つ多い可能性があります。")
+					return
+				} else if (message.content.split(" ")[2] != "o" || message.content.split(" ")[2] != "t" || message.content.split(" ")[2] != "c" || message.content.split(" ")[2] != "m") {
+					message.reply("モードはo, t, c, mのいずれかで指定してください。")
+					return
+				}
+
+				//クイズが既に開始しているかをファイルの存在から確認する
+				if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
+					message.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+					return
+				}
+
+				//クイズの問題を取得
+				const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${message.content.split(" ")[1]}&type=string&m=${modeconvert(message.content.split(" ")[2])}&limit=100`);
+				const quizdata = quiz.data;
+				if (quizdata.length < 10) {
+					message.reply("クイズの問題を取得できませんでした。")
+					return
+				}
+
+				//0-99までのランダムな数字を10個取得
+				const randomnumber = [];
+				while (randomnumber.length < 10) {
+					const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
+					if (!randomnumber.includes(randomNumber)) {
+						randomnumber.push(randomNumber)
+					}
+				}
+
+				//ランダムな数字からランダムなマップを取得
+				const randommap = [];
+				const randommaptitle = [];
+				for (const element of randomnumber) {
+					const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
+					randommap.push(beatmapsetid.beatmapset_id)
+					randommaptitle.push(beatmapsetid.title)
+				}
+				
+				let randomjson = JSON.parse("[]");
+				for (let i = 0; i < randommap.length; i++) {
+					randomjson.push({"number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false})
+				}
+				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
+				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+				
+				message.channel.send(`問題1のプレビューを再生します。`)
+				const response = await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' });
+				const audioData = response.data;
+				message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
+				return
+			}
+		}
+
+		//答えを?が最後にあるものとして取得
+		if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`) && message.content.endsWith("?")) {
+			try {
+				//Botの発言には反応しないようにする
+				if (message.author.bot) return;
+
+				//答えを取得
+				const answer = message.content.replace("?", "").toLowerCase().replace(/ /g, "");
+
+				//クイズの問題を取得
+				const rawjson = fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8")
+				const parsedjson = JSON.parse(rawjson)
+				let currenttitle = "";
+				let foundflagforjson = false;
+
+				//クイズの問題の中から未回答のものを探す
+				for (const element of parsedjson) {
+					if (!element.quizstatus && !foundflagforjson) {
+						foundflagforjson = true
+						currenttitle = element.name
+					}
+				}
+
+				//現在の答えを取得
+				const currentanswer = currenttitle.toLowerCase().replace(/ /g, "");
+
+				//判定
+				if (answer == currentanswer) {
+					message.reply("正解です！")
+					let foundflagforans = false;
+					for (let element of parsedjson) {
+						if (!element.quizstatus && !foundflagforans) {
+							foundflagforans = true
+							element.quizstatus = true
+							const updatedJsonData = JSON.stringify(parsedjson, null, 2);
+							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
+						}
+					}
+					const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+					let foundflagforafterjsonanswer = false;
+					for (const element of afterjson) {
+						if (!element.quizstatus && !foundflagforafterjsonanswer) {
+							foundflagforafterjsonanswer = true
+							message.channel.send(`問題${element.number}のプレビューを再生します。`)
+							const response = await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' });
+							const audioData = response.data;
+							message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] })
+							return
+						}
+					}
+
+					//次の問題がない場合、クイズを終了する
+					if (!foundflagforafterjsonanswer) {
+						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
+						message.channel.send("クイズが終了しました！お疲れ様でした！")
+						return
+					}
+
+					return
+				} else if (matchPercentage(answer, currentanswer) > 80) {
+					message.reply(`ほぼ正解です！答え: ${currenttitle}`)
+					let foundflagforans = false;
+					for (let element of parsedjson) {
+						if (!element.quizstatus && !foundflagforans) {
+							foundflagforans = true
+							element.quizstatus = true
+							const updatedJsonData = JSON.stringify(parsedjson, null, 2);
+							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
+						}
+					}
+					const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+					let foundflagforafterjsonanswer = false;
+					for (const element of afterjson) {
+						if (!element.quizstatus && !foundflagforafterjsonanswer) {
+							foundflagforafterjsonanswer = true
+							message.channel.send(`問題${element.number}のプレビューを再生します。`)
+							const response = await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' });
+							const audioData = response.data;
+							message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] })
+							return
+						}
+					}
+
+					//次の問題がない場合、クイズを終了する
+					if (!foundflagforafterjsonanswer) {
+						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
+						message.channel.send("クイズが終了しました！お疲れ様でした！")
+						return
+					}
+
+					return
+				} else if (matchPercentage(answer, currentanswer) > 50) {
+					message.reply(`半分正解です！ 答え: ${currenttitle}`)
+					let foundflagforans = false;
+					for (let element of parsedjson) {
+						if (!element.quizstatus && !foundflagforans) {
+							foundflagforans = true
+							element.quizstatus = true
+							const updatedJsonData = JSON.stringify(parsedjson, null, 2);
+							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
+						}
+					}
+					const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+					let foundflagforafterjsonanswer = false;
+					for (const element of afterjson) {
+						if (!element.quizstatus && !foundflagforafterjsonanswer) {
+							foundflagforafterjsonanswer = true
+							message.channel.send(`問題${element.number}のプレビューを再生します。`)
+							const response = await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' });
+							const audioData = response.data;
+							message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] })
+							return
+						}
+					}
+
+					//次の問題がない場合、クイズを終了する
+					if (!foundflagforafterjsonanswer) {
+						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
+						message.channel.send("クイズが終了しました！お疲れ様でした！")
+						return
+					}
+
+					return
+				} else if (matchPercentage(answer, currentanswer) > 20) {
+					message.reply(`惜しかったです！ 答え: ${currenttitle}`)
+					let foundflagforans = false;
+					for (let element of parsedjson) {
+						if (!element.quizstatus && !foundflagforans) {
+							foundflagforans = true
+							element.quizstatus = true
+							const updatedJsonData = JSON.stringify(parsedjson, null, 2);
+							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
+						}
+					}
+					const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"))
+					let foundflagforafterjsonanswer = false;
+					for (const element of afterjson) {
+						if (!element.quizstatus && !foundflagforafterjsonanswer) {
+							foundflagforafterjsonanswer = true;
+							message.channel.send(`問題${element.number}のプレビューを再生します。`)
+							const response = await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' });
+							const audioData = response.data;
+							message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
+							return
+						}
+					}
+
+					//次の問題がない場合、クイズを終了する
+					if (!foundflagforafterjsonanswer) {
+						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
+						message.channel.send("クイズが終了しました！お疲れ様でした！")
+						return
+					}
+
+					return
+				} else {
+					message.reply(`不正解です;-;答えの${matchPercentage(answer, currentanswer)}%を入力しています。`)
+					return
+				}
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
+				return
+			}
+		}
+
+		//!skipコマンドの処理(osu!BOT)
+		if (message.content == "!skip") {
+			try {
+				//クイズが開始されているかをファイルの存在から確認する
+				if (!fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
+					message.reply("クイズが開始されていません。")
+					return
+				}
+
+				//クイズの問題を取得
+				const rawjson = fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8")
+				const parsedjson = JSON.parse(rawjson)
+				let currenttitle = "";
+				let foundflagforjson = false;
+				for (const element of parsedjson) {
+					if (!element.quizstatus && !foundflagforjson) {
+						foundflagforjson = true;
+						currenttitle = element.name
+					}
+				}
+
+				//現在の答えを取得
+				message.reply(`答え: ${currenttitle}`)
+
+				//quizstatusをtrueにする
+				let foundflagforans = false;
+				for (let element of parsedjson) {
+					if (!element.quizstatus && !foundflagforans) {
+						foundflagforans = true
+						element.quizstatus = true
+						const updatedJsonData = JSON.stringify(parsedjson, null, 2);
+						fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
+					}
+				}
+
+				//次の問題に映る
+				const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"))
+				let foundflagforafterjsonanswer = false;
+				for (const element of afterjson) {
+					if (!element.quizstatus && !foundflagforafterjsonanswer) {
+						foundflagforafterjsonanswer = true
+						message.channel.send(`問題${element.number}のプレビューを再生します。`)
+						const response = await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' })
+						const audioData = response.data;
+						message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] })
+						return
+					}
+				}
+
+				//次の問題がない場合、クイズを終了する
+				if (!foundflagforafterjsonanswer) {
+					fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
+					message.channel.send("クイズが終了しました！お疲れ様でした！")
+					return
+				}
+
+				return
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
+				return
+			}
+		}
+
+		//!quizendコマンドの処理(osu!BOT)
+		if (message.content == "!quizend") {
+			try {
+				if (!fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
+					message.reply("クイズが開始されていません。")
+					return
+				}
+				fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
+				message.reply("クイズが終了しました！お疲れ様でした！")
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
+				return
+			}
+		}
+
 		//?slayerコマンド(Hypixel Skyblock)
 		if (message.content.split(" ")[0] == "?slayer") {
 			try {
@@ -3442,7 +3768,7 @@ client.on("message", async(message) =>
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin | pic>")
 		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。\n16: `!ifmod <マップリンク> <Mod>` あなたのその譜面での最高記録(精度, ミス)で、指定されたModだった時のPPを計算してくれます。!regコマンドが必須です。")
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。\n16: `!ifmod <マップリンク> <Mod>` あなたのその譜面での最高記録(精度, ミス)で、指定されたModだった時のPPを計算してくれます。!regコマンドが必須です。\n17: `!osuquiz <ユーザーネーム> <モード(o, t, c, m)>` 指定したユーザーのBPからランダムで曲を取得し、プレビュークイズを作成します。答えは (答え)?と言うと正解か不正解か教えてくれます。\n18: `!skip` クイズの答えが分からなかった時に答えを教えてくれて、次の問題に移ります。\n19: `!quizend` クイズを終了します。")
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
 		} else if (message.content == "!bothelp furry") {
@@ -3569,7 +3895,7 @@ client.on("message", async(message) =>
 					const sourceDir = './updatetemp';
 					const destinationDir = './';
 					const excludedFiles = ['(dotenv).env'];
-					const excludedFolders = ['Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
+					const excludedFolders = ['OsuPreviewquiz', 'Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
 
 					fs.readdir(sourceDir, (err, files) => {
 						message.reply("ディリクトリを読み込んでいます。")
@@ -4706,6 +5032,11 @@ function timeconvert(totallength) {
 		minutes: lengthminutes,
 		seconds: remainingSeconds
 	}
+}
+
+function matchPercentage(current, total) {
+	const data = total.replace(current, "")
+    return (total.length - data.length) / total.length * 100
 }
 
 //discord bot login
