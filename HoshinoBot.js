@@ -844,9 +844,9 @@ client.on("message", async(message) =>
 				let error = false;
 				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(e => {
 					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
-					const currenttext = fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, "utf-8")
+					const currenttext = fs.readFileSync(`./tag/${tag}/picture.txt`, "utf-8")
 					const newtext = currenttext.replace(`${randomLine} `, "")
-					fs.writeFileSync(`./tag/${message.channel.name}/picture.txt`, newtext)
+					fs.writeFileSync(`./tag/${tag}/picture.txt`, newtext)
 					message.reply("ファイルの削除が完了しました");
 					error = true;
 				})
