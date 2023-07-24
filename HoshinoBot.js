@@ -680,6 +680,26 @@ client.on("message", async(message) =>
 
 				//ランダムな数字から一覧の要素を取得
 				const randomLine = lines[randomLineNumber];
+				const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
+
+				//webからデータを取得
+				const response = await axios.get(randomLine, { responseType: 'arraybuffer' })
+
+				//axiosがアクセスできなかった時の処理
+				if (response.status !== 200) {
+					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
+					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
+					const newtext = currenttext.replace(`${wannadelete} `, "")
+					fs.writeFileSync(`./Furry/Furry.txt`, newtext)
+					message.reply("ファイルの削除が完了しました");
+					return
+				}
+
+				//画像のデータを取得
+				const picData = response.data;
+				
+				//画像の送信
+				message.channel.send({ files: [{ attachment: picData, name: `${Furry}.${lineextension}` }] })
 
 				//結果を送信
 				message.channel.send(randomLine);
@@ -817,9 +837,26 @@ client.on("message", async(message) =>
                 const lineCount = text.length;
                 const randomLineNumber = Math.floor(Math.random() * lineCount);
                 const randomLine = text[randomLineNumber];
+				const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
 
-				//画像を送信
-                message.channel.send(randomLine);
+				//webからデータを取得
+				const response = await axios.get(randomLine, { responseType: 'arraybuffer' })
+
+				//axiosがアクセスできなかった時の処理
+				if (response.status !== 200) {
+					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
+					const currenttext = fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, "utf-8")
+					const newtext = currenttext.replace(`${wannadelete} `, "")
+					fs.writeFileSync(`./tag/${message.channel.name}/picture.txt`, newtext)
+					message.reply("ファイルの削除が完了しました");
+					return
+				}
+
+				//画像のデータを取得
+				const picData = response.data;
+
+				//画像の送信
+				message.channel.send({ files: [{ attachment: picData, name: `${tag}.${lineextension}` }] })
             } catch(e) {
                 console.log(e)
                 message.reply("エラーが発生しました。")
