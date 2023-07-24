@@ -1138,7 +1138,7 @@ client.on("message", async(message) =>
 		}
 
 		//メッセージが送信された時の処理(Quote Bot)
-		if (fs.existsSync(`./quotetag/${message.channel.name}/quote.txt` && !message.content.startsWith("!"))) {
+		if (fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`) && !message.content.startsWith("!")) {
 			try {
 				//Botが送ったメッセージに対しての処理をブロック
 				if (message.author.bot) return;
