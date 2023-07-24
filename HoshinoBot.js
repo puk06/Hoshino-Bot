@@ -683,18 +683,17 @@ client.on("message", async(message) =>
 				const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
 
 				//webからデータを取得
-				const response = await axios.get(randomLine, { responseType: 'arraybuffer' })
-
-				//axiosがアクセスできなかった時の処理
-				if (response.status !== 200) {
+				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).then(e => {
 					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
 					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
 					const newtext = currenttext.replace(`${wannadelete} `, "")
 					fs.writeFileSync(`./Furry/Furry.txt`, newtext)
 					message.reply("ファイルの削除が完了しました");
-					return
-				}
+				})
 
+				//axiosがアクセスできなかった時の処理
+				if (response.status !== 200) return;
+				
 				//画像のデータを取得
 				const picData = response.data;
 				
@@ -840,18 +839,17 @@ client.on("message", async(message) =>
 				const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
 
 				//webからデータを取得
-				const response = await axios.get(randomLine, { responseType: 'arraybuffer' })
-
-				//axiosがアクセスできなかった時の処理
-				if (response.status !== 200) {
+				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(e => {
 					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
 					const currenttext = fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, "utf-8")
 					const newtext = currenttext.replace(`${wannadelete} `, "")
 					fs.writeFileSync(`./tag/${message.channel.name}/picture.txt`, newtext)
 					message.reply("ファイルの削除が完了しました");
-					return
-				}
+				})
 
+				//axiosがアクセスできなかった時の処理
+				if (response.status !== 200) return;
+				
 				//画像のデータを取得
 				const picData = response.data;
 
