@@ -1144,7 +1144,7 @@ client.on("message", async(message) =>
 				if (message.author.bot) return;
 
 				//画像のURLをテキストファイルに保存
-				fs.appendFile(`./quotetag/${message.channel.name}/quote.txt`, `${message.content} `, function (err) {
+				fs.appendFile(`./quotetag/${message.channel.name}/quote.txt`, `${message.content.replace(" ", "")} `, function (err) {
 					if (err) throw err
 				})
 
