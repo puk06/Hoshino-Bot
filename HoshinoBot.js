@@ -686,7 +686,7 @@ client.on("message", async(message) =>
 				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).then(e => {
 					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
 					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
-					const newtext = currenttext.replace(`${wannadelete} `, "")
+					const newtext = currenttext.replace(`${randomLine} `, "")
 					fs.writeFileSync(`./Furry/Furry.txt`, newtext)
 					message.reply("ファイルの削除が完了しました");
 				})
@@ -842,7 +842,7 @@ client.on("message", async(message) =>
 				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(e => {
 					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
 					const currenttext = fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, "utf-8")
-					const newtext = currenttext.replace(`${wannadelete} `, "")
+					const newtext = currenttext.replace(`${randomLine} `, "")
 					fs.writeFileSync(`./tag/${message.channel.name}/picture.txt`, newtext)
 					message.reply("ファイルの削除が完了しました");
 				})
