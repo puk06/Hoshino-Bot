@@ -2611,6 +2611,9 @@ client.on("message", async(message) =>
 				if (mapdata.combo < 100) {
 					message.reply("100combo未満のマップは計算できません。")
 					return
+				} else if (mapdata.combo > 5000) {
+					message.reply("5000combo以上のマップは計算できません。")
+					return
 				}
 
 				//チャートの作成
