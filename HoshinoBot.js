@@ -22,6 +22,7 @@ const { getOsuBeatmapFile, checkStream } = require("./Streamcheck/Streamcheck");
 const { checkFileExists } = require("./Checkuser/CheckUser");
 const { calculateScorePP } = require("./CalcGlobalPP/calculateglobalPP");
 const { downloadHoshinobotFile, getCommitDiffofHoshinobot } = require("./HoshinoBot updater");
+const { srchart } = require("./CheckSRgraph/checksr");
 
 //APIキーやTOKENなど
 const apikey = process.env.APIKEY;
@@ -680,27 +681,6 @@ client.on("message", async(message) =>
 
 				//ランダムな数字から一覧の要素を取得
 				const randomLine = lines[randomLineNumber];
-				const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
-
-				//webからデータを取得
-				let error = false;
-				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).then(e => {
-					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
-					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
-					const newtext = currenttext.replace(`${randomLine} `, "")
-					fs.writeFileSync(`./Furry/Furry.txt`, newtext)
-					message.reply("ファイルの削除が完了しました");
-					error = true;
-				})
-
-				//axiosがアクセスできなかった時の処理
-				if (error) return;
-				
-				//画像のデータを取得
-				const picData = response.data;
-				
-				//画像の送信
-				message.channel.send({ files: [{ attachment: picData, name: `${Furry}.${lineextension}` }] })
 
 				//結果を送信
 				message.channel.send(randomLine);
@@ -838,27 +818,9 @@ client.on("message", async(message) =>
                 const lineCount = text.length;
                 const randomLineNumber = Math.floor(Math.random() * lineCount);
                 const randomLine = text[randomLineNumber];
-				const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
 
-				//webからデータを取得
-				let error = false;
-				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(e => {
-					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
-					const currenttext = fs.readFileSync(`./tag/${tag}/picture.txt`, "utf-8")
-					const newtext = currenttext.replace(`${randomLine} `, "")
-					fs.writeFileSync(`./tag/${tag}/picture.txt`, newtext)
-					message.reply("ファイルの削除が完了しました");
-					error = true;
-				})
-
-				//axiosがアクセスできなかった時の処理
-				if (error) return;
-				
-				//画像のデータを取得
-				const picData = response.data;
-
-				//画像の送信
-				message.channel.send({ files: [{ attachment: picData, name: `${tag}.${lineextension}` }] })
+				//画像を送信
+                message.channel.send(randomLine);
             } catch(e) {
                 console.log(e)
                 message.reply("エラーが発生しました。")
@@ -941,10 +903,7 @@ client.on("message", async(message) =>
 				if (message.author.bot) return;
 
 				//タグ(チャンネル)が登録されていなかった場合の処理
-				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
-					message.reply("このタグは登録されていません。")
-					return;
-				}
+				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) return;
 
 				//コマンドのみ入力された場合の処理
 				if (message.content == "!picdelete") {
@@ -993,7 +952,6 @@ client.on("message", async(message) =>
 					message.reply("このタグは登録されていません。")
 					return;
 				}
-
 				//テキストファイルから一覧を取得
 				const text = fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, 'utf-8');
 
@@ -1023,229 +981,6 @@ client.on("message", async(message) =>
 				//全てのフォルダー名からタグを取得
 				const tags = fs.readdirSync(`./tag/`, { withFileTypes: true }).filter((function(tag) {
 					return fs.readdirSync(`./tag/${tag.name}`).length !== 0;
-				}));
-
-				//タグの数が0だった場合
-				if (tags.length == 0) {
-					message.reply("タグが存在しません。")
-					return
-				}
-
-				//タグの一覧を格納する配列を作成
-				let taglist = [];
-
-				//タグの一覧を作成
-				for (let i = 0; i < tags.length; i++ ) {
-					taglist.push(`${i + 1}: ${tags[i].name}\n`);
-				}
-
-				//タグの一覧を送信
-				message.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
-			} catch (e) {
-				console.log(e)
-				message.reply("エラーが発生しました。")
-				return
-			}
-		}
-
-		//!quoteコマンドの処理(Quote Bot)
-		if(message.content.split(" ")[0] == "!quote"){
-            try {
-				//コマンドのみ入力された場合の処理
-				if (message.content == "!quote") {
-					message.reply("使い方: !quote <タグ名>")
-					return
-				}
-
-				//メッセージからタグを取得
-                const tag = message.content.split(" ")[1]
-                if (tag == undefined) {
-                    message.reply("タグを指定してください。")
-                    return
-                }
-				
-				//タグの前の空白が1つ多い場合の処理
-				if (tag == "") {
-					message.reply("タグの前の空白が1つ多い可能性があります。")
-				}
-
-				//タグが存在するかの確認
-				if (!fs.existsSync(`./quotetag/${tag}/quote.txt`)) {
-					message.reply("このタグは存在しません。")
-					return
-				}
-
-				//タグの中身が空の場合の処理
-                const text = fs.readFileSync(`./quotetag/${tag}/quote.txt`, 'utf-8').split(" ").filter((function(link) {return link !== "";}));
-                if (text.length == 0) {
-                    message.reply("このタグには名言がないみたいです。")
-                    return
-                }
-
-				//タグの中身のファイルからランダムで名言を選択
-                const lineCount = text.length;
-                const randomLineNumber = Math.floor(Math.random() * lineCount);
-                const randomLine = text[randomLineNumber];
-
-				//画像の送信
-				message.channel.send(`**${randomLine}** - ${tag}`);
-            } catch(e) {
-                console.log(e)
-                message.reply("エラーが発生しました。")
-				return
-            }
-        }
-
-		//!setquotetagコマンドの処理(Quote Bot)
-		if (message.content == "!setquotetag") {
-            try {
-				//ディリクトリ、ファイルの作成
-				const mkdir = util.promisify(fs.mkdir);
-				const writeFile = util.promisify(fs.writeFile);
-				await mkdir(`./quotetag/${message.channel.name}`);
-				await writeFile(`./quotetag/${message.channel.name}/quote.txt`, "");
-				message.reply("タグが正常に作成されました。")
-			} catch (e) {
-				message.reply("このタグは既に存在します。")
-				return
-			}
-        }
-
-		//!delquotetagコマンドの処理(Quote Bot)
-		if (message.content == "!delquotetag") {
-			try {
-				//タグが存在するかの確認、しなかった場合の処理
-				if (!fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`)) {
-					message.reply("このタグは存在しません。")
-					return
-				}
-
-				//タグの削除
-				fs.remove(`./quotetag/${message.channel.name}/quote.txt`, (err) => {
-					if (err) {
-						console.log(err)
-						message.reply("ファイルを削除する際にエラーが発生しました。")
-					}
-				})
-
-				//タグの削除が完了したことを知らせるメッセージを送信
-				message.reply("タグが正常に削除されました。")
-			} catch (e) {
-				console.log(e)
-				message.reply("エラーが発生しました。")
-				return
-			}
-		}
-
-		//メッセージが送信された時の処理(Quote Bot)
-		if (fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`) && !message.content.startsWith("!")) {
-			try {
-				//Botが送ったメッセージに対しての処理をブロック
-				if (message.author.bot) return;
-
-				//画像のURLをテキストファイルに保存
-				fs.appendFile(`./quotetag/${message.channel.name}/quote.txt`, `${message.content.replace(" ", "")} `, function (err) {
-					if (err) throw err
-				})
-
-				//画像の保存が完了したことを知らせるメッセージを送信
-				message.reply(`名言が保存されました`);
-			} catch (e) {
-				console.log(e)
-				message.reply("名言の保存中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//!delquoteコマンドの処理(Quote Bot)
-		if (message.content.split(" ")[0] == "!delquote") {
-			try{
-				//Botが送ったコマンドに対しての処理をブロック
-				if (message.author.bot) return;
-
-				//タグ(チャンネル)が登録されていなかった場合の処理
-				if (!fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`)) {
-					message.reply("このタグは存在しません。")
-					return
-				}
-
-				//コマンドのみ入力された場合の処理
-				if (message.content == "!delquote") {
-					message.reply("使い方: !delquote <消したい文章>")
-					return
-				}
-
-				//コマンドの後の空白が1つ多い場合の処理
-				if (!message.content.split(" ")[0] == "!picdelete") {
-					message.reply("!picdeleteとリンクの間には空白を入れてください。")
-					return
-				}
-
-				//削除したいリンクを取得
-				const wannadelete = message.content.split(" ")[1];
-
-				//削除したいリンクの前の空白が1つ多い場合の処理
-				if (wannadelete == "") {
-					message.reply("削除したいリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//リンクを削除する処理
-				if (fs.readFileSync(`./quotetag/${message.channel.name}/quote.txt`, "utf-8").includes(wannadelete)) {
-					const currenttext = fs.readFileSync(`./quotetag/${message.channel.name}/quote.txt`, "utf-8")
-					const newtext = currenttext.replace(`${wannadelete} `, "")
-					fs.writeFileSync(`./quotetag/${message.channel.name}/quote.txt`, newtext)
-					message.reply("ファイルの削除が完了しました");
-				} else {
-					message.reply("そのリンクはリンク一覧に存在しません。")
-					return
-				}
-			}catch (e){
-				console.log(e)
-				message.reply("ファイルの削除中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//!allquotecountコマンドの処理(Quote Bot)
-		if (message.content == "!allquotecount") {
-			try {
-
-				//タグ(チャンネル)が登録されていなかった場合の処理
-				if (!fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`)) {
-					message.reply("このタグは登録されていません。")
-					return;
-				}
-
-				//テキストファイルから一覧を取得
-				const text = fs.readFileSync(`./quotetag/${message.channel.name}/quote.txt`, 'utf-8');
-
-				//一覧を配列に変換
-				const lines = text.split(" ").filter((function(link) {return link !== "";}));
-
-				//配列の要素数を取得
-				const lineCount = lines.length;
-
-				if (lineCount == 0) {
-					message.reply("このタグには名言がないみたいです。")
-					return
-				}
-
-				//要素数の結果を送信
-				message.channel.send(`今まで${message.channel.name}タグに追加した名言の合計枚数は${lineCount}個です。`);
-			} catch (e) {
-				console.log(e)
-				message.channel.send('ファイルを読み込む際にエラーが発生しました。')
-				return
-			}
-		}
-
-		//!allquotetagsコマンドの処理(Quote Bot)
-		if (message.content == "!allquotetags") {
-			try {
-				//全てのフォルダー名からタグを取得
-				const tags = fs.readdirSync(`./quotetag/`, { withFileTypes: true }).filter((function(tag) {
-					return fs.readdirSync(`./quotetag/${tag.name}`).length !== 0;
 				}));
 
 				//タグの数が0だった場合
@@ -2843,6 +2578,57 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//!srコマンドの処理(osu!BOT)
+		if (message.content.split(" ")[0] == "!sr") {
+			try {
+				//!srのみ入力された時の処理
+				if (message.content == "!sr") {
+					message.reply("使い方: !sr <マップリンク>")
+					return
+				}
+
+				//マップリンクを取得
+				const maplink = message.content.split(" ")[1];
+				
+				if (maplink == undefined) {
+					message.reply("マップリンクを入力してください。")
+					return
+				}
+
+				if (maplink == "") {
+					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+					message.reply("マップリンク形式が間違っているようです。https://osu.ppy.sh/beatmapsets/ で始まるマップリンクを入力してください。")
+					return
+				}
+
+				//マップ情報を取得
+				const mapdata = await getMapInfowithoutmods(maplink, apikey);
+				const beatmapid = mapdata.beatmapId;
+				if (mapdata.combo < 100) {
+					message.reply("100combo未満のマップは計算できません。")
+					return
+				}
+
+				//チャートの作成
+				message.reply("SRの計算中です。")
+				await srchart(beatmapid, modeconvert(mapdata.mode));
+				const sr = await calculateSR(beatmapid, 0, modeconvert(mapdata.mode));
+				await message.channel.send(`**${mapdata.artist} - ${mapdata.title} [${mapdata.version}]**のSRチャートです。最高は${sr.sr}★です。`);
+				await message.channel.send({ files: [{ attachment: `./BeatmapFolder/${beatmapid}.png`, name: 'SRchart.png' }] });
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+				return
+			} finally {
+				fs.remove(`./BeatmapFolder/${beatmapid}.png`);
+				fs.remove(`./BeatmapFolder/${beatmapid}.osu`);
+			}
+		}
+
 		//!linkコマンド(osu!BOT)
 		if (message.content == "!link") {
 			try {
@@ -3467,7 +3253,7 @@ client.on("message", async(message) =>
 				} else if (message.content.split(" ")[2] == "") {
 					message.reply("モードの前の空白が1つ多い可能性があります。")
 					return
-				} else if (!(message.content.split(" ")[2] == "o" || message.content.split(" ")[2] == "t" || message.content.split(" ")[2] == "c" || message.content.split(" ")[2] == "m")) {
+				} else if (message.content.split(" ")[2] != "o" || message.content.split(" ")[2] != "t" || message.content.split(" ")[2] != "c" || message.content.split(" ")[2] != "m") {
 					message.reply("モードはo, t, c, mのいずれかで指定してください。")
 					return
 				}
@@ -3678,7 +3464,7 @@ client.on("message", async(message) =>
 
 					return
 				} else {
-					message.reply(`不正解です;-;答えの約${Math.round(matchPercentage(answer, currentanswer))}%を入力しています。`)
+					message.reply(`不正解です;-;答えの${matchPercentage(answer, currentanswer)}%を入力しています。`)
 					return
 				}
 			} catch (e) {
@@ -4032,9 +3818,9 @@ client.on("message", async(message) =>
 
 		//Helpコマンド(AllBOT)
 		if (message.content == "!bothelp") {
-			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin | pic | quote>")
+			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin | pic>")
 		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。\n16: `!ifmod <マップリンク> <Mod>` あなたのその譜面での最高記録(精度, ミス)で、指定されたModだった時のPPを計算してくれます。!regコマンドが必須です。\n17: `!osuquiz <ユーザーネーム> <モード(o, t, c, m)>` 指定したユーザーのBPからランダムで曲を取得し、プレビュークイズを作成します。答えは (答え)?と言うと正解か不正解か教えてくれます。\n18: `!skip` クイズの答えが分からなかった時に答えを教えてくれて、次の問題に移ります。\n19: `!quizend` クイズを終了します。")
+			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。\n16: `!ifmod <マップリンク> <Mod>` あなたのその譜面での最高記録(精度, ミス)で、指定されたModだった時のPPを計算してくれます。!regコマンドが必須です。\n17: `!osuquiz <ユーザーネーム> <モード(o, t, c, m)>` 指定したユーザーのBPからランダムで曲を取得し、プレビュークイズを作成します。答えは (答え)?と言うと正解か不正解か教えてくれます。\n18: `!skip` クイズの答えが分からなかった時に答えを教えてくれて、次の問題に移ります。\n19: `!quizend` クイズを終了します。\n20: `!sr <マップリンク>` SRがどのように上がっているのかをチャートで確認することができます。")
 		} else if (message.content == "!bothelp casino") {
 			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
 		} else if (message.content == "!bothelp furry") {
@@ -4047,10 +3833,8 @@ client.on("message", async(message) =>
 			message.reply("__**All pictureコマンドの使い方**__ \n1: `!pic <タグ名>` そのタグに追加されたファイルを見ることができます。/kemoコマンドの拡張版のようなものです。\n2: `!settag` 入力されたチャンネルの名前でタグが作成され、そこで画像や動画を送信すると自動的に保存されるようになります。\n3: `!delpic <メディアリンク>` そのタグ(チャンネル)に登録されたファイルを削除することができます。\n4: `!deltag` タグを削除することができます。また追加されない限り、送られたファイルが保存されなくなります。\n5: `!allcount` 送信されたチャンネルのタグに登録されているファイルの数がしれます。\n5: `!alltags` タグ一覧を見ることができます。")
 		} else if (message.content == "!bothelp Admin") {
 			message.reply("__**Adminコマンドの使い方**__ \n1: `^backup <何時間前のバックアップを復元するか>` 指定した期間のバックアップを復元することが出来ます。\n2: `^update` 最新のファイルデータをダウンロードし、Botをアップデートします。\n3: `^allupdate` ^updateはHoshinoBot.jsのみのアップデートで、こちらは全データのアップデートを行います。")
-		} else if (message.content == "!bothelp quote") {
-			message.reply("__**Quoteコマンドの使い方**__ \n1: `!quote <タグ名>` 指定したタグからランダムで名言を送信します。\n2: `!setquotetag` 入力されたチャンネルの名前でタグが作成され、そこでメッセージ(コマンド以外)を送信すると自動的に保存されるようになります。\n3: `!delquote <削除したい名言>` そのタグ(チャンネル)に登録された名言を削除することができます。\n4: `!delquotetag` タグを削除することができます。また追加されない限り、送られた名言が保存されなくなります。\n5: `!allquotecount` 送信されたチャンネルのタグに登録されている名言の数がしれます。\n5: `!allquotetags` タグ一覧を見ることができます。")
 		}
-
+		
 		//^backupコマンドの処理(復元用)
 		if (message.content.split(" ")[0] == "^backup") {
 			try {
@@ -4163,7 +3947,7 @@ client.on("message", async(message) =>
 					const sourceDir = './updatetemp';
 					const destinationDir = './';
 					const excludedFiles = ['(dotenv).env'];
-					const excludedFolders = ['quotetag', 'OsuPreviewquiz', 'Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
+					const excludedFolders = ['OsuPreviewquiz', 'Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
 
 					fs.readdir(sourceDir, (err, files) => {
 						message.reply("ディリクトリを読み込んでいます。")
