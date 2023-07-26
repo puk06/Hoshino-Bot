@@ -4209,6 +4209,35 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//計算機
+		if (message.content.match(/^\d+([-+*/])\d+$/)) {
+			let left;
+			let right;
+			if (message.content.includes("+")) {
+				left = message.content.split("+")[0]
+				right = message.content.split("+")[1]
+				if (isNaN(left) || isNaN(right)) return;
+				message.reply(`${left} + ${right} = ${Number(left) + Number(right)}`)
+			} else if (message.content.includes("-")) {
+				left = message.content.split("-")[0]
+				right = message.content.split("-")[1]
+				if (isNaN(left) || isNaN(right)) return;
+				message.reply(`${left} - ${right} = ${Number(left) - Number(right)}`)
+			} else if (message.content.includes("*")) {
+				left = message.content.split("*")[0]
+				right = message.content.split("*")[1]
+				if (isNaN(left) || isNaN(right)) return;
+				message.reply(`${left} * ${right} = ${Number(left) * Number(right)}`)
+			} else if (message.content.includes("/")) {
+				left = message.content.split("/")[0]
+				right = message.content.split("/")[1]
+				if (isNaN(left) || isNaN(right)) return;
+				message.reply(`${left} * ${right} = ${Number(left) * Number(right)}`)
+			} else {
+				return
+			}
+		}
+
 		//Helpコマンド(AllBOT)
 		if (message.content == "!bothelp") {
 			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin | pic | quote>")
