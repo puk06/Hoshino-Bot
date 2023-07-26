@@ -2619,13 +2619,12 @@ client.on("message", async(message) =>
 				const sr = await calculateSR(beatmapid, 0, modeconvert(mapdata.mode));
 				await message.channel.send(`**${mapdata.artist} - ${mapdata.title} [${mapdata.version}]**のSRチャートです。最高は${sr.sr}★です。`);
 				await message.channel.send({ files: [{ attachment: `./BeatmapFolder/${beatmapid}.png`, name: 'SRchart.png' }] });
+				fs.remove(`./BeatmapFolder/${beatmapid}.png`);
+				fs.remove(`./BeatmapFolder/${beatmapid}.osu`);
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
-			} finally {
-				fs.remove(`./BeatmapFolder/${beatmapid}.png`);
-				fs.remove(`./BeatmapFolder/${beatmapid}.osu`);
 			}
 		}
 
