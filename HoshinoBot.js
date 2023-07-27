@@ -4275,7 +4275,7 @@ client.on("message", async(message) =>
 					message.reply("リポジトリ名の前の空白が1つ多い可能性があります。")
 					return
 				}
-
+				message.reply("LOCの計算中です。")
 				let error = false;
 				let locdata = await axios.get(`https://api.codetabs.com/v1/loc?github=${username}/${reponame}`).catch(()=> {
 					error = true;
