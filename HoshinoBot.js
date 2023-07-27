@@ -4299,7 +4299,7 @@ client.on("message", async(message) =>
 						totalLOC = element.linesOfCode
 					}
 				}
-				message.reply(`**${username}/${reponame}**\nファイル数: ${totalfilecount}\n総行数: ${totalline}\n空白行数: ${totalblanks}\nコメント行数: ${comments}\nコード行数: ${totalLOC}`)
+				message.reply(`リポジトリ: **${username}/${reponame}**\nファイル数: **${totalfilecount}**\n総行数: **${totalline}**\n空白行数: **${totalblanks}**\nコメント行数: **${comments}**\n---------------\nコード行数: **${totalLOC}**`)
 			} catch(e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。")
