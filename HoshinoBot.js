@@ -4244,7 +4244,7 @@ client.on("message", async(message) =>
 		}
 
 		//!locコマンドの処理(Github bot)
-		if (message.content == "!loc") {
+		if (message.content.split(" ")[0] == "!loc") {
 			try {
 				//!locのみ入力された時の処理
 				if (message.content == "!loc") {
