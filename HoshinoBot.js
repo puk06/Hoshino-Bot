@@ -4296,6 +4296,7 @@ client.on("message", async(message) =>
 				await fs.copy(`./Backups/${wannabackup}/Player Bank`, `./Player Bank`);
 				message.reply("Player Bankフォルダの復元が完了しました。(80%)");
 				await fs.copy(`./Backups/${wannabackup}/tag`, `./tag`);
+				await fs.copy(`./Backups/${wannabackup}/quotetag`, `./quotetag`);
 				message.reply("tagフォルダの復元が完了しました。(100%)");
 				message.reply(`${wannabackup}のバックアップの全ての復元が完了しました。`)
 			} catch (e) {
@@ -5495,6 +5496,7 @@ async function makeBackup() {
 	await fs.copy(`./BeatmapLinkChannels`, `./Backups/${dateString}/BeatmapLinkChannels`);
 	await fs.copy(`./Player Bank`, `./Backups/${dateString}/Player Bank`);
 	await fs.copy(`./tag`, `./Backups/${dateString}/tag`);
+	await fs.copy(`./quotetag`, `./Backups/${dateString}/quotetag`);
 }
 
 //時間を分と秒に変換する関数
