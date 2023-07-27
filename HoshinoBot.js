@@ -4243,9 +4243,73 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//!locコマンドの処理(Github bot)
+		if (message.content == "!loc") {
+			try {
+				//!locのみ入力された時の処理
+				if (message.content == "!loc") {
+					message.reply("使い方: !loc <ユーザー名> <リポジトリ名>")
+					return
+				}
+
+				//メッセージからユーザー名を取得
+				const username = message.content.split(" ")[1];
+
+				//ユーザー名が入力されてなかった時、の処理
+				if (username == undefined) {
+					message.reply("ユーザー名を入力してください。")
+					return
+				} else if (username == "") {
+					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//メッセージからリポジトリ名を取得
+				const reponame = message.content.split(" ")[2];
+
+				//リポジトリ名が入力されてなかった時、の処理
+				if (reponame == undefined) {
+					message.reply("リポジトリ名を入力してください。")
+					return
+				} else if (reponame == "") {
+					message.reply("リポジトリ名の前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				let error = false;
+				let locdata = await axios.get(`https://api.codetabs.com/v1/loc?github=${username}/${reponame}`).catch(()=> {
+					error = true;
+				})
+				if (error) {
+					message.reply("データを取得するのに失敗しました。")
+					return
+				}
+				const data = locdata.data
+				let totalfilecount;
+				let totalline;
+				let totalblanks;
+				let comments;
+				let totalLOC;
+				for (const element of data) {
+					if (element.language === 'Total') {
+						totalfilecount = element.files
+						totalline = element.lines
+						totalblanks = element.blanks
+						comments = element.comments
+						totalLOC = element.linesOfCode
+					}
+				}
+				message.reply(`**${username}/${reponame}**\nファイル数: ${totalfilecount}\n総行数: ${totalline}\n空白行数: ${totalblanks}\nコメント行数: ${comments}\nコード行数: ${totalLOC}`)
+			} catch(e) {
+				console.log(e)
+				message.reply("コマンド処理中になんらかのエラーが発生しました。")
+				return
+			}
+		}
+
 		//Helpコマンド(AllBOT)
 		if (message.content == "!bothelp") {
-			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin | pic | quote>")
+			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin | pic | quote | github>")
 		} else if (message.content == "!bothelp osu") {
 			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfiedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。\n16: `!ifmod <マップリンク> <Mod>` あなたのその譜面での最高記録(精度, ミス)で、指定されたModだった時のPPを計算してくれます。!regコマンドが必須です。\n17: `!osuquiz <ユーザーネーム> <モード(o, t, c, m)>` 指定したユーザーのBPからランダムで曲を取得し、プレビュークイズを作成します。答えは (答え)?と言うと正解か不正解か教えてくれます。\n18: `!skip` クイズの答えが分からなかった時に答えを教えてくれて、次の問題に移ります。\n19: `!quizend` クイズを終了します。\n20: `!sr <マップリンク>` SRがどのように上がっているのかをチャートで確認することができます。\n21: `!osubgquiz <ユーザーネーム> <モード(o, t, c, m)>` 指定したユーザーのBPからランダムで曲を取得し、BGクイズを作成します。答えは (答え)?と言うと正解か不正解か教えてくれます。")
 		} else if (message.content == "!bothelp casino") {
@@ -4262,6 +4326,8 @@ client.on("message", async(message) =>
 			message.reply("__**Adminコマンドの使い方**__ \n1: `^backup <何時間前のバックアップを復元するか>` 指定した期間のバックアップを復元することが出来ます。\n2: `^update` 最新のファイルデータをダウンロードし、Botをアップデートします。\n3: `^allupdate` ^updateはHoshinoBot.jsのみのアップデートで、こちらは全データのアップデートを行います。")
 		} else if (message.content == "!bothelp quote") {
 			message.reply("__**Quoteコマンドの使い方**__ \n1: `!quote <タグ名>` 指定したタグからランダムで名言を送信します。\n2: `!setquotetag` 入力されたチャンネルの名前でタグが作成され、そこでメッセージ(コマンド以外)を送信すると自動的に保存されるようになります。\n3: `!delquote <削除したい名言>` そのタグ(チャンネル)に登録された名言を削除することができます。\n4: `!delquotetag` タグを削除することができます。また追加されない限り、送られた名言が保存されなくなります。\n5: `!allquotecount` 送信されたチャンネルのタグに登録されている名言の数がしれます。\n5: `!allquotetags` タグ一覧を見ることができます。")
+		} else if (message.content == "!bothelp github") {
+			message.reply("__**Githubコマンドの使い方**__ \n1: `!loc <ユーザー名> <リポジトリ名>` コードのLOC(Lines of Code)を教えてくれます。")
 		}
 
 		//^backupコマンドの処理(復元用)
