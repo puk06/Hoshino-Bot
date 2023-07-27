@@ -36,13 +36,14 @@ module.exports.srchart = async (beatmapId, mode) => {
             const baseURL = 'https://image-charts.com/chart.js/2.8.0';
             generateChartImage();
             async function generateChartImage() {
-                const srdatalengtharray  = Array.from({ length: srdata.length }, (_, index) => (index === 0 ? 0 : ""));
+                const dividedsrdata = divideInto100Parts(srdata);
+                const srdatalengtharray  = Array.from({ length: dividedsrdata.length }, (_, index) => (index === 0 ? 0 : ""));
                 const chartConfig = {
                     type: "line",
                     data: {
                         datasets: [
                             {
-                                data: divideInto100Parts(srdata),
+                                data: dividedsrdata,
                                 label: "SRdata",
                                 borderColor: "rgb(255, 255, 255)",
                                 backgroundColor: "rgba(54, 162, 235, 0.5)",
