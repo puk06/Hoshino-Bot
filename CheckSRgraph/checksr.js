@@ -36,9 +36,6 @@ module.exports.srchart = async (beatmapId, mode) => {
             const baseURL = 'https://image-charts.com/chart.js/2.8.0';
             generateChartImage();
             async function generateChartImage() {
-                const labels = Array.from(Array(101).keys());
-                const step = Math.floor(labels.length / 4);
-
                 const chartConfig = {
                     type: "line",
                     data: {
@@ -51,7 +48,6 @@ module.exports.srchart = async (beatmapId, mode) => {
                                 fill: 'start'
                             }
                         ],
-                        labels: labels.map((label, index) => (index % step === 0 ? label : '')),
                     },
                 }
 
