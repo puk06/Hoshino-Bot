@@ -37,7 +37,7 @@ module.exports.srchart = async (beatmapId, mode) => {
             generateChartImage();
             async function generateChartImage() {
                 const dividedsrdata = divideInto100Parts(srdata);
-                const srdatalengtharray  = Array.from({ length: dividedsrdata.length }, (_, index) => (index === 0 ? 0 : ""));
+                const srdatalengtharray  = labelarray(dividedsrdata.length);
                 const chartConfig = {
                     type: "line",
                     data: {
@@ -87,4 +87,25 @@ function divideInto100Parts(data) {
         result.push(data[i]);
     }
     return result;
+}
+
+function labelarray(count) {
+    const countarray = new Array(count);
+    countarray.fill("");
+    const countstep = count / 4;
+    const countsteparray = [0, Math.round(countstep - 1), Math.round(countstep * 2 - 1), Math.round(countstep * 3 - 1), count - 1]
+    for (let i = 0; i < countsteparray.length; i++) {
+        if (i == 0) {
+            countarray[countsteparray[i]] = 0;
+        } else if (i == 1){
+            countarray[countsteparray[i]] = 25;
+        } else if (i == 2){
+            countarray[countsteparray[i]] = 50;
+        } else if (i == 3){
+            countarray[countsteparray[i]] = 75;
+        } else if (i == 4){
+            countarray[countsteparray[i]] = 100;
+        }
+    }
+    return countarray
 }
