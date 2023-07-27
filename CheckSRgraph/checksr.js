@@ -35,8 +35,8 @@ module.exports.srchart = async (beatmapId, mode) => {
         {
             const baseURL = 'https://image-charts.com/chart.js/2.8.0';
             generateChartImage();
-            const srdatalengtharray  = Array.from({ length: srdata.length }, (_, index) => (index === 0 ? 0 : ""));
             async function generateChartImage() {
+                const srdatalengtharray  = Array.from({ length: srdata.length }, (_, index) => (index === 0 ? 0 : ""));
                 const chartConfig = {
                     type: "line",
                     data: {
