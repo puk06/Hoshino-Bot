@@ -3976,7 +3976,7 @@ client.on("message", async(message) =>
 
 				//currenttitle.lengthからランダムな数字を取得
 				let randomarray = [];
-				while (randomarray.length < hidecount) {
+				while (randomarray.length == hidecount) {
 					const randomnumber = Math.floor(Math.random() * currenttitle.length)
 					if (!randomarray.includes(randomnumber) && !currenttitle[randomnumber] == " ") {
 							randomarray.push(randomnumber)
