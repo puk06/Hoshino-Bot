@@ -3979,7 +3979,9 @@ client.on("message", async(message) =>
 				while (randomarray.length < hidecount) {
 					const randomnumber = Math.floor(Math.random() * currenttitle.replace(" ", "").length)
 					if (!randomarray.includes(randomnumber)) {
-						randomarray.push(randomnumber)
+						if (!currenttitle[randomnumber] == " "){
+							randomarray.push(randomnumber)
+						}
 					}
 				}
 
