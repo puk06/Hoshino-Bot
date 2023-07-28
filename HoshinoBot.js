@@ -3931,6 +3931,60 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//!hintコマンドの処理(osu!BOT)
+		if (message.content == "!hint") {
+			try {
+				//クイズが開始されているかをファイルの存在から確認する
+				if (!fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
+					message.reply("クイズが開始されていません。")
+					return
+				}
+
+				//クイズの問題を取得
+				const rawjson = fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8")
+				const parsedjson = JSON.parse(rawjson)
+				let currenttitle = "";
+				let foundflagforjson = false;
+				for (const element of parsedjson) {
+					if (!element.quizstatus && !foundflagforjson) {
+						foundflagforjson = true;
+						currenttitle = element.name
+					}
+				}
+				const hidecount = Math.round(currenttitle.replace(" ", "").length / 3)
+
+				//currenttitle.lengthからランダムな数字を取得
+				let randomarray = [];
+				while (randomarray.length < hidecount) {
+					const randomnumber = Math.floor(Math.random() * currenttitle.replace(" ", "").length)
+					if (!randomarray.includes(randomnumber)) {
+						randomarray.push(randomnumber)
+					}
+				}
+
+				//randomarray文字目だけ表示して、ほかは伏せ字になるようにする
+				let hint = "";
+				for (let i = 0; i < currenttitle.length; i++) {
+					if (currenttitle[i] == " "){
+						hint += " "
+						continue
+					}
+					if (randomarray.includes(i)) {
+						hint += currenttitle[i]
+					} else {
+						hint += "◯"
+					}
+				}
+
+				//ヒントを送信
+				message.reply(`ヒント: ${hint}(計${hidecount}文字表示されています。タイトルは${currenttitle.replace(" ", "").length}文字です。)`)
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
+				return
+			}
+		}
+
 		//!quizendコマンドの処理(osu!BOT)
 		if (message.content == "!quizend") {
 			try {
