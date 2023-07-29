@@ -3581,7 +3581,7 @@ client.on("message", async(message) =>
 				
 				let randomjson = JSON.parse("[]");
 				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": ""})
+					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false})
 				}
 				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
 				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
@@ -3661,7 +3661,7 @@ client.on("message", async(message) =>
 				
 				let randomjson = JSON.parse("[]");
 				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": ""})
+					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false})
 				}
 				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
 				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
@@ -3741,7 +3741,7 @@ client.on("message", async(message) =>
 				
 				let randomjson = JSON.parse("[]");
 				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": ""})
+					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false})
 				}
 				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
 				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
@@ -3821,7 +3821,7 @@ client.on("message", async(message) =>
 				
 				let randomjson = JSON.parse("[]");
 				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": ""})
+					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false})
 				}
 				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
 				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
@@ -3873,7 +3873,7 @@ client.on("message", async(message) =>
 						if (!element.quizstatus && !foundflagforans) {
 							foundflagforans = true
 							element.quizstatus = true
-							element.Answerer = message.author.username
+							element.Answerer = `:o::clap:${message.author.username}`
 							const updatedJsonData = JSON.stringify(parsedjson, null, 2);
 							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
 						}
@@ -3906,7 +3906,11 @@ client.on("message", async(message) =>
 						let answererstring = ""
 						for (let i = 0; i < answererarray.length; i++) {
 							if (answererarray[i].Answerer == "") continue;
-							answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+							if (answererarray[i].hint) {
+								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`
+							} else {
+								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+							}
 						}
 						message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`)
 						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
@@ -3921,7 +3925,7 @@ client.on("message", async(message) =>
 						if (!element.quizstatus && !foundflagforans) {
 							foundflagforans = true
 							element.quizstatus = true
-							element.Answerer = message.author.username
+							element.Answerer = `:o:${message.author.username}`
 							const updatedJsonData = JSON.stringify(parsedjson, null, 2);
 							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
 						}
@@ -3954,7 +3958,11 @@ client.on("message", async(message) =>
 						let answererstring = ""
 						for (let i = 0; i < answererarray.length; i++) {
 							if (answererarray[i].Answerer == "") continue;
-							answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+							if (answererarray[i].hint) {
+								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`
+							} else {
+								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+							}
 						}
 						message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`)
 						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
@@ -3969,7 +3977,7 @@ client.on("message", async(message) =>
 						if (!element.quizstatus && !foundflagforans) {
 							foundflagforans = true
 							element.quizstatus = true
-							element.Answerer = message.author.username
+							element.Answerer = `:o:${message.author.username}`
 							const updatedJsonData = JSON.stringify(parsedjson, null, 2);
 							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
 						}
@@ -4002,7 +4010,11 @@ client.on("message", async(message) =>
 						let answererstring = ""
 						for (let i = 0; i < answererarray.length; i++) {
 							if (answererarray[i].Answerer == "") continue;
-							answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+							if (answererarray[i].hint) {
+								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`
+							} else {
+								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+							}
 						}
 						message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`)
 						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
@@ -4017,7 +4029,7 @@ client.on("message", async(message) =>
 						if (!element.quizstatus && !foundflagforans) {
 							foundflagforans = true
 							element.quizstatus = true
-							element.Answerer = message.author.username
+							element.Answerer = `:o:${message.author.username}`
 							const updatedJsonData = JSON.stringify(parsedjson, null, 2);
 							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
 						}
@@ -4050,7 +4062,11 @@ client.on("message", async(message) =>
 						let answererstring = ""
 						for (let i = 0; i < answererarray.length; i++) {
 							if (answererarray[i].Answerer == "") continue;
-							answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+							if (answererarray[i].hint) {
+								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`
+							} else {
+								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+							}
 						}
 						message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`)
 						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
@@ -4099,13 +4115,13 @@ client.on("message", async(message) =>
 					if (!element.quizstatus && !foundflagforans) {
 						foundflagforans = true
 						element.quizstatus = true
-						element.Answerer = `${message.author.username}さんによってスキップされました。`
+						element.Answerer = `:x:${message.author.username}さんによってスキップされました。`
 						const updatedJsonData = JSON.stringify(parsedjson, null, 2);
 						fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
 					}
 				}
 
-				//次の問題に映る
+				//次の問題に移る
 				const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"))
 				let foundflagforafterjsonanswer = false;
 				for (const element of afterjson) {
@@ -4167,8 +4183,12 @@ client.on("message", async(message) =>
 					if (!element.quizstatus && !foundflagforjson) {
 						foundflagforjson = true;
 						currenttitle = element.name
+						element.hint = true
+						const updatedJsonData = JSON.stringify(parsedjson, null, 2);
+						fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, updatedJsonData, 'utf8')
 					}
 				}
+
 				const hidecount = Math.round(currenttitle.replace(" ", "").length / 3)
 
 				//currenttitle.lengthからランダムな数字を取得
@@ -4214,7 +4234,11 @@ client.on("message", async(message) =>
 				let answererstring = ""
 				for (let i = 0; i < answererarray.length; i++) {
 					if (answererarray[i].Answerer == "") continue;
-					answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+					if (answererarray[i].hint) {
+						answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`
+					} else {
+						answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+					}
 				}
 				message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`)
 				fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
