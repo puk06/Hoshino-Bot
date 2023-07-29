@@ -3741,6 +3741,86 @@ client.on("message", async(message) =>
 				
 				let randomjson = JSON.parse("[]");
 				for (let i = 0; i < randommap.length; i++) {
+					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": ""})
+				}
+				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
+				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+				
+				message.channel.send(`問題1のプレビューを再生します。`)
+				const response = await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' });
+				const audioData = response.data;
+				message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
+				return
+			}
+		}
+
+		//!osuquizコマンドの処理(osu!BOT)
+		if (message.content.split(" ")[0] == "!osuquizpf") {
+			try {
+				//!osuquizのみ入力された時の処理
+				if (message.content == "!osuquizpf") {
+					message.reply("使い方: !osuquizpf <ユーザー名> <モード(o, t, c, m)>")
+					return
+				}
+
+				//ユーザー名が入力されなかったときの処理
+				if (message.content.split(" ")[1] == undefined) {
+					message.reply("ユーザー名を入力してください。")
+					return
+				} else if (message.content.split(" ")[1] == "") {
+					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//モードが入力されなかったときの処理
+				if (message.content.split(" ")[2] == undefined) {
+					message.reply("モードを入力してください。")
+					return
+				} else if (message.content.split(" ")[2] == "") {
+					message.reply("モードの前の空白が1つ多い可能性があります。")
+					return
+				} else if (!(message.content.split(" ")[2] == "o" || message.content.split(" ")[2] == "t" || message.content.split(" ")[2] == "c" || message.content.split(" ")[2] == "m")) {
+					message.reply("モードはo, t, c, mのいずれかで指定してください。")
+					return
+				}
+
+				//クイズが既に開始しているかをファイルの存在から確認する
+				if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
+					message.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+					return
+				}
+
+				//クイズの問題を取得
+				const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${message.content.split(" ")[1]}&type=string&m=${modeconvert(message.content.split(" ")[2])}&limit=100`);
+				const quizdata = quiz.data;
+				if (quizdata.length < 10) {
+					message.reply("クイズの問題を取得できませんでした。")
+					return
+				}
+
+				//0-99までのランダムな数字を10個取得
+				const randomnumber = [];
+				while (randomnumber.length < 10) {
+					const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
+					if (!randomnumber.includes(randomNumber)) {
+						randomnumber.push(randomNumber)
+					}
+				}
+
+				//ランダムな数字からランダムなマップを取得
+				const randommap = [];
+				const randommaptitle = [];
+				for (const element of randomnumber) {
+					const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
+					randommap.push(beatmapsetid.beatmapset_id)
+					randommaptitle.push(beatmapsetid.title)
+				}
+				
+				let randomjson = JSON.parse("[]");
+				for (let i = 0; i < randommap.length; i++) {
 					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": ""})
 				}
 				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
