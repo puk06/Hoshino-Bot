@@ -4182,6 +4182,10 @@ client.on("message", async(message) =>
 				for (const element of parsedjson) {
 					if (!element.quizstatus && !foundflagforjson) {
 						foundflagforjson = true;
+						if (element.hint) {
+							message.reply("ヒントは１問につき１回まで使用できます。")
+							return
+						}
 						currenttitle = element.name
 						element.hint = true
 						const updatedJsonData = JSON.stringify(parsedjson, null, 2);
