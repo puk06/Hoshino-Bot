@@ -685,7 +685,7 @@ client.on("message", async(message) =>
 
 				//webからデータを取得
 				let error = false;
-				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).then(e => {
+				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(e => {
 					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
 					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
 					const newtext = currenttext.replace(`${randomLine} `, "")
@@ -5858,7 +5858,7 @@ function createProgressBar(percent) {
 async function makeBackup() {
 	const now = new Date();
 	const year = now.getFullYear();
-	const month = now.getMonth();
+	const month = now.getMonth() + 1;
 	const day = now.getDate();
 	const hours = now.getHours();
 	const minutes = now.getMinutes();
