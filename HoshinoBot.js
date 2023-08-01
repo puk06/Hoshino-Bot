@@ -701,7 +701,7 @@ client.on("message", async(message) =>
 				const picData = response.data;
 				
 				//画像の送信
-				message.channel.send({ files: [{ attachment: picData, name: `${Furry}.${lineextension}` }] })
+				message.channel.send({ files: [{ attachment: picData, name: `${picData}.${lineextension}` }] })
 
 				//結果を送信
 				message.channel.send(randomLine);
