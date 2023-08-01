@@ -702,9 +702,6 @@ client.on("message", async(message) =>
 				
 				//画像の送信
 				message.channel.send({ files: [{ attachment: picData, name: `${picData}.${lineextension}` }] })
-
-				//結果を送信
-				message.channel.send(randomLine);
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。")
