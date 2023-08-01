@@ -686,14 +686,12 @@ client.on("message", async(message) =>
 				//webからデータを取得
 				let error = false;
 				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(error => {
-					if (error) {
-						message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
-						const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
-						const newtext = currenttext.replace(`${randomLine} `, "")
-						fs.writeFileSync(`./Furry/Furry.txt`, newtext)
-						message.reply("ファイルの削除が完了しました");
-						error = true;
-					}
+					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
+					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
+					const newtext = currenttext.replace(`${randomLine} `, "")
+					fs.writeFileSync(`./Furry/Furry.txt`, newtext)
+					message.reply("ファイルの削除が完了しました");
+					error = true;
 				})
 
 				//axiosがアクセスできなかった時の処理
@@ -701,9 +699,10 @@ client.on("message", async(message) =>
 				
 				//画像のデータを取得
 				const picData = response.data;
+				console.log(picData)
 				
 				//画像の送信
-				message.channel.send({ files: [{ attachment: picData, name: `${picData}.${lineextension}` }] })
+				message.channel.send({ files: [{ attachment: picData, name: `Furry.${lineextension}` }] })
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。")
@@ -843,14 +842,12 @@ client.on("message", async(message) =>
 				//webからデータを取得
 				let error = false;
 				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(error => {
-					if (error) {
-						message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
-						const currenttext = fs.readFileSync(`./tag/${tag}/picture.txt`, "utf-8")
-						const newtext = currenttext.replace(`${randomLine} `, "")
-						fs.writeFileSync(`./tag/${tag}/picture.txt`, newtext)
-						message.reply("ファイルの削除が完了しました");
-						error = true;
-					}
+					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
+					const currenttext = fs.readFileSync(`./tag/${tag}/picture.txt`, "utf-8")
+					const newtext = currenttext.replace(`${randomLine} `, "")
+					fs.writeFileSync(`./tag/${tag}/picture.txt`, newtext)
+					message.reply("ファイルの削除が完了しました");
+					error = true;
 				})
 
 				//axiosがアクセスできなかった時の処理
