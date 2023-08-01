@@ -699,7 +699,6 @@ client.on("message", async(message) =>
 				
 				//画像のデータを取得
 				const picData = response.data;
-				console.log(picData)
 				
 				//画像の送信
 				message.channel.send({ files: [{ attachment: picData, name: `Furry.${lineextension}` }] })
