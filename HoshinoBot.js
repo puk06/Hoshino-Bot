@@ -4495,7 +4495,7 @@ client.on("message", async(message) =>
 					return
 				}
 
-				const ehp = Health * (defense / Health + 1)
+				const ehp = Health * (defense / 100 + 1)
 				message.reply(`Defense: **${defense}**\nHealth: **${Health}**\n----------------------\nEHP = **__${ehp}__**`)
 			} catch (e) {
 				console.log(e)
