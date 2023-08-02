@@ -4442,6 +4442,68 @@ client.on("message", async(message) =>
 			}
 		}
 
+		//?ehpコマンド(Hypixel Skyblock)
+		if (message.content.split(" ")[0] == "?ehp") {
+			try {
+				//?ehpのみ入力された時の処理
+				if (message.content == "?ehp") {
+					message.reply("使い方: ?ehp <Defense> <Health>")
+					return
+				}
+
+				//メッセージからDefenseを取得
+				const defense = message.content.split(" ")[1]
+				if (defense == undefined) {
+					message.reply("Defenseを入力してください。")
+					return
+				} else if (defense == "") {
+					message.reply("Defenseの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//Defenseが数字かどうかの処理
+				if (!/^[\d.]+$/g.test(defense)) {
+					message.reply("Defenseは数字のみで入力してください。")
+					return
+				}
+
+				//Defenseが0以下の時の処理
+				if (Number(defense) <= 0) {
+					message.reply("Defenseは1以上で入力してください。")
+					return
+				}
+
+				//メッセージからHealthを取得
+				const Health = message.content.split(" ")[2]
+				if (Health == undefined) {
+					message.reply("Healthを入力してください。")
+					return
+				} else if (Health == "") {
+					message.reply("Healthの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				//Healthが数字かどうかの処理
+				if (!/^[\d.]+$/g.test(Health)) {
+					message.reply("Healthは数字のみで入力してください。")
+					return
+				}
+
+				//Healthが0以下の時の処理
+				if (Number(Health) <= 0) {
+					message.reply("Healthは1以上で入力してください。")
+					return
+				}
+
+				const ehp = Health * (defense / Health + 1)
+				message.reply(`Defense: **${defense}**\nHealth: **${Health}**\n----------------------\nEHP = **__${ehp}__**`)
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+				return
+			}
+		}
+
 		//?profileコマンド(Hypixel Skyblock)
 		if (message.content.split(" ")[0] == "?profile") {
 			try {
@@ -4623,7 +4685,7 @@ client.on("message", async(message) =>
 		} else if (message.content == "!bothelp ohuzake") {
 			message.reply("__**おふざけコマンドの使い方**__ \n1: `!kunii <単語(2つ以上)>` それぞれの単語の1文字目を入れ替えることが出来ます。")
 		} else if (message.content == "!bothelp Skyblock") {
-			message.reply("__**Skyblockコマンドの使い方**__ \n1: `?profile <Minecraftユーザー名>` SkyblockのプロファイルのIDを知ることが出来ます。?slayerコマンドで使います。\n2: `?slayer <Minecraftユーザー名> <スレイヤーのID(1（ゾンスレ）, 2（クモスレ）, 3（ウルフスレ）, 4（エンスレ）, 5（ブレイズスレ）)> <プロファイルID>` Skyblockのスレイヤーのレベルを上げるのに必要な経験値、周回数を知ることが出来ます。")
+			message.reply("__**Skyblockコマンドの使い方**__ \n1: `?profile <Minecraftユーザー名>` SkyblockのプロファイルのIDを知ることが出来ます。?slayerコマンドで使います。\n2: `?slayer <Minecraftユーザー名> <スレイヤーのID(1（ゾンスレ）, 2（クモスレ）, 3（ウルフスレ）, 4（エンスレ）, 5（ブレイズスレ）)> <プロファイルID>` Skyblockのスレイヤーのレベルを上げるのに必要な経験値、周回数を知ることが出来ます。\n3: `?ehp <Defense> <Health>` SkyblockのEHPを計算することが出来ます。")
 		} else if (message.content == "!bothelp pic") {
 			message.reply("__**All pictureコマンドの使い方**__ \n1: `!pic <タグ名>` そのタグに追加されたファイルを見ることができます。/kemoコマンドの拡張版のようなものです。\n2: `!settag` 入力されたチャンネルの名前でタグが作成され、そこで画像や動画を送信すると自動的に保存されるようになります。\n3: `!delpic <メディアリンク>` そのタグ(チャンネル)に登録されたファイルを削除することができます。\n4: `!deltag` タグを削除することができます。また追加されない限り、送られたファイルが保存されなくなります。\n5: `!allcount` 送信されたチャンネルのタグに登録されているファイルの数がしれます。\n5: `!alltags` タグ一覧を見ることができます。\n6: `!downloadtag` タグに入っている全てのファイルをダウンロードできます。")
 		} else if (message.content == "!bothelp Admin") {
