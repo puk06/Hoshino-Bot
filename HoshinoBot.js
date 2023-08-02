@@ -4496,7 +4496,7 @@ client.on("message", async(message) =>
 				}
 
 				const ehp = Health * (defense / 100 + 1)
-				message.reply(`Defense: **${defense}**\nHealth: **${Health}**\n----------------------\nEHP = **__${ehp}__**`)
+				message.channel.send(`Defense: **${defense}**\nHealth: **${Health}**\n----------------------\nEHP = **__${ehp}__**`)
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
