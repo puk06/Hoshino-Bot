@@ -46,14 +46,14 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
     client.user.setActivity('ほしのBot V1.0.0', { type: 'PLAYING' })
-	setInterval(checkqualfiedosu, 30000);
-	setInterval(checkqualfiedtaiko, 30000);
-	setInterval(checkqualfiedcatch, 30000);
-	setInterval(checkqualfiedmania, 30000);
-	setInterval(checkrankedosu, 30000);
-	setInterval(checkrankedtaiko, 30000);
-	setInterval(checkrankedcatch, 30000);
-	setInterval(checkrankedmania, 30000);
+	setInterval(checkqualfiedosu, 60000);
+	setInterval(checkqualfiedtaiko, 60000);
+	setInterval(checkqualfiedcatch, 60000);
+	setInterval(checkqualfiedmania, 60000);
+	setInterval(checkrankedosu, 60000);
+	setInterval(checkrankedtaiko, 60000);
+	setInterval(checkrankedcatch, 60000);
+	setInterval(checkrankedmania, 60000);
 	setInterval(makeBackup, 3600000);
 });
 
@@ -1481,7 +1481,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 	
 					//メッセージからMODを取得
-					const modmessage = [interaction.options.get('mods').value];
+					const modmessage = [interaction.options.get('mods').value.toUpperCase()];
 					let modforcalc = splitString(modmessage)
 	
 					const beatmapId = maplink.split("/")[maplink.split("/").length - 1]
