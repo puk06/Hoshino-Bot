@@ -1,5 +1,5 @@
 //必要となるライブラリ
-const { Client, Intents, MessageEmbed } = require("./node_modules/discord.js");
+const { Client, EmbedBuilder, Events, GatewayIntentBits } = require("./node_modules/discord.js");
 require('./node_modules/dotenv').config();
 const fs = require("fs-extra");
 const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
@@ -40,675 +40,2405 @@ const repo = process.env.REPO;
 const file = process.env.FILE;
 
 //discord.jsのインテンツを指定
-const client = new Client({ intents: Intents.ALL });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] })
 
 //BOTが準備完了したら実行
-client.on("ready", async () => {
+client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
     client.user.setActivity('ほしのBot V1.0.0', { type: 'PLAYING' })
-	setInterval(checkqualfiedosu, 60000);
-	setInterval(checkqualfiedtaiko, 60000);
-	setInterval(checkqualfiedcatch, 60000);
-	setInterval(checkqualfiedmania, 60000);
-	setInterval(checkrankedosu, 60000);
-	setInterval(checkrankedtaiko, 60000);
-	setInterval(checkrankedcatch, 60000);
-	setInterval(checkrankedmania, 60000);
+	setInterval(checkqualfiedosu, 30000);
+	setInterval(checkqualfiedtaiko, 30000);
+	setInterval(checkqualfiedcatch, 30000);
+	setInterval(checkqualfiedmania, 30000);
+	setInterval(checkrankedosu, 30000);
+	setInterval(checkrankedtaiko, 30000);
+	setInterval(checkrankedcatch, 30000);
+	setInterval(checkrankedmania, 30000);
 	setInterval(makeBackup, 3600000);
 });
 
 //カジノの絵文字
 const symbols = ['🍒', '🍊', '🍇', '🔔', '💰', '⌚', '⛵'];
 
-//Use command
-client.on("message", async(message) =>
+client.on(Events.InteractionCreate, async(interaction) =>
 	{
-		//slotコマンドの処理(カジノBOT)
-		if (message.content.split(" ")[0] == "/slot") {
-			try {
-				//slotのみ入力された場合の処理
-				if (message.content == "/slot") {
-					message.reply("使い方: /slot <賭け金額>")
+		try {
+			//コマンドじゃない場合の処理
+			if (!interaction.isCommand()) return;
+
+			//コマンドの処理
+			if (interaction.commandName == "slot") {
+				try {
+					let betAmount = interaction.options.get('betamount')?.value;
+					betAmount = BigInt(betAmount);
+
+					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
+					
+					//slotを打ったユーザーが登録されていない場合の処理
+					if (!truefalseuser) {
+						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						return
+					}
+
+					//slotを打ったユーザーの銀行口座残高を取得
+					let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+					const newBalance = currentBalance - betAmount;
+					
+					//slotを打ったユーザーの銀行口座残高がslot後、0を下回る場合の処理
+					if (newBalance <= 0n) {
+						interaction.reply(`この金額を賭けることは出来ません。この金額を賭けた場合、あなたの銀行口座残高が0を下回ってしまいます。(${newBalance.toLocaleString()})`)
+						return
+					}
+					
+					//slotを打ったユーザーの銀行口座残高を更新
+					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBalance.toString(), 'utf-8');
+
+					//slotの結果を生成
+					const result = generateSlotResult();
+
+					//slotの結果から報酬倍率を計算
+					const rewardMultiplier = evaluateSlotResult(result);
+
+					//報酬をrewardMultiplierから計算
+					const reward = betAmount * rewardMultiplier;
+
+					//報酬のプレフィックスを計算(+ or -)
+					let resultprefix;
+					let prefix = reward - betAmount;
+
+					if (prefix >= 0n) {
+						resultprefix = "+"
+					} else {
+						resultprefix = ""
+					}
+
+					//slotの結果と報酬を送信
+					interaction.reply(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
+
+					//slotを打ったユーザーの銀行口座残高を取得
+					let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+
+					//slotを打ったユーザーのslot後の銀行口座残高を更新
+					const newBankBalance = newcurrentBalance + reward;
+					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBankBalance.toString(), 'utf-8');
+				} catch(e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
 				}
-
-				//betAmountをメッセージから取得
-				let betAmount = message.content.split(" ")[1];
-
-				//betAmountの前の空白が1つ多い場合の処理
-				if (betAmount == "") {
-					message.reply("賭け金額の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//betAmountがマイナスの場合の処理
-				if (betAmount < 0) {
-					message.reply("賭け金額をマイナスにすることは出来ません。")
-					return
-				}
-
-				//betAmountが入力されてない場合の処理
-				if (betAmount == undefined) {
-					message.reply("賭け金を入力してください。")
-					return
-				}
-
-				//betAmountが数字以外の場合の処理
-				if (/\D/.test(betAmount)) {
-					message.reply("数字以外が賭け金額欄に入力されています。数字のみ入力するようにしてください。");
-					return;
-				}
-
-				//betAmountをBigIntに変換
-				betAmount = BigInt(betAmount);
-
-				//slotを打ったユーザーが登録されているかどうかの確認
-				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
-
-				//slotを打ったユーザーが登録されていない場合の処理
-				if (!truefalseuser) {
-					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
-					return
-				}
-
-				//slotを打ったユーザーの銀行口座残高を取得
-				let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-				const newBalance = currentBalance - betAmount;
-
-				//slotを打ったユーザーの銀行口座残高がslot後、0を下回る場合の処理
-				if (newBalance <= 0n) {
-					message.reply(`この金額を賭けることは出来ません。この金額を賭けた場合、あなたの銀行口座残高が0を下回ってしまいます。(${newBalance.toLocaleString()})`)
-					return
-				}
-
-				//slotを打ったユーザーの銀行口座残高を更新
-				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBalance.toString(), 'utf-8');
-
-				//slotの結果を生成
-				const result = generateSlotResult();
-
-				//slotの結果から報酬倍率を計算
-				const rewardMultiplier = evaluateSlotResult(result);
-
-				//報酬をrewardMultiplierから計算
-				const reward = betAmount * rewardMultiplier;
-
-				//報酬のプレフィックスを計算(+ or -)
-				let resultprefix;
-				let prefix = reward - betAmount;
-
-				if (prefix >= 0n) {
-					resultprefix = "+"
-				} else {
-					resultprefix = ""
-				}
-
-				//slotの結果と報酬を送信
-				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
-
-				//slotを打ったユーザーの銀行口座残高を取得
-				let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-
-				//slotを打ったユーザーのslot後の銀行口座残高を更新
-				const newBankBalance = newcurrentBalance + reward;
-				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString(), 'utf-8');
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中にエラーが発生しました。")
-				return
 			}
-		}
 
-		//safeslotコマンドの処理(カジノBOT)
-		if (message.content.split(" ")[0] == "!safeslot") {
-			try {
-				//safeslotのみ入力された場合の処理
-				if (message.content == "/safeslot") {
-					message.reply("使い方: /safeslot <賭け金額>")
+			if (interaction.commandName == "safeslot") {
+				try {
+					let betAmount = interaction.options.get('betamount')?.value;
+					betAmount = BigInt(betAmount);
+
+					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
+					
+					//slotを打ったユーザーが登録されていない場合の処理
+					if (!truefalseuser) {
+						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						return
+					}
+
+					//slotを打ったユーザーの銀行口座残高を取得
+					let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+					const newBalance = currentBalance - betAmount;
+					
+					//slotを打ったユーザーの銀行口座残高がslot後、0を下回る場合の処理
+					if (newBalance <= 0n) {
+						interaction.reply(`この金額を賭けることは出来ません。この金額を賭けた場合、あなたの銀行口座残高が0を下回ってしまいます。(${newBalance.toLocaleString()})`)
+						return
+					}
+					
+					//slotを打ったユーザーの銀行口座残高を更新
+					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBalance.toString(), 'utf-8');
+
+					//slotの結果を生成
+					const result = generateSlotResult();
+
+					//slotの結果から報酬倍率を計算
+					const rewardMultiplier = evaluateSlotResult(result);
+
+					//報酬をrewardMultiplierから計算
+					let reward;
+					if (rewardMultiplier == 0n) {
+						reward = betAmount * 2n * 10n / 100n
+					} else {
+						reward = betAmount * rewardMultiplier * 7n * 10n / 100n
+					}
+
+					//報酬のプレフィックスを計算(+ or -)
+					let resultprefix;
+					let prefix = reward - betAmount;
+
+					if (prefix >= 0n) {
+						resultprefix = "+"
+					} else {
+						resultprefix = ""
+					}
+
+					//slotの結果と報酬を送信
+					interaction.reply(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
+
+					//slotを打ったユーザーの銀行口座残高を取得
+					let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+
+					//slotを打ったユーザーのslot後の銀行口座残高を更新
+					const newBankBalance = newcurrentBalance + reward;
+					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBankBalance.toString(), 'utf-8');	
+				} catch(e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
 				}
-
-				//betAmountをメッセージから取得
-				let betAmount = message.content.split(" ")[1];
-
-				//betAmountの前の空白が1つ多い場合の処理
-				if (betAmount == "") {
-					message.reply("賭け金額の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//betAmountがマイナスの場合の処理
-				if (betAmount < 0) {
-					message.reply("マイナスの金額を賭け金にすることは出来ません。")
-					return
-				}
-
-				//betAmountが入力されてない場合の処理
-				if (betAmount == undefined) {
-					message.reply("賭け金を入力してください。")
-					return
-				}
-
-				//betAmountが数字以外の場合の処理
-				if (/\D/.test(betAmount)) {
-					message.reply("数字以外が賭け金額欄に入力されています。数字のみ入力するようにしてください。")
-					return
-				}
-
-				//betAmountをBigIntに変換
-				betAmount = BigInt(betAmount);
-
-				//safeslotを打ったユーザーが登録されているかどうかの確認
-				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
-
-				//safeslotを打ったユーザーが登録されていない場合の処理
-				if (!truefalseuser) {
-					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。");
-					return;
-				};
-
-				//safeslotを打ったユーザーの銀行口座残高を取得
-				let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-
-				//safeslotを打ったユーザーの銀行口座残高がsafeslot後、0を下回る場合の処理
-				const newBalance = currentBalance - betAmount;
-				if (newBalance <= 0n) {
-					message.reply(`この金額を賭けることは出来ません。この金額を賭けた場合、あなたの銀行口座残高が0を下回ってしまいます。(${newBalance.toLocaleString()})`)
-					return
-				}
-
-				//safeslotを打ったユーザーの銀行口座残高を更新
-				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBalance.toString(), 'utf-8');
-
-				//safeslotの結果を生成
-				const result = generateSlotResult();
-
-				//safeslotの結果から報酬倍率を計算
-				const rewardMultiplier = evaluateSlotResult(result);
-
-				//報酬をrewardMultiplierから計算
-				let reward;
-				if (rewardMultiplier == 0n) {
-					reward = betAmount * 2n * 10n / 100n
-				} else {
-					reward = betAmount * rewardMultiplier * 7n * 10n / 100n
-				}
-
-				//報酬のプレフィックスを計算(+ or -)
-				let resultprefix;
-				let prefix = reward - betAmount;
-				if (prefix >= 0n) {
-					resultprefix = "+"
-				} else {
-					resultprefix = ""
-				}
-
-				//safeslotの結果と報酬を送信
-				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
-
-				//safeslotを打ったユーザーの銀行口座残高を取得
-				let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-
-				//safeslotを打ったユーザーのsafeslot後の銀行口座残高を更新
-				const newBankBalance = newcurrentBalance + reward;
-				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString(), 'utf-8');
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中にエラーが発生しました。")
-				return
 			}
-		}
 
-		//bankrankingコマンドの処理(カジノBOT)
-		if (message.content == "/bankranking") {
-			try {
-				//Player Bankフォルダーのパス
-				const folderPath = './Player Bank';
+			if (interaction.commandName == "bankranking") {
+				try {
+					//Player Bankフォルダーのパス
+					const folderPath = './Player Bank';
 
-				//Player Bankフォルダー内のファイル名のパターン
-				const fileNamePattern = /^(.+)\.txt$/;
+					//Player Bankフォルダー内のファイル名のパターン
+					const fileNamePattern = /^(.+)\.txt$/;
 
-				//Player Bankフォルダー内のファイルを取得
-				const files = fs.readdirSync(folderPath);
+					//Player Bankフォルダー内のファイルを取得
+					const files = fs.readdirSync(folderPath);
 
-				//各ユーザーの銀行口座残高の桁を取得
-				const userAmounts = {};
-				files.forEach(file =>
-					{
-						const filePath = path.join(folderPath, file)
-						const match = fileNamePattern.exec(file)
-						if (match) {
-							const username = match[1]
-							const fileContent = fs.readFileSync(filePath, 'utf8').length
-							userAmounts[username] = fileContent
+					//各ユーザーの銀行口座残高の桁を取得
+					const userAmounts = {};
+					files.forEach(file =>
+						{
+							const filePath = path.join(folderPath, file)
+							const match = fileNamePattern.exec(file)
+							if (match) {
+								const username = match[1]
+								const fileContent = fs.readFileSync(filePath, 'utf8').length
+								userAmounts[username] = fileContent
+							}
+						}
+					)
+
+					//各ユーザーの銀行口座残高の桁を降順にソート
+					const sortedUserAmounts = Object.entries(userAmounts).sort((a, b) => b[1] - a[1]);
+
+					//ランキングを作成
+					let ranking = [];
+					for (let i = 0; i < sortedUserAmounts.length; i++) {
+						const rank = i + 1
+						const username = sortedUserAmounts[i][0]
+						ranking.push(`- __#**${rank}**__: **${username}** (__*${sortedUserAmounts[i][1]}桁*__)`)
+					}
+
+					//ランキングを送信
+					interaction.reply(`__**Current Bank digits Ranking**__\n${ranking.join('\n')}`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "lv") {
+				try {
+					//レベルを取得するユーザーが登録されているかどうかの確認
+					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
+
+					//レベルを取得するユーザーが登録されていない場合の処理
+					if (!truefalseuser) {
+						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						return
+					}
+
+					//レベルを取得するユーザーの銀行口座残高を取得
+					const messageuserbalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+
+					//レベルを取得するユーザーの銀行口座残高が0の場合、0ではない場合の処理
+					let currentrank = 0;
+					let nextbalance = 0n;
+					for (let i = 1n ; i <= 300n; i += 1n) {
+						if(messageuserbalance / BigInt(120n ** i) < 1n && currentrank == 0){
+							interaction.reply("あなたの現在のレベルは**__0lv__**以下です。")
+							return
+						}else if(messageuserbalance / BigInt(120n ** i) >= 1n){
+							currentrank += 1
+							nextbalance = BigInt(120n ** (i + 1n))
 						}
 					}
-				)
 
-				//各ユーザーの銀行口座残高の桁を降順にソート
-				const sortedUserAmounts = Object.entries(userAmounts).sort((a, b) => b[1] - a[1]);
+					//レベルを送信
+					interaction.reply(`あなたの現在のレベルは **__${currentrank}lv__** / 300 (次のレベル => **${formatBigInt(nextbalance)}**coins)`);
 
-				//ランキングを作成
-				let ranking = [];
-				for (let i = 0; i < sortedUserAmounts.length; i++) {
-					const rank = i + 1
-					const username = sortedUserAmounts[i][0]
-					ranking.push(`- __#**${rank}**__: **${username}** (__*${sortedUserAmounts[i][1]}桁*__)`)
-				}
-
-				//ランキングを送信
-				message.channel.send(`__**Current Bank digits Ranking**__\n${ranking.join('\n')}`);
-			} catch (e) {
-				console.log(e)
-				message.reply("ランキング作成中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//lvコマンドの処理(カジノBOT)
-		if (message.content == "/lv") {
-			try {
-				//レベルを取得するユーザーが登録されているかどうかの確認
-				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
-
-				//レベルを取得するユーザーが登録されていない場合の処理
-				if (!truefalseuser) {
-					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
 				}
+			}
 
-				//レベルを取得するユーザーの銀行口座残高を取得
-				const messageuserbalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
+			if (interaction.commandName == "recoshot") {
+				try {
+					//recoshotを打ったユーザーが登録されているかどうかの確認
+					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
 
-				//レベルを取得するユーザーの銀行口座残高が0の場合、0ではない場合の処理
-				let currentrank = 0;
-				let nextbalance = 0n;
-				for (let i = 1n ; i <= 300n; i += 1n) {
-					if(messageuserbalance / BigInt(120n ** i) < 1n && currentrank == 0){
-						message.reply("あなたの現在のレベルは**__0lv__**以下です。")
+					//recoshotを打ったユーザーが登録されていない場合の処理
+					if (!truefalseuser) {
+						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
 						return
-					}else if(messageuserbalance / BigInt(120n ** i) >= 1n){
-						currentrank += 1
-						nextbalance = BigInt(120n ** (i + 1n))
 					}
-				}
 
-				//レベルを送信
-				message.reply(`あなたの現在のレベルは **__${currentrank}lv__** / 300 (次のレベル => **${formatBigInt(nextbalance)}**coins)`);
-			} catch (e) {
-				console.log(e)
-				message.reply("レベル取得中にエラーが発生しました。")
-				return
+					//recoshotを打ったユーザーの銀行口座残高を取得
+					const userbank = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+
+					//recoshotを打ったユーザーの銀行口座残高が1000溝以下の場合の処理
+					if (userbank <= 100000000000000000000000000000000000n) {
+						interaction.reply("このコマンドを使うには、1000溝以上のお金が銀行口座にある必要があります。")
+						return
+					}
+
+					//recoshotを打ったユーザーの銀行口座残高が0の場合の処理
+					if (userbank <= 0n) {
+						interaction.reply("賭け金額を計算できるほどのお金を持っていないようです。他人からもらうか、稼ぐかしてください。")
+						return
+					}
+
+					//recoshotを打ったユーザーの銀行口座残高からおすすめの賭け金額を計算
+					const recommend = (userbank / 15n).toString();
+					let betAmount = recommend;
+					betAmount = BigInt(betAmount);
+
+					//recoshotを打ったユーザーの銀行口座残高を取得
+					let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+
+					//recoshotを打ったユーザーのrecoshot後の銀行口座残高の計算
+					const newBalance = currentBalance - betAmount;
+
+					//recoshotを打ったユーザーの銀行残高を賭け金分減らす
+					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBalance.toString(), 'utf-8');
+
+					//recoshotの結果を生成
+					const result = generateSlotResult();
+
+					//recoshotの結果から報酬倍率を計算
+					const rewardMultiplier = evaluateSlotResult(result);
+
+					//報酬をrewardMultiplierから計算
+					const reward = betAmount * rewardMultiplier * 8n * 10n / 100n;
+
+					//報酬のプレフィックスを計算(+ or -)
+					let resultprefix;
+					let prefix = reward - betAmount;
+					if (prefix >= 0n) {
+						resultprefix = "+"
+					} else {
+						resultprefix = ""
+					}
+
+					//recoshotの結果と報酬を送信
+					interaction.reply(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
+
+					//recoshotを打ったユーザーの銀行口座残高を取得
+					let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+
+					//recoshotを打ったユーザーのrecoshot後の銀行口座残高を更新
+					const newBankBalance = newcurrentBalance + reward;
+					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBankBalance.toString(), 'utf-8');
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
 			}
-		}
 
-		//recoshotコマンドの処理(カジノBOT)
-		if (message.content == "/recoshot") {
-			try {
-				//recoshotを打ったユーザーが登録されているかどうかの確認
-				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
+			if (interaction.commandName == "reco") {
+				try {
+					//recoを打ったユーザーが登録されているかどうかの確認
+					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
+					if (!truefalseuser) {
+						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						return
+					}
 
-				//recoshotを打ったユーザーが登録されていない場合の処理
-				if (!truefalseuser) {
-					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+					//recoを打ったユーザーの銀行口座残高が0の場合の処理
+					const userbank = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+					if (userbank <= 0) {
+						interaction.reply("賭け金額を計算できるほどのお金を持っていないようです。他人からもらうか、稼ぐかしてください。")
+						return
+					}
+
+					//recoを打ったユーザーの銀行口座残高からおすすめの賭け金額を計算
+					const recommend = (userbank / 15n).toString();
+
+					//slotコマンドの送信
+					interaction.reply(`おすすめのslot賭け金: ${recommend}`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
 				}
-
-				//recoshotを打ったユーザーの銀行口座残高を取得
-				const userbank = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-
-				//recoshotを打ったユーザーの銀行口座残高が1000溝以下の場合の処理
-				if (userbank <= 100000000000000000000000000000000000n) {
-					message.reply("このコマンドを使うには、1000溝以上のお金が銀行口座にある必要があります。")
-					return
-				}
-
-				//recoshotを打ったユーザーの銀行口座残高が0の場合の処理
-				if (userbank <= 0n) {
-					message.reply("賭け金額を計算できるほどのお金を持っていないようです。他人からもらうか、稼ぐかしてください。")
-					return
-				}
-
-				//recoshotを打ったユーザーの銀行口座残高からおすすめの賭け金額を計算
-				const recommend = (userbank / 15n).toString();
-				let betAmount = recommend;
-				betAmount = BigInt(betAmount);
-
-				//recoshotを打ったユーザーの銀行口座残高を取得
-				let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-
-				//recoshotを打ったユーザーのrecoshot後の銀行口座残高の計算
-				const newBalance = currentBalance - betAmount;
-
-				//recoshotを打ったユーザーの銀行残高を賭け金分減らす
-				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBalance.toString(), 'utf-8');
-
-				//recoshotの結果を生成
-				const result = generateSlotResult();
-
-				//recoshotの結果から報酬倍率を計算
-				const rewardMultiplier = evaluateSlotResult(result);
-
-				//報酬をrewardMultiplierから計算
-				const reward = betAmount * rewardMultiplier * 8n * 10n / 100n;
-
-				//報酬のプレフィックスを計算(+ or -)
-				let resultprefix;
-				let prefix = reward - betAmount;
-				if(prefix >= 0n){
-					resultprefix = "+"
-				}else{
-					resultprefix = ""
-				}
-
-				//recoshotの結果と報酬を送信
-				message.channel.send(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
-
-				//recoshotを打ったユーザーの銀行口座残高を取得
-				let newcurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-
-				//recoshotを打ったユーザーのrecoshot後の銀行口座残高を更新
-				const newBankBalance = newcurrentBalance + reward;
-				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newBankBalance.toString(), 'utf-8');
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中にエラーが発生しました。")
-				return
 			}
-		}
 
-		//recoコマンドの処理(カジノBOT)
-		if (message.content == "/reco") {
-			try {
-				//recoを打ったユーザーが登録されているかどうかの確認
-				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
-				if (!truefalseuser) {
-					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+			if (interaction.commandName == "bank") {
+				try {
+					//bankを打ったユーザーが登録されているかどうかの確認
+					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
+					
+					//bankを打ったユーザーが登録されていない場合の処理
+					if (!truefalseuser) {
+						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						return
+					}
+
+					//bankを打ったユーザーの銀行口座残高を取得
+					const currentbank = fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8');
+
+					//bankを打ったユーザーの銀行口座残高を送信
+					interaction.reply(`${interaction.user.username}の現在の銀行口座残高: \n ${formatBigInt(currentbank)}(${toJPUnit(currentbank)}) coins`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
 				}
-
-				//recoを打ったユーザーの銀行口座残高が0の場合の処理
-				const userbank = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-				if (userbank <= 0) {
-					message.reply("賭け金額を計算できるほどのお金を持っていないようです。他人からもらうか、稼ぐかしてください。")
-					return
-				}
-
-				//recoを打ったユーザーの銀行口座残高からおすすめの賭け金額を計算
-				const recommend = (userbank / 15n).toString();
-
-				//slotコマンドの送信
-				message.reply(`おすすめのslotコマンド: !slot ${recommend}`);
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中にエラーが発生しました。")
-				return
 			}
-		}
 
-		//bankコマンドの処理(カジノBOT)
-		if (message.content == "/bank") {
-			try {
-				//bankを打ったユーザーが登録されているかどうかの確認
-				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
-				if (!truefalseuser) {
-					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+			if (interaction.commandName == "amount") {
+				try {
+					//amountをメッセージから取得
+					const amount = interaction.options.get('amount').value;
+
+					//amountの結果を送信
+					interaction.reply(`${toJPUnit(amount)}`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
 				}
-
-				//bankを打ったユーザーの銀行口座残高を取得
-				const currentbank = fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8');
-
-				//bankを打ったユーザーの銀行口座残高を送信
-				message.reply(`${message.author.username}の現在の銀行口座残高: \n ${formatBigInt(currentbank)}(${toJPUnit(currentbank)}) coins`);
-			} catch (e) {
-				console.log(e)
-				message.reply("銀行残高の取得中にエラーが発生しました。")
-				return
 			}
-		}
 
-		//amountコマンドの処理(カジノBOT)
-		if (message.content.split(" ")[0] == "/amount") {
-			try {
-
-				//amountのみ入力された場合の処理
-				if (message.content == "/amount") {
-					message.reply("使い方: /amount <確認したい金額>")
+			if (interaction.commandName == "regcasino") {
+				try {
+					//regを打ったユーザーが登録されているかどうかの確認
+					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
+					if(truefalseuser) {
+						interaction.reply("あなたはもう既にこのカジノに登録されています。")
+						return
+					}
+	
+					//regを打ったユーザーの銀行口座残高を作成
+					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, "1000000", "utf-8");
+					interaction.reply(`カジノへようこそ！ ${interaction.user.username}! 初回なので1000000コインを差し上げます。`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("ユーザー登録中にエラーが発生しました。")
 					return
 				}
-
-				//amountをメッセージから取得
-				const amount = message.content.split(" ")[1];
-
-				//amountの前の空白が1つ多い場合の処理
-				if (amount == "") {
-					message.reply("金額の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//amountが数字だけじゃない場合の処理
-				if (/\D/.test(amount)) {
-					message.reply("数字以外が金額入力欄に入力されています。数字のみ入力するようにしてください。")
-					return
-				}
-
-				//amountの結果を送信
-				message.reply(`${toJPUnit(amount)}`);
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中にエラーが発生しました。")
-				return
 			}
-		}
 
-		//regコマンドの処理(カジノBOT)
-		if (message.content == "/reg") {
-			try {
-				//regを打ったユーザーが登録されているかどうかの確認
-				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
-				if(truefalseuser) {
-					message.reply("あなたはもう既にこのカジノに登録されています。")
+			if (interaction.commandName == "send") {
+				try {
+					//送り先のユーザー名を取得
+					const sentusername = interaction.options.get('username').value;
+	
+					//送り先のユーザー名が自分自身の場合の処理
+					if(sentusername == interaction.user.username){
+						interaction.reply("自分自身に送ることは許されていません！")
+						return
+					}
+	
+					//送り先のユーザー名が存在するかの確認
+					const truefalsesentuser = await checkFileExists(`./Player Bank/${sentusername}.txt`);
+					if (!truefalsesentuser) {
+						interaction.reply(`${sentusername} というユーザーはこのカジノに登録されていません。/regで登録してもらってください。`)
+						return
+					}
+	
+					//送る本人が存在するかの確認
+					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
+					if (!truefalseuser) {
+						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
+						return
+					}
+	
+					//送りたい希望金額を取得
+					let sentmoney = interaction.options.get('amount').value;
+
+					//送りたい希望金額をBigIntに変換
+					sentmoney = BigInt(sentmoney);
+	
+					//送りたい希望金額がマイナスの場合の処理
+					if (sentmoney < 0n) {
+						interaction.reply("送る金額をマイナスにすることは出来ません。")
+						return
+					}
+	
+					//送る人の銀行口座残高を取得
+					const messagercurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
+	
+					//送る人の銀行口座残高から送りたい希望金額を引く
+					const newmessagerbankbalance = messagercurrentBalance - sentmoney;
+	
+					//送る人の銀行口座残高が0を下回る場合の処理
+					if (newmessagerbankbalance < 0n) {
+						interaction.reply(`この金額を送ることは出来ません。この金額を送った場合、あなたの銀行口座残高が0を下回ってしまいます。(${newmessagerbankbalance})`)
+						return
+					}
+	
+					//送る人の銀行口座残高を更新
+					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newmessagerbankbalance.toString(), 'utf-8');
+	
+					//送り先の銀行口座残高を取得
+					const sentusercurrentbalance = BigInt(fs.readFileSync(`./Player Bank/${sentusername}.txt`, 'utf-8'));
+	
+					//送り先の銀行口座残高に送りたい希望金額を足す
+					const newsentusercurrentbalance = sentusercurrentbalance + sentmoney;
+	
+					//送り先の銀行口座残高を更新
+					fs.writeFileSync(`./Player Bank/${sentusername}.txt`, newsentusercurrentbalance.toString(), 'utf-8');
+	
+					//送金完了を知らせるメッセージを送信
+					interaction.reply("送金が完了しました。");
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("送金処理中にエラーが発生しました。")
 					return
 				}
-
-				//regを打ったユーザーの銀行口座残高を作成
-				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, "1000000", "utf-8");
-				message.reply(`カジノへようこそ！ ${message.author.username}! 初回なので1000000コインを差し上げます。`);
-			} catch (e) {
-				console.log(e)
-				message.reply("ユーザー登録中にエラーが発生しました。")
-				return
 			}
-		}
 
-		//!sendコマンドの処理(カジノBOT)
-		if(message.content.split(" ")[0] == "/send"){
-			try {
-				//sendのみ入力された場合の処理
-				if (message.content == "/send") {
-					message.reply("使い方: /send <あげたい人> <金額>")
+			if (interaction.commandName == "dice") {
+				try {
+					//diceの結果を送信
+					interaction.reply(`サイコロを振った結果: **${Math.floor(Math.random() * 6) + 1}**`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
 				}
-
-				//送り先のユーザー名を取得
-				const sentusername = message.content.split(" ")[1];
-
-				//送り先のユーザー名の前の空白が1つ多い場合の処理
-				if (message.content.split(" ")[1] == "") {
-					message.reply("送り先のユーザー名の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//送り先のユーザー名が自分自身の場合の処理
-				if(sentusername == message.author.username){
-					message.reply("自分自身に送ることは許されていません！")
-					return
-				}
-
-				//送り先のユーザー名が入力されてない場合の処理
-				if(sentusername == undefined){
-					message.reply("送り先のユーザー名を入力してください。")
-					return
-				}
-
-				//送り先のユーザー名が存在するかの確認
-				const truefalsesentuser = await checkFileExists(`./Player Bank/${sentusername}.txt`);
-				if (!truefalsesentuser) {
-					message.reply(`${sentusername} というユーザーはこのカジノに登録されていません。/regで登録してもらってください。`)
-					return
-				}
-
-				//送る本人が存在するかの確認
-				const truefalseuser = await checkFileExists(`./Player Bank/${message.author.username}.txt`);
-				if (!truefalseuser) {
-					message.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
-					return
-				}
-
-				//送りたい希望金額を取得
-				let sentmoney = message.content.split(" ")[2];
-
-				//送りたい希望金額が入力されてない場合の処理
-				if (sentmoney == undefined) {
-					message.reply("送りたい希望金額を入力してください。")
-					return
-				}
-
-				//送りたい希望金額の前の空白が1つ多い場合の処理
-				if (sentmoney == "") {
-					message.reply("送りたい希望金額の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//送りたい希望金額が数字以外の場合の処理
-				if (/\D/.test(sentmoney)) {
-					message.reply("数字以外が金額入力欄に入力されています。数字のみ入力するようにしてください。")
-					return
-				}
-
-				//送りたい希望金額をBigIntに変換
-				sentmoney = BigInt(sentmoney);
-
-				//送りたい希望金額がマイナスの場合の処理
-				if (sentmoney < 0n) {
-					message.reply("^^;")
-					fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, "0", 'utf-8')
-					return
-				}
-
-				//送る人の銀行口座残高を取得
-				const messagercurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${message.author.username}.txt`, 'utf-8'));
-
-				//送る人の銀行口座残高から送りたい希望金額を引く
-				const newmessagerbankbalance = messagercurrentBalance - sentmoney;
-
-				//送る人の銀行口座残高が0を下回る場合の処理
-				if (newmessagerbankbalance < 0n) {
-					message.reply(`この金額を送ることは出来ません。この金額を送った場合、あなたの銀行口座残高が0を下回ってしまいます。(${newmessagerbankbalance})`)
-					return
-				}
-
-				//送る人の銀行口座残高を更新
-				fs.writeFileSync(`./Player Bank/${message.author.username}.txt`, newmessagerbankbalance.toString(), 'utf-8');
-
-				//送り先の銀行口座残高を取得
-				const sentusercurrentbalance = BigInt(fs.readFileSync(`./Player Bank/${sentusername}.txt`, 'utf-8'));
-
-				//送り先の銀行口座残高に送りたい希望金額を足す
-				const newsentusercurrentbalance = sentusercurrentbalance + sentmoney;
-
-				//送り先の銀行口座残高を更新
-				fs.writeFileSync(`./Player Bank/${sentusername}.txt`, newsentusercurrentbalance.toString(), 'utf-8');
-
-				//送金完了を知らせるメッセージを送信
-				message.reply("送金が完了しました。");
-			} catch (e) {
-				console.log(e)
-				message.reply("送金処理中にエラーが発生しました。")
 			}
-		}
 
-		//!diceコマンドの処理(カジノBOT)
-		if (message.content == "/dice") {
-			try {
-				//diceの結果を送信
-				message.reply(`サイコロを振った結果: **${Math.floor(Math.random() * 6) + 1}**`);
-				return;
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//rouletteコマンドの処理(カジノBOT)
-		if (message.content == "/roulette") {
-			try {
-				//ルーレットの結果を生成
-				const num = Math.floor(Math.random() * 2);
-				if(num == 0){
-					message.reply("ルーレットの結果: **赤**")
-					return
-				}else if(num == 1){
-					message.reply("ルーレットの結果: **黒**")
+			if (interaction.commandName == "roulette") {
+				try {
+					//ルーレットの結果を生成
+					const num = Math.floor(Math.random() * 2);
+					if(num == 0){
+						interaction.reply("ルーレットの結果: **赤**")
+						return
+					}else if(num == 1){
+						interaction.reply("ルーレットの結果: **黒**")
+						return
+					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
 				}
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中にエラーが発生しました。")
-				return
 			}
-		}
 
-		//!kemoコマンドの処理(FurryBOT)
-		if (message.content.startsWith("/kemo")) {
-			try {
-				//Botが送ったコマンドに対しての処理をブロック
-				if (message.author.bot) return;
-
-				//テキストファイルから一覧を取得
-				const text = fs.readFileSync(`./Furry/Furry.txt`, 'utf-8');
-
-				//一覧を配列に変換
-				const lines = text.split(" ").filter((function(link) {return link !== "";}));
-
-				//配列の要素数を取得
-				const lineCount = lines.length;
-
-				//配列の要素数からランダムな数字を生成
-				const randomLineNumber = Math.floor(Math.random() * lineCount);
-
-				//ランダムな数字から一覧の要素を取得
-				const randomLine = lines[randomLineNumber];
-				const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
-
-				//webからデータを取得
-				let error = false;
-				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(error => {
-					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
-					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
-					const newtext = currenttext.replace(`${randomLine} `, "")
-					fs.writeFileSync(`./Furry/Furry.txt`, newtext)
-					message.reply("ファイルの削除が完了しました");
-					error = true;
-				})
-
-				//axiosがアクセスできなかった時の処理
-				if (error) return;
-				
-				//画像のデータを取得
-				const picData = response.data;
-				
-				//画像の送信
-				message.channel.send({ files: [{ attachment: picData, name: `Furry.${lineextension}` }] })
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。")
-				return
+			if (interaction.commandName == "kemo") {
+				try {
+					//テキストファイルから一覧を取得
+					const text = fs.readFileSync(`./Furry/Furry.txt`, 'utf-8');
+	
+					//一覧を配列に変換
+					const lines = text.split(" ").filter((function(link) {return link !== "";}));
+	
+					//配列の要素数を取得
+					const lineCount = lines.length;
+	
+					//配列の要素数からランダムな数字を生成
+					const randomLineNumber = Math.floor(Math.random() * lineCount);
+	
+					//ランダムな数字から一覧の要素を取得
+					const randomLine = lines[randomLineNumber];
+					const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
+	
+					//webからデータを取得
+					let error = false;
+					const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(error => {
+						interaction.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
+						const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
+						const newtext = currenttext.replace(`${randomLine} `, "")
+						fs.writeFileSync(`./Furry/Furry.txt`, newtext)
+						interaction.channel.send("ファイルの削除が完了しました");
+						error = true;
+					})
+	
+					//axiosがアクセスできなかった時の処理
+					if (error) return;
+					
+					//画像のデータを取得
+					const picData = response.data;
+					
+					//画像の送信
+					interaction.reply({ files: [{ attachment: picData, name: `Furry.${lineextension}` }] })
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。")
+					return
+				}
 			}
-		}
 
+			if (interaction.commandName == "delete") {
+				try {
+					const medialink = interaction.options.get('medialink').value;
+
+					//リンクを削除する処理
+					if (fs.readFileSync(`./Furry/Furry.txt`, "utf-8").includes(medialink)) {
+						const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
+						const newtext = currenttext.replace(`${medialink} `, "")
+						fs.writeFileSync(`./Furry/Furry.txt`, newtext)
+						interaction.reply("ファイルの削除が完了しました");
+					} else {
+						interaction.reply("そのリンクはリンク一覧に存在しません。")
+						return
+					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "count") {
+				try {
+					//テキストファイルから一覧を取得
+					const text = fs.readFileSync(`./Furry/Furry.txt`, 'utf-8');
+
+					//一覧を配列に変換
+					const lines = text.split(" ").filter((function(link) {return link !== "";}));
+
+					//配列の要素数を取得
+					const lineCount = lines.length;
+
+					//要素数の結果を送信
+					interaction.reply(`今まで追加した画像や映像、gifの合計枚数は${lineCount}枚です。`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "pic") {
+				try {
+					//メッセージからタグを取得
+					const tag = interaction.options.get('tag').value;
+	
+					//タグが存在するかの確認
+					if (!fs.existsSync(`./tag/${tag}/picture.txt`)) {
+						interaction.reply("このタグは存在しません。")
+						return
+					}
+	
+					//タグの中身が空の場合の処理
+					const text = fs.readFileSync(`./tag/${tag}/picture.txt`, 'utf-8').split(" ").filter((function(link) {return link !== "";}));
+					if (text.length == 0) {
+						interaction.reply("このタグにはファイルがないみたいです。")
+						return
+					}
+	
+					//タグの中身のファイルからランダムで画像を選択
+					const lineCount = text.length;
+					const randomLineNumber = Math.floor(Math.random() * lineCount);
+					const randomLine = text[randomLineNumber];
+					const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
+	
+					//webからデータを取得
+					let error = false;
+					const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(error => {
+						interaction.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
+						const currenttext = fs.readFileSync(`./tag/${tag}/picture.txt`, "utf-8")
+						const newtext = currenttext.replace(`${randomLine} `, "")
+						fs.writeFileSync(`./tag/${tag}/picture.txt`, newtext)
+						interaction.channel.send("ファイルの削除が完了しました");
+						error = true;
+					})
+	
+					//axiosがアクセスできなかった時の処理
+					if (error) return;
+					
+					//画像のデータを取得
+					const picData = response.data;
+	
+					//画像の送信
+					interaction.reply({ files: [{ attachment: picData, name: `${tag}.${lineextension}` }] })
+				} catch(e) {
+					console.log(e)
+					interaction.reply("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "settag") {
+				try {
+					//ディリクトリ、ファイルの作成
+					const mkdir = util.promisify(fs.mkdir);
+					const writeFile = util.promisify(fs.writeFile);
+					await mkdir(`./tag/${interaction.channel.name}`);
+					await writeFile(`./tag/${interaction.channel.name}/picture.txt`, "");
+					interaction.reply("タグが正常に作成されました。")
+				} catch (e) {
+					interaction.channel.send("このタグは既に存在します。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "deltag") {
+				try {
+					//タグが存在するかの確認、しなかった場合の処理
+					if (!fs.existsSync(`./tag/${interaction.channel.name}/picture.txt`)) {
+						interaction.reply("このタグは存在しません。")
+						return
+					}
+
+					//タグの削除
+					fs.remove(`./tag/${interaction.channel.name}/picture.txt`, (err) => {
+						if (err) {
+							console.log(err)
+							interaction.reply("ファイルを削除する際にエラーが発生しました。")
+						}
+					})
+
+					//タグの削除が完了したことを知らせるメッセージを送信
+					interaction.reply("タグが正常に削除されました。")
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "delpic") {
+				try {
+					//タグ(チャンネル)が登録されていなかった場合の処理
+					if (!fs.existsSync(`./tag/${interaction.channel.name}/picture.txt`)) {
+						interaction.reply("このタグは登録されていません。")
+						return;
+					}
+
+					//削除したいリンクを取得
+					const wannadelete = interaction.options.get('medialink').value;
+
+					//削除したいリンクの前の空白が1つ多い場合の処理
+					if (wannadelete == "") {
+						interaction.reply("削除したいリンクの前の空白が1つ多い可能性があります。")
+						return
+					}
+
+					//リンクを削除する処理
+					if (fs.readFileSync(`./tag/${interaction.channel.name}/picture.txt`, "utf-8").includes(wannadelete)) {
+						const currenttext = fs.readFileSync(`./tag/${interaction.channel.name}/picture.txt`, "utf-8")
+						const newtext = currenttext.replace(`${wannadelete} `, "")
+						fs.writeFileSync(`./tag/${interaction.channel.name}/picture.txt`, newtext)
+						interaction.reply("ファイルの削除が完了しました");
+					} else {
+						interaction.reply("そのリンクはリンク一覧に存在しません。")
+						return
+					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("ファイルの削除中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "piccount") {
+				try {
+					//タグ(チャンネル)が登録されていなかった場合の処理
+					if (!fs.existsSync(`./tag/${interaction.channel.name}/picture.txt`)) {
+						interaction.reply("このタグは登録されていません。")
+						return;
+					}
+
+					//テキストファイルから一覧を取得
+					const text = fs.readFileSync(`./tag/${interaction.channel.name}/picture.txt`, 'utf-8');
+
+					//一覧を配列に変換
+					const lines = text.split(" ").filter((function(link) {return link !== "";}));
+
+					//配列の要素数を取得
+					const lineCount = lines.length;
+
+					if (lineCount == 0) {
+						interaction.reply("このタグにはファイルがないみたいです。")
+						return
+					}
+
+					//要素数の結果を送信
+					interaction.reply(`今まで${interaction.channel.name}タグに追加した画像や映像、gifの合計枚数は${lineCount}枚です。`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "downloadtag") {
+				try {
+					//タグ(チャンネル)が登録されていなかった場合の処理
+					if (!fs.existsSync(`./tag/${interaction.channel.name}/picture.txt`)) {
+						interaction.reply("このタグは登録されていません。")
+						return;
+					}
+					
+					const link = "https://github.com/puk06/PictureDownloader/releases/download/V1.1/PictureDownloader.zip"
+
+					//textファイルを送信
+					interaction.reply(`これがタグ: ${interaction.channel.name}のPictureファイルです。これを\nGithub: ${link}\nこのソフトのフォルダの中に入れてjsファイルを実行してください。※Node.jsが必須です。`)
+					interaction.channel.send({ files: [{ attachment: `./tag/${interaction.channel.name}/picture.txt`, name: 'picture.txt' }] });
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "alltags") {
+				try {
+					//全てのフォルダー名からタグを取得
+					const tags = fs.readdirSync(`./tag/`, { withFileTypes: true }).filter((function(tag) {
+						return fs.readdirSync(`./tag/${tag.name}`).length !== 0;
+					}));
+	
+					//タグの数が0だった場合
+					if (tags.length == 0) {
+						interaction.reply("タグが存在しません。")
+						return
+					}
+	
+					//タグの一覧を格納する配列を作成
+					let taglist = [];
+	
+					//タグの一覧を作成
+					for (let i = 0; i < tags.length; i++ ) {
+						taglist.push(`${i + 1}: ${tags[i].name}\n`);
+					}
+	
+					//タグの一覧を送信
+					interaction.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "quote") {
+				try {
+					//メッセージからタグを取得
+					const tag = interaction.options.get('tag').value;
+	
+					//タグが存在するかの確認
+					if (!fs.existsSync(`./quotetag/${tag}/quote.txt`)) {
+						interaction.reply("このタグは存在しません。")
+						return
+					}
+	
+					//タグの中身が空の場合の処理
+					const text = fs.readFileSync(`./quotetag/${tag}/quote.txt`, 'utf-8').split(" ").filter((function(link) {return link !== "";}));
+					if (text.length == 0) {
+						interaction.reply("このタグには名言がないみたいです。")
+						return
+					}
+	
+					//タグの中身のファイルからランダムで名言を選択
+					const lineCount = text.length;
+					const randomLineNumber = Math.floor(Math.random() * lineCount);
+					const randomLine = text[randomLineNumber];
+	
+					//画像の送信
+					interaction.channel.send(`**${randomLine}** - ${tag}`);
+				} catch(e) {
+					console.log(e)
+					interaction.reply("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "setquotetag") {
+				try {
+					//ディリクトリ、ファイルの作成
+					const mkdir = util.promisify(fs.mkdir);
+					const writeFile = util.promisify(fs.writeFile);
+					await mkdir(`./quotetag/${interaction.channel.name}`);
+					await writeFile(`./quotetag/${interaction.channel.name}/quote.txt`, "");
+					interaction.reply("タグが正常に作成されました。")
+				} catch (e) {
+					interaction.channel.send("このタグは既に存在します。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "delquotetag") {
+				try {
+					//タグが存在するかの確認、しなかった場合の処理
+					if (!fs.existsSync(`./quotetag/${interaction.channel.name}/quote.txt`)) {
+						interaction.reply("このタグは存在しません。")
+						return
+					}
+	
+					//タグの削除
+					fs.remove(`./quotetag/${interaction.channel.name}/quote.txt`, (err) => {
+						if (err) {
+							console.log(err)
+							interaction.reply("ファイルを削除する際にエラーが発生しました。")
+						}
+					})
+	
+					//タグの削除が完了したことを知らせるメッセージを送信
+					interaction.reply("タグが正常に削除されました。")
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "delquote") {
+				try {
+					//タグ(チャンネル)が登録されていなかった場合の処理
+					if (!fs.existsSync(`./quotetag/${interaction.channel.name}/quote.txt`)) {
+						interaction.reply("このタグは存在しません。")
+						return
+					}
+	
+					//削除したいリンクを取得
+					const wannadelete = interaction.options.get('quote').value;
+	
+					//削除したいリンクの前の空白が1つ多い場合の処理
+					if (wannadelete == "") {
+						interaction.reply("削除したいリンクの前の空白が1つ多い可能性があります。")
+						return
+					}
+	
+					//リンクを削除する処理
+					if (fs.readFileSync(`./quotetag/${interaction.channel.name}/quote.txt`, "utf-8").includes(wannadelete)) {
+						const currenttext = fs.readFileSync(`./quotetag/${interaction.channel.name}/quote.txt`, "utf-8")
+						const newtext = currenttext.replace(`${wannadelete} `, "")
+						fs.writeFileSync(`./quotetag/${interaction.channel.name}/quote.txt`, newtext)
+						interaction.reply("ファイルの削除が完了しました");
+					} else {
+						interaction.reply("そのリンクはリンク一覧に存在しません。")
+						return
+					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("ファイルの削除中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "quotecount") {
+				try {
+					//タグ(チャンネル)が登録されていなかった場合の処理
+					if (!fs.existsSync(`./quotetag/${interaction.channel.name}/quote.txt`)) {
+						interaction.reply("このタグは登録されていません。")
+						return;
+					}
+	
+					//テキストファイルから一覧を取得
+					const text = fs.readFileSync(`./quotetag/${interaction.channel.name}/quote.txt`, 'utf-8');
+	
+					//一覧を配列に変換
+					const lines = text.split(" ").filter((function(link) {return link !== "";}));
+	
+					//配列の要素数を取得
+					const lineCount = lines.length;
+	
+					if (lineCount == 0) {
+						interaction.reply("このタグには名言がないみたいです。")
+						return
+					}
+	
+					//要素数の結果を送信
+					interaction.reply(`今まで${interaction.channel.name}タグに追加した名言の合計枚数は${lineCount}個です。`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send('ファイルを読み込む際にエラーが発生しました。')
+					return
+				}
+			}
+
+			if (interaction.commandName == "allquotetags") {
+				try {
+					//全てのフォルダー名からタグを取得
+					const tags = fs.readdirSync(`./quotetag/`, { withFileTypes: true }).filter((function(tag) {
+						return fs.readdirSync(`./quotetag/${tag.name}`).length !== 0;
+					}));
+	
+					//タグの数が0だった場合
+					if (tags.length == 0) {
+						interaction.reply("タグが存在しません。")
+						return
+					}
+	
+					//タグの一覧を格納する配列を作成
+					let taglist = [];
+	
+					//タグの一覧を作成
+					for (let i = 0; i < tags.length; i++ ) {
+						taglist.push(`${i + 1}: ${tags[i].name}\n`);
+					}
+	
+					//タグの一覧を送信
+					interaction.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "kunii") {
+				try {
+					//メッセージから文章を取得
+					const kuniicontent = interaction.options.get('content').value;
+	
+					//"うんこえろしね"が入力された場合の処理
+					if (kuniicontent == "うんこえろしね") {
+						interaction.reply("しんこうろえね")
+						return
+					}
+	
+					//文章が入力されてない場合の処理
+					if (kuniicontent == undefined) {
+						interaction.reply("できないからやばい")
+						return
+					}
+	
+					//文章を形態素解析
+					const url = "https://labs.goo.ne.jp/api/morph";
+					const params = {
+						app_id: appid,
+						sentence: kuniicontent
+					};
+	
+					//形態素解析の結果を取得
+					let error = false;
+					const data = await axios.post(url, params)
+					.then((response) => {
+							return response.data.word_list
+					}).catch((e) => {
+						console.log(e);
+						interaction.reply("データ取得中になんらかのエラーが発生しました。")
+						error = true;
+					})
+
+					//axiosがアクセスできなかった時の処理
+					if (error) return;
+	
+					//形態素解析の結果から文章を生成
+					if (data[0].length == undefined || data[0].length == 0 || data[0].length == 1 || data[0].length > 4) {
+						interaction.channel.send("できないからやばい")
+						return
+					} else if (data[0].length == 2) {
+						const data1 = data[0][0][0]
+						const data2 = data[0][1][0]
+						const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1)
+						interaction.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`)
+						return
+					} else if (data[0].length == 3) {
+						const data1 = data[0][0][0]
+						const data2 = data[0][1][0]
+						const data3 = data[0][2][0]
+						const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data3
+						interaction.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`)
+						return
+					} else if (data[0].length == 4) {
+						const data1 = data[0][0][0]
+						const data2 = data[0][1][0]
+						const data3 = data[0][2][0]
+						const data4 = data[0][3][0]
+						const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data4.charAt(0) + data3.slice(1) + data3.charAt(0) + data4.slice(1)
+						interaction.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`)
+						return
+					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "link") {
+				try {
+					//チャンネルidを取得
+					const channelid = interaction.channel.id;
+	
+					//全ての登録済みのチャンネルを取得、チャンネルidが既にChannels.txtにあった場合の処理
+					const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+					if (allchannels.includes(channelid)) {
+						interaction.reply("このチャンネルは既にマップ情報が表示されるようになっています。")
+						return
+					}
+	
+					//Channels.txtにチャンネルidを追加
+					fs.appendFile("./BeatmapLinkChannels/Channels.txt", `${channelid} `, function (err) {
+						if (err) throw err
+					})
+	
+					//メッセージ送信
+					interaction.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されるようになりました。解除したい場合は!unlinkコマンドを使用してください。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "unlink") {
+				try {
+					//チャンネルidを取得
+					const channelid = interaction.channel.id
+	
+					//全ての登録済みのチャンネルを取得、チャンネルidが既にChannels.txtにあった場合の処理(削除)
+					const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+					if (allchannels.includes(channelid)) {
+						const currentchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8")
+						const newchannels = currentchannels.replace(`${channelid} `, "")
+						fs.writeFileSync("./BeatmapLinkChannels/Channels.txt", newchannels)
+					} else {
+						interaction.reply("このチャンネルでは既にマップ情報が表示されないようになっています。")
+						return
+					}
+	
+					//メッセージ送信
+					interaction.reply(`このチャンネルにマップリンクが送信されてもマップ情報が表示されないようになりました。再度表示したい場合は!linkコマンドを使用してください。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "check") {
+				try {
+					//ビートマップを取得
+					if (interaction.options.get("beatmaplink").value.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+						interaction.reply("ビートマップリンクの形式が間違っています。")
+						return
+					}
+					
+					//マップデータを取得
+					const Mapdata = await getMapInfowithoutmods(Mapdata, apikey);
+					await getOsuBeatmapFile(Mapdata.beatmapId);
+					const streamdata = await checkStream(Mapdata.beatmapId, Mapdata.bpm);
+	
+					//メッセージ送信
+					await interaction.reply(`Streamlength: ${streamdata} `);
+	
+					//一時的なBeatmapファイルを削除
+					try {
+						fs.unlinkSync(`./BeatmapFolder/${Mapdata.beatmapId}.txt`);
+					} catch (e) {
+						console.log(e)
+						interaction.reply("Beatmapファイルを削除する際にエラーが発生しました。")
+						return
+					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "ispp") {
+				try {
+					//Modsの処理
+					let mods = [];
+					let modsforcalc;
+
+					const maplink = interaction.options.get("beatmaplink").value;
+					const Mods = interaction.options?.get("mods")?.value;
+	
+					//Modsが入力されなかったときの処理、されたときの処理
+					if (Mods == undefined) {
+						mods.push("NM")
+						modsforcalc = 0
+					} else {
+						mods.push(interaction.options?.get("mods")?.value.toUpperCase())
+	
+						//Modsを配列に変える処理
+						mods = splitString(mods)
+	
+						//Modsが正しいかどうか判別する処理
+						if (!checkStrings(mods)) {
+							interaction.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
+							return
+						}
+						if ((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")) )) {
+							interaction.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。")
+							return
+						}
+	
+						//ModsにNCが入っていたときにDTに置き換える処理
+						if (mods.includes("NC")) {
+							let modsnotDT = Mods.filter((item) => /NC/.exec(item) == null)
+							modsnotDT.push("DT")
+							modsforcalc = parseModString(modsnotDT);
+						} else {
+							modsforcalc = parseModString(mods);
+						}
+					}
+
+					let data = await getMapInfo(maplink, apikey, mods);
+					let sr = await calculateSR(data.beatmapId, modsforcalc, modeconvert(data.mode));
+	
+					//Mapstatusを取得(Ranked, Loved, Qualified, Pending, WIP, Graveyard)
+					const Mapstatus = mapstatus(data.approved);
+	
+					//PP、FPを計算
+					const FP = parseFloat(sr.S0 / data.totallength * 100).toFixed(1);
+					let FPmessage;
+					let rankplayer;
+	
+					//FPによってメッセージを変える処理
+					if (FP >= 700) {
+						FPmessage = "**This is SO GOOD PP map**"
+					} else if (FP >= 400) {
+						FPmessage = "**This is PP map**"
+					} else if (FP >= 200) {
+						FPmessage = "**This is PP map...?idk**"
+					} else if (FP >= 100) {
+						FPmessage = "This is no PP map ;-;"
+					} else {
+						FPmessage = "This is no PP map ;-;"
+					}
+	
+					//PPによってメッセージを変える処理
+					if (sr.S0 >= 750) {
+						rankplayer = "**High rank player**"
+					} else if(sr.S0 >= 500) {
+						rankplayer = "**Middle rank player**"
+					} else if(sr.S0 >= 350) {
+						rankplayer = "**Funny map player**"
+					} else {
+						rankplayer = "**Beginner player**"
+					}
+	
+					//"PP/s"を計算
+					const ppdevidetotallength = (sr.S0 / data.totallength);
+					const ppdevideparsefloat = parseFloat(ppdevidetotallength).toFixed(1);
+	
+					//メッセージを送信
+					interaction.reply(`Totalpp : **${sr.S0}** (**${Mapstatus}**) | Farmscore : **${FP}** For ${rankplayer} | ${FPmessage} (${ppdevideparsefloat} pp/s)`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "lb") {
+				try {
+					//マップリンクを取得
+					const maplink = interaction.options.get("beatmaplink").value;
+	
+					//BeatmapIdをメッセージから取得
+					const beatmapid = maplink.split("/")[maplink.split("/").length - 1]
+					const Mods = interaction.options?.get("mods")?.value;
+
+					//Modsの処理
+					let mods = [];
+
+					if (Mods == undefined) {
+						mods.push("NM")
+					} else {
+						mods.push(Mods.toUpperCase());
+						mods = splitString(mods)
+					}
+	
+					//Modsが正しいかどうか判別する処理
+					if (!checkStrings(mods)) {
+						interaction.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
+						return
+					}
+					if ((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")))) {
+						interaction.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。")
+						return
+					}
+	
+					//ModsにNCが入っていたときにDTに置き換える処理
+					let modsnotNC = mods;
+					if (mods.includes("NC")) {
+						mods.push("DT")
+						modsnotNC = mods.filter((item) => /NC/.exec(item) == null)
+					}
+	
+					//マップリンクから必要な情報を取得
+					const Mapinfo = await getMapInfo(maplink, apikey, mods);
+					const mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
+	
+					//マッパーの情報の取得中にエラーが発生した場合の処理
+					if (mapperinfo == undefined) {
+						interaction.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+						return
+					}
+	
+					const mapsetlink = Mapinfo.maplink.split("/")[4].split("#")[0];
+	
+					//SR、BPMを計算
+					let SR = await calculateSR(beatmapid, parseModString(modsnotNC), modeconvert(Mapinfo.mode));
+					let BPM = Mapinfo.bpm;
+	
+					//Mods、BPMの処理
+					if (mods.includes('NC')) {
+						mods.push('DT')
+					}
+					if (mods.includes("NC") || mods.includes("DT")) {
+						BPM *= 1.5
+					} else if (mods.includes("HT")) {
+						BPM *= 0.75
+					}
+
+					interaction.reply("ランキングの作成中です...")
+	
+					//top5を取得
+					const resulttop5 = await GetMapScore(beatmapid, parseModString(mods), apikey, Mapinfo.mode);
+	
+					if (resulttop5 == undefined) {
+						interaction.channel.send("この譜面には選択されたModの記録が無いようです")
+						return
+					}
+	
+					//ModsにDT、NCの療法が含まれていたときの処理
+					if (mods.includes("DT") && mods.includes("NC")) {
+						let modsnotDT = mods.filter((item) => /DT/.exec(item) == null)
+						mods = modsnotDT
+					}
+	
+					//メッセージ内容を作成、送信
+					let acc0;
+					let acc1;
+					let acc2;
+					let acc3;
+					let acc4;
+					if (resulttop5.length == 5) {
+						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
+						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
+						acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
+						acc3 = tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode))
+						acc4 = tools.accuracy({300: resulttop5[4].count300, 100: resulttop5[4].count100, 50: resulttop5[4].count50, 0: resulttop5[4].countmiss, geki:  resulttop5[4].countgeki, katu: resulttop5[4].countkatu}, modeconvert(Mapinfo.mode))
+							const embed = new EmbedBuilder()
+								.setColor(0x0099FF)
+								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+								.setURL(maplink)
+								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
+								.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
+								.addFields({ name: "\`#2\`", value: `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`, inline: false })
+								.addFields({ name: "\`#3\`", value: `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`, inline: false })
+								.addFields({ name: "\`#4\`", value: `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`, inline: false })
+								.addFields({ name: "\`#5\`", value: `**Rank**: \`${resulttop5[4].rank}\` **Player**: \`${resulttop5[4].username}\` **Score**: ${resulttop5[4].score} \n [\`${resulttop5[4].maxcombo}\`combo] \`${acc4}\`% \`${resulttop5[4].pp}\`pp miss:${resulttop5[4].countmiss}`, inline: false })
+								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+							interaction.channel.send({ embeds: [embed] })
+						return
+					} else if (resulttop5.length == 4) {
+						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
+						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
+						acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
+						acc3 = tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode))
+							const embed = new EmbedBuilder()
+								.setColor(0x0099FF)
+								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+								.setURL(maplink)
+								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })
+								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
+								.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
+								.addFields({ name: "\`#2\`", value: `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`, inline: false })
+								.addFields({ name: "\`#3\`", value: `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`, inline: false })
+								.addFields({ name: "\`#4\`", value: `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`, inline: false })
+								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+						interaction.channel.send({ embeds: [embed] })
+						return
+					} else if (resulttop5.length == 3) {
+						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
+						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
+						acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
+							const embed = new EmbedBuilder()
+								.setColor(0x0099FF)
+								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+								.setURL(maplink)
+								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
+								.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
+								.addFields({ name: "\`#2\`", value: `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`, inline: false })
+								.addFields({ name: "\`#3\`", value: `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`, inline: false })
+								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+						interaction.channel.send({ embeds: [embed] })
+						return
+					} else if (resulttop5.length == 2) {
+						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
+						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
+							const embed = new EmbedBuilder()
+								.setColor(0x0099FF)
+								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+								.setURL(maplink)
+								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
+								.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
+								.addFields({ name: "\`#2\`", value: `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`, inline: false })
+								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+							interaction.channel.send({ embeds: [embed] })
+						return
+					} else {
+						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
+						const embed = new EmbedBuilder()
+							.setColor(0x0099FF)
+							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+							.setURL(maplink)
+							.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })							.addFields("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
+							.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
+							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+						interaction.channel.send({ embeds: [embed] })
+						return
+					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "qf") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const channelid = interaction.channel.id
+					const allchannels = fs.readFileSync(`./MapcheckChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+					if (allchannels.includes(channelid)) {
+						interaction.reply("このチャンネルは既にQualfied、Rankedチェックチャンネルとして登録されています。")
+						return
+					}
+					fs.appendFile(`./MapcheckChannels/${mode}/Channels.txt`, `${channelid} `, function (err) {
+						if (err) throw err
+					})
+					interaction.reply(`このチャンネルを${mode}のQualfied、Rankedチェックチャンネルとして登録しました。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "deqf") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const channelid = interaction.channel.id
+
+					const allchannels = fs.readFileSync(`./MapcheckChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+					if (allchannels.includes(channelid)) {
+						const currentchannels = fs.readFileSync(`./MapcheckChannels/${mode}/Channels.txt`, "utf-8")
+						const newchannels = currentchannels.replace(`${channelid} `, "")
+						fs.writeFileSync(`./MapcheckChannels/${mode}/Channels.txt`, newchannels)
+					} else {
+						interaction.reply("このチャンネルはQualfied、Rankedチェックチャンネルとして登録されていません。")
+						return
+					}
+					interaction.reply(`このチャンネルを${mode}のQualfiedチェックチャンネルから削除しました。`)
+				} catch (e){
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "bg") {
+				try {
+					//メッセージからリンクを取得
+					const maplink = interaction.options.get("beatmaplink").value
+	
+					//osuのbeatmapリンクか判断する
+					if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+						interaction.reply(`${maplink}、これはマップリンクではない可能性があります。`)
+						return
+					}
+					const BeatmapsetId = await getMapInfowithoutmods(maplink, apikey);
+					const BeatmapId = BeatmapsetId.beatmapset_id;
+					interaction.channel.send(`https://assets.ppy.sh/beatmaps/${BeatmapId}/covers/raw.jpg`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "ifmod") {
+				try{
+					//ユーザーネームを取得
+					let playername;
+					try {
+						let username = interaction.user.id
+						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
+						playername = osuid
+					} catch (e) {
+						console.log(e)
+						interaction.channel.send("ユーザーが登録されていません。!regコマンドで登録してください。")
+						return
+					}
+	
+					//メッセージからマップリンクを取得
+					const maplink = interaction.options.get("beatmaplink").value;
+
+					if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+						interaction.reply(`マップリンクの形式が間違っています。`)
+						return
+					}
+	
+					//メッセージからMODを取得
+					const modmessage = [interaction.options.get('mods').value];
+					let modforcalc = splitString(modmessage)
+	
+					const beatmapId = maplink.split("/")[maplink.split("/").length - 1]
+	
+					//MODが存在するか、指定できないMODが指定されていないか確認
+					if (!checkStrings(modforcalc)) {
+						interaction.reply("Modが存在しないか、指定できないModです。")
+						return
+					}
+	
+					if((modforcalc.includes("NC") && modforcalc.includes("HT")) || (modforcalc.includes("DT") && modforcalc.includes("HT") || (modforcalc.includes("DT") && modforcalc.includes("NC")) || (modforcalc.includes("EZ") && modforcalc.includes("HR")))) {
+						interaction.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
+						return
+					}
+	
+					//modsforcalcにDTとNCの両方があった場合の処理
+					if (modforcalc.includes("NC")) {
+						let modsnotNC = modforcalc.filter((item) => /NC/.exec(item) == null)
+						modsnotNC.push("DT")
+						modforcalc = modsnotNC
+					} else if (modforcalc.length == 0) {
+						modforcalc.push("NM")
+					}
+	
+					//マップ情報、スコア情報を取得
+					const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
+					const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
+	
+					//スコア情報がなかった時の処理
+					if (playersscore == undefined) {
+						interaction.reply(`${playername}さんのスコアが見つかりませんでした。`)
+						return
+					}
+	
+					//マップ情報、プレイヤー情報、マッパー情報を取得
+					const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
+	
+					//プレイヤーの情報の取得中にエラーが発生した場合の処理
+					if (Playersinfo == undefined) {
+						interaction.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+						return
+					}
+	
+					const Mapperinfo = await getplayersdata(apikey, Mapinfo.mapper);
+	
+					//マッパーの情報の取得中にエラーが発生した場合の処理
+					if (Mapperinfo == 0) {
+						interaction.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+						return
+					}
+	
+					//Accを計算
+					const acc = tools.accuracy({300: playersscore.count300.toString(), 100: playersscore.count100.toString(), 50: playersscore.count50.toString(), 0: playersscore.countmiss.toString(), geki : playersscore.countgeki.toString(), katu: playersscore.countgeki.toString()}, modeconvert(Mapinfo.mode));
+					
+					//Modsを取得
+					let stringmodsbefore = playersscore.enabled_mods;
+					let stringmodsafter = modforcalc;
+	
+					//SS時のPPを取得
+					const PPbefore = await calculateSRwithacc(beatmapId, stringmodsbefore, modeconvert(Mapinfo.mode), acc, playersscore.countmiss, playersscore.maxcombo);
+					const PPafter = await calculateSRwithacc(beatmapId, parseModString(stringmodsafter), modeconvert(Mapinfo.mode), acc, playersscore.countmiss, playersscore.maxcombo);
+	
+					//表示専用のMod欄を作成
+					let showonlymodsforbefore = parseMods(playersscore.enabled_mods);
+					if (showonlymodsforbefore.includes("DT") && showonlymodsforbefore.includes("NC")) {
+						let modsnotDT = showonlymodsforbefore.filter((item) => item.match("DT") == null)
+						showonlymodsforbefore = modsnotDT
+					} else if (showonlymodsforbefore.length == 0) {
+						showonlymodsforbefore.push("NM")
+					}
+	
+					//モードを取得
+					let mode = "";
+					let modeforranking = "";
+					if (modeconvert(Mapinfo.mode) == "osu") {
+						mode = "0"
+						modeforranking = "osu"
+					} else if (modeconvert(Mapinfo.mode) == "taiko") {
+						mode = "1"
+						modeforranking = "taiko"
+					} else if (modeconvert(Mapinfo.mode) == "catch") {
+						mode = "2"
+						modeforranking = "fruits"
+					} else {
+						mode = "3"
+						modeforranking = "mania"
+					}
+
+					interaction.reply(`${playername}さんのランキングを計算中です。`)
+	
+					//ユーザー情報、PPなどを取得
+					const response = await axios.get(
+						`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${mode}&u=${playername}&limit=100`
+					);
+					const mapperdata = await getplayersdata(apikey, Mapinfo.mapper, mode);
+					const userplays = response.data;
+					let pp = [];
+					let oldpp = [];
+					for (const element of userplays) {
+						pp.push(Math.round(element.pp))
+						oldpp.push(Math.round(element.pp))
+					}
+	
+					pp.push(Math.round(PPafter.ppwithacc))
+					pp.sort((a, b) => b - a)
+	
+					//PPが変動しないときの処理(101個目のものと同じ場合)
+					if (Math.round(PPafter.ppwithacc) == pp[pp.length - 1]) {
+						interaction.channel.send("PPに変動は有りません。")
+						const embed = new EmbedBuilder()
+							.setColor(0x0099FF)
+							.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+							.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
+							.addFields({ name: `Mods: ${showonlymodsforbefore.join("")} → ${modmessage.join("")} Acc: ${acc}% Miss: ${playersscore.countmiss}`, value: `**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, inline: true })
+							.setURL(Mapinfo.maplink)
+							.setAuthor({ name: `Mapped by ${Mapinfo.mapper}`, iconURL: `https://a.ppy.sh/${mapperdata.user_id}`, url: `https://osu.ppy.sh/users/${Mapinfo.mapper}` })
+							.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
+						interaction.channel.send({ embeds: [embed] })
+						return
+					}
+	
+					if (pp.indexOf(Math.round(PPbefore.ppwithacc)) == -1) {
+						pp.pop()
+					} else {
+						//ppからPPbeforeを削除
+						for (let i = 0; i < pp.length; i++) {
+							let foundflag = false;
+							if (pp[i] == Math.round(PPbefore.ppwithacc) && !foundflag) {
+								foundflag = true;
+								pp.splice(i, 1)
+							}
+							if (foundflag) {
+								break;
+							}
+						}
+					}
+	
+					pp.sort((a, b) => b - a)
+	
+					//GlobalPPやBonusPPなどを計算する
+					const userdata = await getplayersdata(apikey, playername, mode);
+					const playcount = userdata.count_rank_ss + userdata.count_rank_ssh + userdata.count_rank_s + userdata.count_rank_sh + userdata.count_rank_a;
+					const oldglobalPPwithoutBonusPP = calculateScorePP(oldpp, playcount);
+					const globalPPwithoutBonusPP = calculateScorePP(pp, playcount);
+					const bonusPP = userdata.pp_raw - oldglobalPPwithoutBonusPP;
+					const globalPP = globalPPwithoutBonusPP + bonusPP;
+	
+					//ランキングを取得
+					let ranking = 0;
+					await auth.login(osuclientid, osuclientsecret);
+					let foundflagforranking = false;
+					for (let page = 0; page <= 120; page++) {
+						const object = { "cursor[page]": page + 1 };
+						let rankingdata = await v2.ranking.details(modeforranking, "performance", object);
+						if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp && !foundflagforranking) {
+							foundflagforranking = true;
+							for (let position = 0; position < 50; position++) {
+								if (globalPP > rankingdata.ranking[position].pp) {
+									ranking = (page * 50) + position + 1;
+									break;
+								}
+							}
+						}
+						
+						if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) break;
+					}
+	
+					if(!foundflagforranking) {
+						const embed = new EmbedBuilder()
+							.setColor(0x0099FF)
+							.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+							.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
+							.addFields({ name: `Mods: ${showonlymodsforbefore.join("")} → ${modmessage.join("")} Acc: ${acc}% Miss: ${playersscore.countmiss}`, value: `**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, inline: true })
+							.setURL(Mapinfo.maplink)
+							.setAuthor({ name: `Mapped by ${Mapinfo.mapper}`, iconURL: `https://a.ppy.sh/${mapperdata.user_id}`, url: `https://osu.ppy.sh/users/${Mapinfo.mapper}` })
+							.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
+							interaction.channel.send({ embeds: [embed] })
+						return
+					}
+	
+					const embed = new EmbedBuilder()
+						.setColor(0x0099FF)
+						.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
+						.addFields({ name: `Mods: ${showonlymodsforbefore.join("")} → ${modmessage.join("")} Acc: ${acc}% Miss: ${playersscore.countmiss}`, value: `**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, inline: true })
+						.addFields({ name: `Rank`, value: `**${userdata.pp_raw}**pp (#${userdata.pp_rank}) → **${globalPP.toFixed(1)}**pp +${(globalPP - userdata.pp_raw).toFixed(1)} (#${ranking} +${userdata.pp_rank - ranking})`, inline: false })
+						.setURL(Mapinfo.maplink)
+						.setAuthor({ name: `Mapped by ${Mapinfo.mapper}`, iconURL: `https://a.ppy.sh/${mapperdata.user_id}`, url: `https://osu.ppy.sh/users/${Mapinfo.mapper}` })
+						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
+						interaction.channel.send({ embeds: [embed] })
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンドの処理中になんらかのエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "srchart") {
+				try {
+					//マップリンクを取得
+					const maplink = interaction.options.get("beatmaplink").value;
+	
+					if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+						interaction.reply("マップリンク形式が間違っているようです。")
+						return
+					}
+	
+					//マップ情報を取得
+					const mapdata = await getMapInfowithoutmods(maplink, apikey);
+					const beatmapid = mapdata.beatmapId;
+					if (mapdata.combo < 100) {
+						interaction.reply("100combo未満のマップは計算できません。")
+						return
+					} else if (mapdata.combo > 5000) {
+						interaction.reply("5000combo以上のマップは計算できません。")
+						return
+					}
+	
+					//チャートの作成
+					interaction.reply("SRの計算中です。")
+					await srchart(beatmapid, modeconvert(mapdata.mode));
+					const sr = await calculateSR(beatmapid, 0, modeconvert(mapdata.mode));
+					await interaction.channel.send(`**${mapdata.artist} - ${mapdata.title} [${mapdata.version}]**のSRチャートです。最高は${sr.sr}★です。`);
+					await interaction.channel.send({ files: [{ attachment: `./BeatmapFolder/${beatmapid}.png`, name: 'SRchart.png' }] });
+					fs.remove(`./BeatmapFolder/${beatmapid}.png`);
+					fs.remove(`./BeatmapFolder/${beatmapid}.osu`);
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "preview") {
+				try {
+					//メッセージからマップリンクを取得
+					const maplink = interaction.options.get("beatmaplink").value;
+	
+					//マップリンクではなかった時の処理
+					if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+						interaction.reply("マップリンク形式が間違っているようです。https://osu.ppy.sh/beatmapsets/で始まるマップリンクを入力してください。")
+						return
+					}
+	
+					//マップ情報を取得
+					const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
+					const beatmapid = Mapinfo.beatmapId;
+					const previewlink = `https://osu-preview.jmir.ml/preview#${beatmapid}`
+					const SR = await calculateSR(beatmapid, 0, modeconvert(Mapinfo.mode));
+	
+					//Mapinfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
+					let lengthsec;
+					if (numDigits(parseFloat(Mapinfo.lengthsec.toFixed(0))) == 1) {
+						lengthsec = ('00' + parseFloat(Mapinfo.lengthsec).toFixed(0)).slice(-2)
+					} else {
+						lengthsec = parseFloat(Mapinfo.lengthsec).toFixed(0)
+					}
+	
+					const mapperdata = await getplayersdata(apikey, Mapinfo.mapper);
+	
+					//メッセージを作成
+					const embed = new EmbedBuilder()
+						.setColor(0x0099FF)
+						.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+						.setDescription(`Combo: \`${Mapinfo.combo}\` Stars: \`${SR.sr}\` \n Length: \`${Mapinfo.lengthmin}:${lengthsec}\` BPM: \`${Mapinfo.bpm}\` Objects: \`${Mapinfo.combo}\` \n CS: \`${Mapinfo.cs}\` AR: \`${Mapinfo.ar}\` OD: \`${Mapinfo.od.toFixed(1)}\` HP: \`${Mapinfo.hp}\` Spinners: \`${Mapinfo.countspinner}\``)
+						.setURL(Mapinfo.maplink)
+						.setAuthor({ name: `Mapped by ${Mapinfo.mapper}`, iconURL: `https://a.ppy.sh/${mapperdata.user_id}`, url: `https://osu.ppy.sh/users/${Mapinfo.mapper}` })
+						.addFields({ name: "Preview link", value: `[Preview this map!](${previewlink})`, inline: true })
+						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
+					interaction.channel.send({ embeds: [embed] })
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "osubgquiz") {
+				try {
+					//クイズが既に開始しているかをファイルの存在から確認する
+					if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
+						interaction.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+						return
+					}
+
+					const username = interaction.options.get('username').value
+					const mode = interaction.options.get('mode').value
+	
+					//クイズの問題を取得
+					const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${username}&type=string&m=${modeconvert(mode)}&limit=100`);
+					const quizdata = quiz.data;
+					if (quizdata.length < 10) {
+						interaction.reply("クイズの問題を取得できませんでした。")
+						return
+					}
+	
+					//0-99までのランダムな数字を10個取得
+					const randomnumber = [];
+					while (randomnumber.length < 10) {
+						const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
+						if (!randomnumber.includes(randomNumber)) {
+							randomnumber.push(randomNumber)
+						}
+					}
+	
+					//ランダムな数字からランダムなマップを取得
+					const randommap = [];
+					const randommaptitle = [];
+					for (const element of randomnumber) {
+						const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
+						randommap.push(beatmapsetid.beatmapset_id)
+						randommaptitle.push(beatmapsetid.title)
+					}
+					
+					let randomjson = JSON.parse("[]");
+					for (let i = 0; i < randommap.length; i++) {
+						randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false})
+					}
+					fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4))
+					const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
+					interaction.reply("クイズを開始します。問題は10問です。")
+					interaction.channel.send(`問題1のBGを表示します。`)
+					const response = await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' });
+					const BGdata = response.data;
+					interaction.channel.send({ files: [{ attachment: BGdata, name: 'audio.jpg' }] });
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンドの処理中になんらかのエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "osubgquizpf") {
+				try {
+					//クイズが既に開始しているかをファイルの存在から確認する
+					if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
+						interaction.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+						return
+					}
+
+					const username = interaction.options.get('username').value
+					const mode = interaction.options.get('mode').value
+	
+					//クイズの問題を取得
+					const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${username}&type=string&m=${modeconvert(mode)}&limit=100`);
+					const quizdata = quiz.data;
+					if (quizdata.length < 10) {
+						interaction.reply("クイズの問題を取得できませんでした。")
+						return
+					}
+	
+					//0-99までのランダムな数字を10個取得
+					const randomnumber = [];
+					while (randomnumber.length < 10) {
+						const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
+						if (!randomnumber.includes(randomNumber)) {
+							randomnumber.push(randomNumber)
+						}
+					}
+	
+					//ランダムな数字からランダムなマップを取得
+					const randommap = [];
+					const randommaptitle = [];
+					for (const element of randomnumber) {
+						const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
+						randommap.push(beatmapsetid.beatmapset_id)
+						randommaptitle.push(beatmapsetid.title)
+					}
+					
+					let randomjson = JSON.parse("[]");
+					for (let i = 0; i < randommap.length; i++) {
+						randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false})
+					}
+					fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4))
+					const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
+					interaction.reply("クイズを開始します。問題は10問です。")
+					interaction.channel.send(`問題1のBGを表示します。`)
+					const response = await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' });
+					const BGdata = response.data;
+					interaction.channel.send({ files: [{ attachment: BGdata, name: 'audio.jpg' }] });
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンドの処理中になんらかのエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "osuquiz") {
+				try {
+					//クイズが既に開始しているかをファイルの存在から確認する
+					if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
+						interaction.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+						return
+					}
+
+					const username = interaction.options.get('username').value
+					const mode = interaction.options.get('mode').value
+	
+					//クイズの問題を取得
+					const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${username}&type=string&m=${modeconvert(mode)}&limit=100`);
+					const quizdata = quiz.data;
+					if (quizdata.length < 10) {
+						interaction.reply("クイズの問題を取得できませんでした。")
+						return
+					}
+	
+					//0-99までのランダムな数字を10個取得
+					const randomnumber = [];
+					while (randomnumber.length < 10) {
+						const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
+						if (!randomnumber.includes(randomNumber)) {
+							randomnumber.push(randomNumber)
+						}
+					}
+	
+					//ランダムな数字からランダムなマップを取得
+					const randommap = [];
+					const randommaptitle = [];
+					for (const element of randomnumber) {
+						const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
+						randommap.push(beatmapsetid.beatmapset_id)
+						randommaptitle.push(beatmapsetid.title)
+					}
+					
+					let randomjson = JSON.parse("[]");
+					for (let i = 0; i < randommap.length; i++) {
+						randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false})
+					}
+					fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4))
+					const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
+					interaction.reply("クイズを開始します。問題は10問です。")
+					interaction.channel.send(`問題1のBGを表示します。`)
+					const response = await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' });
+					const BGdata = response.data;
+					interaction.channel.send({ files: [{ attachment: BGdata, name: 'audio.jpg' }] });
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンドの処理中になんらかのエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "osuquizpf") {
+				try {
+					//クイズが既に開始しているかをファイルの存在から確認する
+					if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
+						interaction.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+						return
+					}
+
+					const username = interaction.options.get('username').value
+					const mode = interaction.options.get('mode').value
+	
+					//クイズの問題を取得
+					const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${username}&type=string&m=${modeconvert(mode)}&limit=100`);
+					const quizdata = quiz.data;
+					if (quizdata.length < 10) {
+						interaction.reply("クイズの問題を取得できませんでした。")
+						return
+					}
+	
+					//0-99までのランダムな数字を10個取得
+					const randomnumber = [];
+					while (randomnumber.length < 10) {
+						const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
+						if (!randomnumber.includes(randomNumber)) {
+							randomnumber.push(randomNumber)
+						}
+					}
+	
+					//ランダムな数字からランダムなマップを取得
+					const randommap = [];
+					const randommaptitle = [];
+					for (const element of randomnumber) {
+						const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
+						randommap.push(beatmapsetid.beatmapset_id)
+						randommaptitle.push(beatmapsetid.title)
+					}
+					
+					let randomjson = JSON.parse("[]");
+					for (let i = 0; i < randommap.length; i++) {
+						randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false})
+					}
+					fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4))
+					const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
+					interaction.reply("クイズを開始します。問題は10問です。")
+					interaction.channel.send(`問題1のBGを表示します。`)
+					const response = await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' });
+					const BGdata = response.data;
+					interaction.channel.send({ files: [{ attachment: BGdata, name: 'audio.jpg' }] });
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンドの処理中になんらかのエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "quizend") {
+				try {
+					if (!fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
+						interaction.reply("クイズが開始されていません。")
+						return
+					}
+					const answererarray = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"))
+					let answererstring = ""
+					for (let i = 0; i < answererarray.length; i++) {
+						if (answererarray[i].Answerer == "") continue;
+						if (answererarray[i].hint) {
+							answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`
+						} else {
+							answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
+						}
+					}
+					interaction.reply(`クイズが終了しました！お疲れ様でした！\n${answererstring}`)
+					fs.removeSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)
+					return
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンドの処理中になんらかのエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "slayer") {
+				try {
+					//メッセージからユーザー名を取得
+					const username = interaction.options.get('username').value
+	
+					//メッセージからスレイヤーのIDを取得
+					const slayerid = interaction.options.get('slayername').value
+	
+					//メッセージからプロファイル番号を取得
+					const i = interaction.options.get('profileid').value
+	
+					//プロファイル番号が数字かどうかの処理
+					if (!/^[\d.]+$/g.test(i)) {
+						interaction.reply("プロファイル番号は数字のみで入力してください。")
+						return
+					}
+	
+					//ユーザー名からUUIDを取得
+					let useruuidresponce
+					useruuidresponce = await axios.get(
+						`https://api.mojang.com/users/profiles/minecraft/${username}`
+					).catch(()=> {
+						useruuidresponce = undefined
+					});
+	
+					////ユーザーが存在しなかった場合の処理
+					if (useruuidresponce == undefined) {
+						interaction.reply("ユーザー名が間違っているか、Mojang APIがダウンしている可能性があります。")
+						return
+					}
+	
+					//先程取得したUUIDからプロファイル情報を取得
+					const responce = await axios.get(
+						`https://api.hypixel.net/skyblock/profiles?key=${hypixelapikey}&uuid=${useruuidresponce.data.id}`
+					);
+	
+					//プロファイル情報が取得できなかった場合の処理
+					if (!responce.data.success) {
+						interaction.reply("データを取得するのに失敗しました。")
+						return
+					}else if (responce.data.profiles == null) {
+						interaction.reply("このユーザーはSkyblockをしていないようです。")
+						return
+					}
+	
+					//スレイヤーのIDからスレイヤーの名前を取得
+					let slayername;
+					if (slayerid == "Revenant Horror") {
+						slayername = "zombie"
+					} else if (slayerid == "Tarantula Broodfather") {
+						slayername = "spider"
+					} else if (slayerid == "Sven Packmaster") {
+						slayername = "wolf"
+					} else if (slayerid == "Voidgloom Seraph") {
+						slayername = "enderman"
+					} else if (slayerid == "Inferno Demonlord") {
+						slayername = "blaze"
+					} else if (slayerid == "Riftstalker Bloodfiend") {
+						interaction.reply("このスレイヤーの処理機能はまだ実装されていません。")
+						return
+					} else {
+						interaction.reply("スレイヤーのIDが不正です。")
+						return
+					}
+	
+					//スレイヤーの名前から表示用のスレイヤーの名前を取得
+					let showonlyslayername;
+					if (slayername == "zombie") {
+						showonlyslayername = "ゾンスレ"
+					} else if (slayername == "spider") {
+						showonlyslayername = "クモスレ"
+					} else if (slayername == "wolf") {
+						showonlyslayername = "ウルフスレ"
+					} else if (slayername == "enderman") {
+						showonlyslayername = "エンスレ"
+					} else if (slayername == "blaze") {
+						showonlyslayername = "ブレイズスレ"
+					}
+	
+					//プロファイルが存在しなかった場合の処理
+					if (responce.data.profiles[i] == undefined) {
+						interaction.reply("このプロファイルは存在しないようです。")
+						return
+					}
+	
+					//取得したデータからユーザーの指定したプロファイルのスレイヤーのXPを取得
+					const userslayerxp = eval(`responce.data.profiles[${i}].members.${useruuidresponce.data.id}.slayer_bosses.${slayername}.xp`);
+	
+					//スレイヤーのXPが存在しなかった場合の処理(未プレイとされる)
+					if (userslayerxp == undefined) {
+						interaction.reply(`プロファイル:${responce.data.profiles[i].cute_name} | このプレイヤーは${showonlyslayername}をしていないみたいです。`)
+						return
+					}
+	
+					//スレイヤーXPなどの計算をし、メッセージを送信する
+					if (userslayerxp >= 1000000) {
+						interaction.reply(`プロファイル:${responce.data.profiles[i].cute_name} | このプレイヤーの${showonlyslayername}レベルは既に**Lv9**です。`)
+						return
+					} else if (userslayerxp >= 400000) {
+						const remainxp = 1000000 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv8**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1000000 * 100).toFixed(1))}${(userslayerxp / 1000000 * 100).toFixed(1)}%`)
+					} else if (userslayerxp >= 100000) {
+						const remainxp = 400000 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv7**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 400000 * 100).toFixed(1))}${(userslayerxp / 400000 * 100).toFixed(1)}%`)
+					} else if (userslayerxp >= 20000) {
+						const remainxp = 100000 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv6**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 100000 * 100).toFixed(1))}${(userslayerxp / 100000 * 100).toFixed(1)}%`)
+					} else if (userslayerxp >= 5000) {
+						const remainxp = 20000 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv5**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 20000 * 100).toFixed(1))}${(userslayerxp / 20000 * 100).toFixed(1)}%`)
+					} else if (((slayername == "zombie" || slayername == "spider") && userslayerxp >= 1000) || ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 1500)) {
+						const remainxp = 5000 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv4**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 5000 * 100).toFixed(1))}${(userslayerxp / 5000 * 100).toFixed(1)}%`)
+					} else if ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 200) {
+						const remainxp = 1000 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1000 * 100).toFixed(1))}${(userslayerxp / 1000 * 100).toFixed(1)}%`)
+					} else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 250) {
+						const remainxp = 1500 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1500 * 100).toFixed(1))}${(userslayerxp / 1500 * 100).toFixed(1)}%`)
+					} else if ((slayername == "zombie" && userslayerxp >= 15) || (slayername == "spider" && userslayerxp >= 25)) {
+						const remainxp = 200 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 200 * 100).toFixed(1))}${(userslayerxp / 200 * 100).toFixed(1)}%`)
+					} else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 30) {
+						const remainxp = 250 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 250 * 100).toFixed(1))}${(userslayerxp / 250 * 100).toFixed(1)}%`)
+					} else if ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 5) {
+						let remainxp = 0
+						if (slayername == "zombi") {
+							remainxp = 15 - userslayerxp
+							interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 15 * 100).toFixed(1))}${(userslayerxp / 15 * 100).toFixed(1)}%`)
+						} else if (slayername == "spider") {
+							remainxp = 25 - userslayerxp
+							interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 25 * 100).toFixed(1))}${(userslayerxp / 25 * 100).toFixed(1)}%`)
+						}
+					} else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 10) {
+						const remainxp = 30 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 30 * 100).toFixed(1))}${(userslayerxp / 30 * 100).toFixed(1)}%`)
+					} else {
+						const remainxp = 5 - userslayerxp
+						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | このプレイヤーの${showonlyslayername}はLv1に達していません。次のレベルまでに必要なXPは${remainxp}です。`)
+					}
+				} catch(e) {
+					console.log(e)
+					interaction.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "profile") {
+				try {
+					//メッセージからユーザー名を取得
+					const username = interaction.options.get('username').value
+	
+					//ユーザー名が入力されてなかった時、の処理
+					if (username == undefined) {
+						interaction.reply("ユーザー名を入力してください。")
+						return
+					}
+	
+					//ユーザー名の前の空白が1つ多かった時の処理
+					if (username == "") {
+						interaction.reply("ユーザー名の前の空白が1つ多い可能性があります。")
+						return
+					}
+	
+					//ユーザー名からUUIDを取得
+					let useruuidresponce
+					useruuidresponce = await axios.get(
+						`https://api.mojang.com/users/profiles/minecraft/${username}`
+					).catch(()=> {
+						useruuidresponce = undefined
+					});
+	
+					//ユーザーが存在しなかった場合の処理
+					if (useruuidresponce == undefined) {
+						interaction.reply("ユーザー名が間違っているか、Mojang APIがダウンしている可能性があります。")
+						return
+					}
+	
+					//先程取得したUUIDからプロファイル情報を取得
+					const responce = await axios.get(
+						`https://api.hypixel.net/skyblock/profiles?key=${hypixelapikey}&uuid=${useruuidresponce.data.id}`
+					);
+	
+					//プロファイル情報が取得できなかった場合の処理
+					if (!responce.data.success) {
+						interaction.reply("データを取得するのに失敗しました。")
+						return
+					}else if (responce.data.profiles == null) {
+						interaction.reply("このユーザーはSkyblockをしていないようです。")
+						return
+					}
+	
+					//メッセージ内容を作成する処理
+					let showprofilemessage = ["__**プロファイル一覧**__"];
+					let showonlyselected;
+					for (let i = 0; i < responce.data.profiles.length; i++) {
+						if (responce.data.profiles[i].selected) {
+							showonlyselected = "✅"
+						} else {
+							showonlyselected = "❌"
+						}
+						showprofilemessage.push(`**${i}**: ${responce.data.profiles[i].cute_name} | 選択中: ${showonlyselected}`)
+					}
+					interaction.reply(showprofilemessage.join("\n"));
+				} catch(e) {
+					console.log(e)
+					interaction.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "loc") {
+				try {
+					//メッセージからユーザー名を取得
+					const username = interaction.options.get('Username').value;
+	
+					//メッセージからリポジトリ名を取得
+					const reponame = interaction.options.get('Repository').value;
+
+					interaction.reply("LOCの計算中です。")
+					let error = false;
+					let locdata = await axios.get(`https://api.codetabs.com/v1/loc?github=${username}/${reponame}`).catch(()=> {
+						error = true;
+					})
+					if (error) {
+						interaction.reply("データを取得するのに失敗しました。")
+						return
+					}
+					const data = locdata.data
+					let totalfilecount;
+					let totalline;
+					let totalblanks;
+					let comments;
+					let totalLOC;
+					for (const element of data) {
+						if (element.language === 'Total') {
+							totalfilecount = element.files
+							totalline = element.lines
+							totalblanks = element.blanks
+							comments = element.comments
+							totalLOC = element.linesOfCode
+						}
+					}
+					interaction.reply(`リポジトリ: **${username}/${reponame}**\nファイル数: **${totalfilecount}**\n総行数: **${totalline}**\n空白行数: **${totalblanks}**\nコメント行数: **${comments}**\n---------------\nコード行数: **${totalLOC}**`)
+				} catch(e) {
+					console.log(e)
+					interaction.reply("コマンド処理中になんらかのエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "backup") {
+				try {
+					//管理者のみ実行するようにする
+					if (interaction.user.id != BotadminId) {
+						interaction.reply("このコマンドはBOT管理者のみ実行できます。")
+						return
+					}
+
+					const backuptime = interaction.options.get('backuptime').value;
+	
+					//バックアップファイルの中身を取得
+					const backupfiles = fs.readdirSync("./Backups").reverse()
+					const wannabackuptime = backuptime - 1
+					const wannabackup = backupfiles[wannabackuptime]
+	
+					//バックアップファイルが存在しなかった時の処理
+					if (wannabackup == undefined) {
+						interaction.reply("その期間のバックアップファイルは存在しません。")
+						return
+					}
+
+					//復元作業
+					interaction.reply(`${wannabackup}のバックアップを復元中です。(0%)`);
+					await fs.copy(`./Backups/${wannabackup}/Player infomation`,`./Player infomation`);
+					interaction.channel.send("Player infomationフォルダの復元が完了しました。(20%)");
+					await fs.copy(`./Backups/${wannabackup}/MapcheckChannels`,`./MapcheckChannels`);
+					interaction.channel.send("MapcheckChannelsフォルダの復元が完了しました。(40%)");
+					await fs.copy(`./Backups/${wannabackup}/BeatmapLinkChannels`,`./BeatmapLinkChannels`);
+					interaction.channel.send("BeatmapLinkChannelsフォルダの復元が完了しました。(60%)");
+					await fs.copy(`./Backups/${wannabackup}/Player Bank`, `./Player Bank`);
+					interaction.channel.send("Player Bankフォルダの復元が完了しました。(80%)");
+					await fs.copy(`./Backups/${wannabackup}/tag`, `./tag`);
+					await fs.copy(`./Backups/${wannabackup}/quotetag`, `./quotetag`);
+					interaction.channel.send("tagフォルダの復元が完了しました。(100%)");
+					interaction.channel.send(`${wannabackup}のバックアップの全ての復元が完了しました。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("バックアップの復元中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "update") {
+				try {
+					//管理者のみ実行するようにする
+					if (interaction.user.id != BotadminId) {
+						interaction.reply("このコマンドはBOT管理者のみ実行できます。")
+						return
+					}
+	
+					//更新処理
+					interaction.reply("更新中です。");
+	
+					//ファイルの指定、保存先の指定
+					const fileUrl = Githuburl;
+					const savePath = botfilepath;
+	
+					//ファイルのダウンロード
+					interaction.channel.send("ファイルのダウンロード中です。")
+					downloadHoshinobotFile(fileUrl, savePath, (error) => {
+						if (error) {
+							interaction.channel.send("ファイルのダウンロードに失敗しました。");
+						} else {
+							getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
+								if (error) {
+									console.log(error);
+									interaction.channel.send("ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
+								} else {
+									interaction.channel.send(`ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
+								}
+							});
+						}
+					});
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("更新中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "allupdate") {
+				try {
+					//管理者のみ実行するようにする
+					if (interaction.user.id != BotadminId) {
+						interaction.reply("このコマンドはBOT管理者のみ実行できます。")
+						return
+					}
+
+					interaction.reply("更新中です。");
+	
+					//更新処理
+					interaction.channel.send("Updateフォルダをリセットしています。")
+					await fs.remove('./updatetemp');
+					interaction.channel.send("Updateフォルダのリセットが完了しました。")
+					interaction.channel.send("リポジトリのクローン中です。");
+					git(`https://github.com/${owner}/${repo}.git`, './updatetemp', {}, (error) => {
+						if (error) {
+							console.log(error);
+							interaction.channel.send("リポジトリのクローン時に失敗しました");
+							return;
+						}
+	
+						interaction.channel.send("リポジトリのクローンが完了しました。");
+	
+						// ファイルとフォルダのコピー
+						const sourceDir = './updatetemp';
+						const destinationDir = './';
+						const excludedFiles = ['(dotenv).env'];
+						const excludedFolders = ['quotetag', 'OsuPreviewquiz', 'Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
+	
+						fs.readdir(sourceDir, (err, files) => {
+							interaction.channel.send("ディリクトリを読み込んでいます。")
+							if (err) {
+								console.log(err);
+								interaction.channel.send("ディレクトリの読み込み中にエラーが発生しました");
+								return;
+							}
+							interaction.channel.send("ディリクトリの読み込みが完了しました。")
+	
+							//ファイルのコピー
+							const copyFile = (src, dest) => {
+								if (!excludedFiles.includes(path.basename(src))) {
+									fs.copy(src, dest)
+									.catch((err) => {
+										throw err;
+									});
+								}
+							};
+	
+							//フォルダのコピー
+							const copyFolder = (src, dest) => {
+								if (!excludedFolders.includes(path.basename(src))) {
+									fs.copy(src, dest)
+									.catch((err) => {
+										throw err;
+									});
+								}
+							};
+	
+							interaction.channel.send("ファイルのコピー中です。")
+	
+							files.forEach((file) => {
+								const srcPath = path.join(sourceDir, file);
+								const destPath = path.join(destinationDir, file);
+								try {
+									if (fs.lstatSync(srcPath).isDirectory()) {
+										copyFolder(srcPath, destPath);
+									} else {
+										copyFile(srcPath, destPath);
+									}
+								} catch (err) {
+									console.log(err);
+									interaction.channel.send("ファイルのコピー中にエラーが発生しました。")
+									return;
+								}
+							});
+	
+							getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
+								if (error) {
+									console.log(error);
+									interaction.channel.send("全ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
+								} else {
+									interaction.channel.send(`全ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
+								}
+							});
+						});
+					});
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("更新中にエラーが発生しました。")
+					return
+				}
+			}
+		} catch(e) {
+			console.log(e)
+			return
+		}
+	}
+);
+
+client.on(Events.MessageCreate, async (message) =>
+	{
 		//特定のチェンネルに添付画像などが送られたら実行する処理(FurryBOT)
 		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.endsWith('.avi') || attachment.url.endsWith('.mov') || attachment.url.endsWith('.mp4') || attachment.url.endsWith('.png') || attachment.url.endsWith('.jpg') || attachment.url.endsWith('.gif')) && message.channel.id == Furrychannel) {
 			try {
@@ -729,178 +2459,6 @@ client.on("message", async(message) =>
 			} catch (e) {
 				console.log(e)
 				message.reply("ファイルの保存中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//!deleteコマンドの処理(FurryBOT)
-		if (message.content.split(" ")[0] == "!delete") {
-			try{
-				//Botが送ったコマンドに対しての処理をブロック
-				if (message.author.bot) return;
-
-				//コマンドのみ入力された場合の処理
-				if (message.content == "!delete") {
-					message.reply("使い方: !delete <メディアリンク>")
-					return
-				}
-
-				//コマンドの後の空白が1つ多い場合の処理
-				if (!message.content.split(" ")[0] == "!delete") {
-					message.reply("!deleteとリンクの間には空白を入れてください。")
-					return
-				}
-
-				//削除したいリンクを取得
-				const wannadelete = message.content.split(" ")[1];
-
-				//削除したいリンクの前の空白が1つ多い場合の処理
-				if (wannadelete == "") {
-					message.reply("削除したいリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//リンクを削除する処理
-				if (fs.readFileSync(`./Furry/Furry.txt`, "utf-8").includes(wannadelete)) {
-					const currenttext = fs.readFileSync(`./Furry/Furry.txt`, "utf-8")
-					const newtext = currenttext.replace(`${wannadelete} `, "")
-					fs.writeFileSync(`./Furry/Furry.txt`, newtext)
-					message.reply("ファイルの削除が完了しました");
-				} else {
-					message.reply("そのリンクはリンク一覧に存在しません。")
-					return
-				}
-			}catch (e){
-				console.log(e)
-				message.reply("ファイルの削除中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//!countコマンドの処理(FurryBOT)
-		if (message.content == "!count") {
-			try {
-				//テキストファイルから一覧を取得
-				const text = fs.readFileSync(`./Furry/Furry.txt`, 'utf-8');
-
-				//一覧を配列に変換
-				const lines = text.split(" ").filter((function(link) {return link !== "";}));
-
-				//配列の要素数を取得
-				const lineCount = lines.length;
-
-				//要素数の結果を送信
-				message.channel.send(`今まで追加した画像や映像、gifの合計枚数は${lineCount}枚です。`);
-			} catch (e) {
-				console.log(e)
-				message.channel.send('ファイルを読み込む際にエラーが発生しました。')
-				return
-			}
-		}
-
-		//!picコマンドの処理(All picture Bot)
-		if(message.content.split(" ")[0] == "!pic"){
-            try {
-				//コマンドのみ入力された場合の処理
-				if (message.content == "!pic") {
-					message.reply("使い方: !pic <タグ名>")
-					return
-				}
-
-				//メッセージからタグを取得
-                const tag = message.content.split(" ")[1]
-                if (tag == undefined) {
-                    message.reply("タグを指定してください。")
-                    return
-                }
-				
-				//タグの前の空白が1つ多い場合の処理
-				if (tag == "") {
-					message.reply("タグの前の空白が1つ多い可能性があります。")
-				}
-
-				//タグが存在するかの確認
-				if (!fs.existsSync(`./tag/${tag}/picture.txt`)) {
-					message.reply("このタグは存在しません。")
-					return
-				}
-
-				//タグの中身が空の場合の処理
-                const text = fs.readFileSync(`./tag/${tag}/picture.txt`, 'utf-8').split(" ").filter((function(link) {return link !== "";}));
-                if (text.length == 0) {
-                    message.reply("このタグにはファイルがないみたいです。")
-                    return
-                }
-
-				//タグの中身のファイルからランダムで画像を選択
-                const lineCount = text.length;
-                const randomLineNumber = Math.floor(Math.random() * lineCount);
-                const randomLine = text[randomLineNumber];
-				const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
-
-				//webからデータを取得
-				let error = false;
-				const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(error => {
-					message.reply(`ファイルが見つからなかったため、自動削除します。\nリンク: ${randomLine}`)
-					const currenttext = fs.readFileSync(`./tag/${tag}/picture.txt`, "utf-8")
-					const newtext = currenttext.replace(`${randomLine} `, "")
-					fs.writeFileSync(`./tag/${tag}/picture.txt`, newtext)
-					message.reply("ファイルの削除が完了しました");
-					error = true;
-				})
-
-				//axiosがアクセスできなかった時の処理
-				if (error) return;
-				
-				//画像のデータを取得
-				const picData = response.data;
-
-				//画像の送信
-				message.channel.send({ files: [{ attachment: picData, name: `${tag}.${lineextension}` }] })
-            } catch(e) {
-                console.log(e)
-                message.reply("エラーが発生しました。")
-				return
-            }
-        }
-
-		//!settagコマンドの処理(All picture Bot)
-		if (message.content == "!settag") {
-            try {
-				//ディリクトリ、ファイルの作成
-				const mkdir = util.promisify(fs.mkdir);
-				const writeFile = util.promisify(fs.writeFile);
-				await mkdir(`./tag/${message.channel.name}`);
-				await writeFile(`./tag/${message.channel.name}/picture.txt`, "");
-				message.reply("タグが正常に作成されました。")
-			} catch (e) {
-				message.reply("このタグは既に存在します。")
-				return
-			}
-        }
-
-		//!deltagコマンドの処理(All picture Bot)
-		if (message.content == "!deltag") {
-			try {
-				//タグが存在するかの確認、しなかった場合の処理
-				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
-					message.reply("このタグは存在しません。")
-					return
-				}
-
-				//タグの削除
-				fs.remove(`./tag/${message.channel.name}/picture.txt`, (err) => {
-					if (err) {
-						console.log(err)
-						message.reply("ファイルを削除する際にエラーが発生しました。")
-					}
-				})
-
-				//タグの削除が完了したことを知らせるメッセージを送信
-				message.reply("タグが正常に削除されました。")
-			} catch (e) {
-				console.log(e)
-				message.reply("エラーが発生しました。")
 				return
 			}
 		}
@@ -932,230 +2490,6 @@ client.on("message", async(message) =>
 			}
 		}
 
-		//!delpicコマンドの処理(All picture Bot)
-		if (message.content.split(" ")[0] == "!delpic") {
-			try{
-				//Botが送ったコマンドに対しての処理をブロック
-				if (message.author.bot) return;
-
-				//タグ(チャンネル)が登録されていなかった場合の処理
-				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
-					message.reply("このタグは登録されていません。")
-					return;
-				}
-
-				//コマンドのみ入力された場合の処理
-				if (message.content == "!picdelete") {
-					message.reply("使い方: !picdelete <メディアリンク>")
-					return
-				}
-
-				//コマンドの後の空白が1つ多い場合の処理
-				if (!message.content.split(" ")[0] == "!picdelete") {
-					message.reply("!picdeleteとリンクの間には空白を入れてください。")
-					return
-				}
-
-				//削除したいリンクを取得
-				const wannadelete = message.content.split(" ")[1];
-
-				//削除したいリンクの前の空白が1つ多い場合の処理
-				if (wannadelete == "") {
-					message.reply("削除したいリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//リンクを削除する処理
-				if (fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, "utf-8").includes(wannadelete)) {
-					const currenttext = fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, "utf-8")
-					const newtext = currenttext.replace(`${wannadelete} `, "")
-					fs.writeFileSync(`./tag/${message.channel.name}/picture.txt`, newtext)
-					message.reply("ファイルの削除が完了しました");
-				} else {
-					message.reply("そのリンクはリンク一覧に存在しません。")
-					return
-				}
-			}catch (e){
-				console.log(e)
-				message.reply("ファイルの削除中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//!piccountコマンドの処理(All picture Bot)
-		if (message.content == "!allcount") {
-			try {
-
-				//タグ(チャンネル)が登録されていなかった場合の処理
-				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
-					message.reply("このタグは登録されていません。")
-					return;
-				}
-
-				//テキストファイルから一覧を取得
-				const text = fs.readFileSync(`./tag/${message.channel.name}/picture.txt`, 'utf-8');
-
-				//一覧を配列に変換
-				const lines = text.split(" ").filter((function(link) {return link !== "";}));
-
-				//配列の要素数を取得
-				const lineCount = lines.length;
-
-				if (lineCount == 0) {
-					message.reply("このタグにはファイルがないみたいです。")
-					return
-				}
-
-				//要素数の結果を送信
-				message.channel.send(`今まで${message.channel.name}タグに追加した画像や映像、gifの合計枚数は${lineCount}枚です。`);
-			} catch (e) {
-				console.log(e)
-				message.channel.send('ファイルを読み込む際にエラーが発生しました。')
-				return
-			}
-		}
-
-		//!downloadtagコマンドの処理(All picture Bot)
-		if (message.content == "!downloadtag") {
-			try {
-				//タグ(チャンネル)が登録されていなかった場合の処理
-				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) {
-					message.reply("このタグは登録されていません。")
-					return;
-				}
-				
-				const link = "https://github.com/puk06/PictureDownloader/releases/download/V1.1/PictureDownloader.zip"
-
-				//textファイルを送信
-				message.channel.send({ files: [{ attachment: `./tag/${message.channel.name}/picture.txt`, name: 'picture.txt' }] });
-				message.reply(`これがタグ: ${message.channel.name}のPictureファイルです。これを\nGithub: ${link}\nこのソフトのフォルダの中に入れてjsファイルを実行してください。※Node.jsが必須です。`)
-			} catch (e) {
-				console.log(e)
-				message.channel.send('ファイルを読み込む際にエラーが発生しました。')
-				return
-			}
-		}
-
-		//!alltagsコマンドの処理(All picture Bot)
-		if (message.content == "!alltags") {
-			try {
-				//全てのフォルダー名からタグを取得
-				const tags = fs.readdirSync(`./tag/`, { withFileTypes: true }).filter((function(tag) {
-					return fs.readdirSync(`./tag/${tag.name}`).length !== 0;
-				}));
-
-				//タグの数が0だった場合
-				if (tags.length == 0) {
-					message.reply("タグが存在しません。")
-					return
-				}
-
-				//タグの一覧を格納する配列を作成
-				let taglist = [];
-
-				//タグの一覧を作成
-				for (let i = 0; i < tags.length; i++ ) {
-					taglist.push(`${i + 1}: ${tags[i].name}\n`);
-				}
-
-				//タグの一覧を送信
-				message.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
-			} catch (e) {
-				console.log(e)
-				message.reply("エラーが発生しました。")
-				return
-			}
-		}
-
-		//!quoteコマンドの処理(Quote Bot)
-		if(message.content.split(" ")[0] == "!quote"){
-            try {
-				//コマンドのみ入力された場合の処理
-				if (message.content == "!quote") {
-					message.reply("使い方: !quote <タグ名>")
-					return
-				}
-
-				//メッセージからタグを取得
-                const tag = message.content.split(" ")[1]
-                if (tag == undefined) {
-                    message.reply("タグを指定してください。")
-                    return
-                }
-				
-				//タグの前の空白が1つ多い場合の処理
-				if (tag == "") {
-					message.reply("タグの前の空白が1つ多い可能性があります。")
-				}
-
-				//タグが存在するかの確認
-				if (!fs.existsSync(`./quotetag/${tag}/quote.txt`)) {
-					message.reply("このタグは存在しません。")
-					return
-				}
-
-				//タグの中身が空の場合の処理
-                const text = fs.readFileSync(`./quotetag/${tag}/quote.txt`, 'utf-8').split(" ").filter((function(link) {return link !== "";}));
-                if (text.length == 0) {
-                    message.reply("このタグには名言がないみたいです。")
-                    return
-                }
-
-				//タグの中身のファイルからランダムで名言を選択
-                const lineCount = text.length;
-                const randomLineNumber = Math.floor(Math.random() * lineCount);
-                const randomLine = text[randomLineNumber];
-
-				//画像の送信
-				message.channel.send(`**${randomLine}** - ${tag}`);
-            } catch(e) {
-                console.log(e)
-                message.reply("エラーが発生しました。")
-				return
-            }
-        }
-
-		//!setquotetagコマンドの処理(Quote Bot)
-		if (message.content == "!setquotetag") {
-            try {
-				//ディリクトリ、ファイルの作成
-				const mkdir = util.promisify(fs.mkdir);
-				const writeFile = util.promisify(fs.writeFile);
-				await mkdir(`./quotetag/${message.channel.name}`);
-				await writeFile(`./quotetag/${message.channel.name}/quote.txt`, "");
-				message.reply("タグが正常に作成されました。")
-			} catch (e) {
-				message.reply("このタグは既に存在します。")
-				return
-			}
-        }
-
-		//!delquotetagコマンドの処理(Quote Bot)
-		if (message.content == "!delquotetag") {
-			try {
-				//タグが存在するかの確認、しなかった場合の処理
-				if (!fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`)) {
-					message.reply("このタグは存在しません。")
-					return
-				}
-
-				//タグの削除
-				fs.remove(`./quotetag/${message.channel.name}/quote.txt`, (err) => {
-					if (err) {
-						console.log(err)
-						message.reply("ファイルを削除する際にエラーが発生しました。")
-					}
-				})
-
-				//タグの削除が完了したことを知らせるメッセージを送信
-				message.reply("タグが正常に削除されました。")
-			} catch (e) {
-				console.log(e)
-				message.reply("エラーが発生しました。")
-				return
-			}
-		}
-
 		//メッセージが送信された時の処理(Quote Bot)
 		if (fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`) && !message.content.startsWith("!")) {
 			try {
@@ -1172,203 +2506,6 @@ client.on("message", async(message) =>
 			} catch (e) {
 				console.log(e)
 				message.reply("名言の保存中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//!delquoteコマンドの処理(Quote Bot)
-		if (message.content.split(" ")[0] == "!delquote") {
-			try{
-				//Botが送ったコマンドに対しての処理をブロック
-				if (message.author.bot) return;
-
-				//タグ(チャンネル)が登録されていなかった場合の処理
-				if (!fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`)) {
-					message.reply("このタグは存在しません。")
-					return
-				}
-
-				//コマンドのみ入力された場合の処理
-				if (message.content == "!delquote") {
-					message.reply("使い方: !delquote <消したい文章>")
-					return
-				}
-
-				//コマンドの後の空白が1つ多い場合の処理
-				if (!message.content.split(" ")[0] == "!picdelete") {
-					message.reply("!picdeleteとリンクの間には空白を入れてください。")
-					return
-				}
-
-				//削除したいリンクを取得
-				const wannadelete = message.content.split(" ")[1];
-
-				//削除したいリンクの前の空白が1つ多い場合の処理
-				if (wannadelete == "") {
-					message.reply("削除したいリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//リンクを削除する処理
-				if (fs.readFileSync(`./quotetag/${message.channel.name}/quote.txt`, "utf-8").includes(wannadelete)) {
-					const currenttext = fs.readFileSync(`./quotetag/${message.channel.name}/quote.txt`, "utf-8")
-					const newtext = currenttext.replace(`${wannadelete} `, "")
-					fs.writeFileSync(`./quotetag/${message.channel.name}/quote.txt`, newtext)
-					message.reply("ファイルの削除が完了しました");
-				} else {
-					message.reply("そのリンクはリンク一覧に存在しません。")
-					return
-				}
-			}catch (e){
-				console.log(e)
-				message.reply("ファイルの削除中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//!allquotecountコマンドの処理(Quote Bot)
-		if (message.content == "!allquotecount") {
-			try {
-
-				//タグ(チャンネル)が登録されていなかった場合の処理
-				if (!fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`)) {
-					message.reply("このタグは登録されていません。")
-					return;
-				}
-
-				//テキストファイルから一覧を取得
-				const text = fs.readFileSync(`./quotetag/${message.channel.name}/quote.txt`, 'utf-8');
-
-				//一覧を配列に変換
-				const lines = text.split(" ").filter((function(link) {return link !== "";}));
-
-				//配列の要素数を取得
-				const lineCount = lines.length;
-
-				if (lineCount == 0) {
-					message.reply("このタグには名言がないみたいです。")
-					return
-				}
-
-				//要素数の結果を送信
-				message.channel.send(`今まで${message.channel.name}タグに追加した名言の合計枚数は${lineCount}個です。`);
-			} catch (e) {
-				console.log(e)
-				message.channel.send('ファイルを読み込む際にエラーが発生しました。')
-				return
-			}
-		}
-
-		//!allquotetagsコマンドの処理(Quote Bot)
-		if (message.content == "!allquotetags") {
-			try {
-				//全てのフォルダー名からタグを取得
-				const tags = fs.readdirSync(`./quotetag/`, { withFileTypes: true }).filter((function(tag) {
-					return fs.readdirSync(`./quotetag/${tag.name}`).length !== 0;
-				}));
-
-				//タグの数が0だった場合
-				if (tags.length == 0) {
-					message.reply("タグが存在しません。")
-					return
-				}
-
-				//タグの一覧を格納する配列を作成
-				let taglist = [];
-
-				//タグの一覧を作成
-				for (let i = 0; i < tags.length; i++ ) {
-					taglist.push(`${i + 1}: ${tags[i].name}\n`);
-				}
-
-				//タグの一覧を送信
-				message.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
-			} catch (e) {
-				console.log(e)
-				message.reply("エラーが発生しました。")
-				return
-			}
-		}
-
-		//!kuniiコマンドの処理(おふざけBOT)
-		if (message.content.split(" ")[0] == "!kunii") {
-			try{
-				//コマンドのみ送られた場合の処理
-				if (message.content == "!kunii") {
-					message.reply("使い方: !kunii <変換したい文章>")
-					return
-				}
-
-				//メッセージから文章を取得
-				const kuniicontent = message.content.split(" ")[1]
-
-				//文章の前の空白が1つ多い場合の処理
-				if (kuniicontent == "") {
-					message.reply("変換したい文章の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//"うんこえろしね"が入力された場合の処理
-				if (kuniicontent == "うんこえろしね") {
-					message.reply("しんこうろえね")
-					return
-				}
-
-				//文章が入力されてない場合の処理
-				if (kuniicontent == undefined) {
-					message.reply("できないからやばい")
-					return
-				}
-
-				//文章を形態素解析
-				const url = "https://labs.goo.ne.jp/api/morph";
-				const params = {
-					app_id: appid,
-					sentence: kuniicontent
-				};
-
-				//形態素解析の結果を取得
-				const data = await axios.post(url, params)
-				.then((response) =>
-					{
-						return response.data.word_list
-					}
-				).catch((e) =>
-					{
-						console.log(e);
-						message.reply("データ取得中になんらかのエラーが発生しました。")
-					}
-				)
-
-				//形態素解析の結果から文章を生成
-				if (data[0].length == undefined || data[0].length == 0 || data[0].length == 1 || data[0].length > 4) {
-					message.channel.send("できないからやばい")
-					return
-				} else if (data[0].length == 2) {
-					const data1 = data[0][0][0]
-					const data2 = data[0][1][0]
-					const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1)
-					message.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`)
-					return
-				} else if (data[0].length == 3) {
-					const data1 = data[0][0][0]
-					const data2 = data[0][1][0]
-					const data3 = data[0][2][0]
-					const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data3
-					message.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`)
-					return
-				} else if (data[0].length == 4) {
-					const data1 = data[0][0][0]
-					const data2 = data[0][1][0]
-					const data3 = data[0][2][0]
-					const data4 = data[0][3][0]
-					const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data4.charAt(0) + data3.slice(1) + data3.charAt(0) + data4.slice(1)
-					message.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`)
-					return
-				}
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中にエラーが発生しました。")
 				return
 			}
 		}
@@ -1511,18 +2648,18 @@ client.on("message", async(message) =>
 				let od = ODscaled(MapInfo.od, Mods);
 
 				//メッセージを送信
-				const maplembed = new MessageEmbed()
-					.setColor("BLUE")
+				const embed = new EmbedBuilder()
+					.setColor(0x0099FF)
 					.setTitle(`${MapInfo.artist} - ${MapInfo.title}`)
 					.setURL(MapInfo.maplink)
-					.addField("Music and Backgroud",`:musical_note:[Song Preview](https://b.ppy.sh/preview/${MapInfo.beatmapset_id}.mp3) :frame_photo:[Full background](https://assets.ppy.sh/beatmaps/${MapInfo.beatmapset_id}/covers/raw.jpg)`)
-					.setAuthor(`Created by ${MapInfo.mapper}`, mapperdata.iconurl, mapperdata.playerurl)
-					.addField(`[**__${MapInfo.version}__**] **+${Showonlymods}**`, `Combo: \`${MapInfo.combo}\` Stars: \`${srpps.sr}\` \n Length: \`${MapInfo.lengthmin}:${lengthsec}\` BPM: \`${BPM}\` Objects: \`${MapInfo.combo}\` \n CS: \`${MapInfo.cs}\` AR: \`${MapInfo.ar}\` OD: \`${od.toFixed(1)}\` HP: \`${MapInfo.hp}\` Spinners: \`${MapInfo.countspinner}\``, true)
-					.addField("**Download**", `[Official](https://osu.ppy.sh/beatmapsets/${MapInfo.beatmapset_id}/download)\n[Nerinyan(no video)](https://api.nerinyan.moe/d/${MapInfo.beatmapset_id}?nv=1)\n[Beatconnect](https://beatconnect.io/b/${MapInfo.beatmapset_id})\n[chimu.moe](https://api.chimu.moe/v1/download/${MapInfo.beatmapset_id}?n=1)`, true)
-					.addField(`:heart: ${MapInfo.favouritecount} :play_pause: ${MapInfo.playcount}`,`\`\`\` Acc |    98%   |    99%   |   99.5%  |   100%   | \n ----+----------+----------+----------+----------+  \n  PP |${srpps.S3}|${srpps.S2}|${srpps.S1}|${srpps.S0}|\`\`\``, false)
+					.addFields({ name: "Music and Backgroud", value: `:musical_note:[Song Preview](https://b.ppy.sh/preview/${MapInfo.beatmapset_id}.mp3) :frame_photo:[Full background](https://assets.ppy.sh/beatmaps/${MapInfo.beatmapset_id}/covers/raw.jpg)` })
+					.setAuthor({ name: `Created by ${MapInfo.mapper}`, iconURL: mapperdata.iconurl, url: mapperdata.playerurl })
+					.addFields({ name: `[**__${MapInfo.version}__**] **+${Showonlymods}**`, value: `Combo: \`${MapInfo.combo}\` Stars: \`${srpps.sr}\` \n Length: \`${MapInfo.lengthmin}:${lengthsec}\` BPM: \`${BPM}\` Objects: \`${MapInfo.combo}\` \n CS: \`${MapInfo.cs}\` AR: \`${MapInfo.ar}\` OD: \`${od.toFixed(1)}\` HP: \`${MapInfo.hp}\` Spinners: \`${MapInfo.countspinner}\``, inline: true })
+					.addFields({ name: "**Download**", value: `[Official](https://osu.ppy.sh/beatmapsets/${MapInfo.beatmapset_id}/download)\n[Nerinyan(no video)](https://api.nerinyan.moe/d/${MapInfo.beatmapset_id}?nv=1)\n[Beatconnect](https://beatconnect.io/b/${MapInfo.beatmapset_id})\n[chimu.moe](https://api.chimu.moe/v1/download/${MapInfo.beatmapset_id}?n=1)`, inline: true })
+					.addFields({ name: `:heart: ${MapInfo.favouritecount} :play_pause: ${MapInfo.playcount}`, value: `\`\`\` Acc |    98%   |    99%   |   99.5%  |   100%   | \n ----+----------+----------+----------+----------+  \n  PP |${srpps.S3}|${srpps.S2}|${srpps.S1}|${srpps.S0}|\`\`\``, inline: false })
 					.setImage(`https://assets.ppy.sh/beatmaps/${MapInfo.beatmapset_id}/covers/cover.jpg`)
-					.setFooter(`${Mapstatus} mapset of ${MapInfo.mapper}`)
-				message.channel.send(maplembed)
+					.setFooter({ text: `${Mapstatus} mapset of ${MapInfo.mapper}` })
+				message.channel.send({ embeds: [embed] })
 
 				//Arg2、Arg3にAccが入力された場合に送信されるメッセージの内容の処理
 				if (arg2 == "acc") {
@@ -1657,35 +2794,35 @@ client.on("message", async(message) =>
 				}
 
 				//メッセージを送信
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
+				const embed = new EmbedBuilder()
+					.setColor(0x0099FF)
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
-					.setAuthor(`${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`,playersdata.iconurl,playersdata.playerurl)
-					.addField("`Grade`", `**${recentplay.rank}** + ${modforresult.join("")}`, true)
-					.addField("`Score`", recentplay.score, true)
-					.addField("`Acc`", `${acc}%`, true)
-					.addField("`PP`", `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
-					.addField("`Combo`",`${recentplay.maxcombo}x / ${GetMapInfo.combo}x`,true)
-					.addField("`Hits`",`{${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`,true)
-					.addField("`If FC`", `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
-					.addField("`Acc`", `${ifFCacc}%`, true)
-					.addField("`Hits`", `{${ifFC300}/${ifFC100}/0}`, true)
-					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
+					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** + ${modforresult.join("")}`, inline: true })
+					.addFields({ name: "`Score`", value: recentplay.score, inline: true })
+					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
+					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
+					.addFields({ name: "`Combo`", value: `${recentplay.maxcombo}x / ${GetMapInfo.combo}x`, inline: true })
+					.addFields({ name: "`Hits`", value: `{${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+					.addFields({ name: "`If FC`",  value: `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
+					.addFields({ name: "`Acc`",  value: `${ifFCacc}%`, inline: true })
+					.addFields({ name: "`Hits`",  value: `{${ifFC300}/${ifFC100}/0}`, inline: true })
+					.addFields({ name: "`Map Info`",  value: `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, inline: true })
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
-					.setFooter(`${Mapstatus} mapset of ${GetMapInfo.mapper}`, mappersdata.iconurl);
-					await message.channel.send(embed).then((sentMessage) => {
+					.setFooter({ text: `${Mapstatus} mapset of ${GetMapInfo.mapper}`, iconURL: mappersdata.iconurl });
+					await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
 						setTimeout(() =>
 							{
-								const embednew = new MessageEmbed()
-								.setColor("BLUE")
+								const embednew = new EmbedBuilder()
+								.setColor(0x0099FF)
 								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
-								.setAuthor(`${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, playersdata.iconurl,playersdata.playerurl)
-								.addField("`Result`",`**${recentplay.rank}** + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, true)
-								sentMessage.edit(embednew)
+								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+								.addFields({ name: "`Result`", value: `**${recentplay.rank}** + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+								sentMessage.edit({ enbeds: [embednew] })
 							}, 20000
 						)
 					}
@@ -1814,35 +2951,35 @@ client.on("message", async(message) =>
 				}
 
 				//メッセージを送信
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
+				const embed = new EmbedBuilder()
+					.setColor(0x0099FF)
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
-					.setAuthor(`${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`,playersdata.iconurl,playersdata.playerurl)
-					.addField("`Grade`", `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, true)
-					.addField("`Score`", recentplay.score, true)
-					.addField("`Acc`", `${acc}%`, true)
-					.addField("`PP`", `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
-					.addField("`Combo`",`${recentplay.maxcombo}x / ${GetMapInfo.combo}x`,true)
-					.addField("`Hits`",`{${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`,true)
-					.addField("`If FC`", `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
-					.addField("`Acc`", `${ifFCacc}%`, true)
-					.addField("`Hits`", `{${ifFC300}/${ifFC100}/0}`, true)
-					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
+					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, inline: true })
+					.addFields({ name: "`Score`", value: recentplay.score, inline: true })
+					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
+					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
+					.addFields({ name: "`Combo`", value: `${recentplay.maxcombo}x / ${GetMapInfo.combo}x`, inline: true })
+					.addFields({ name: "`Hits`", value: `{${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+					.addFields({ name: "`If FC`", value: `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
+					.addFields({ name: "`Acc`", value: `${ifFCacc}%`, inline: true })
+					.addFields({ name: "`Hits`", value: `{${ifFC300}/${ifFC100}/0}`, inline: true })
+					.addFields({ name: "`Map Info`", value: `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, inline: true })
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
-					.setFooter(`${Mapstatus} mapset of ${GetMapInfo.mapper}`, mappersdata.iconurl);
-					await message.channel.send(embed).then((sentMessage) => {
+					.setFooter({ text: `${Mapstatus} mapset of ${GetMapInfo.mapper}`, iconURL: mappersdata.iconurl });
+					await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
 						setTimeout(() =>
 							{
-								const embednew = new MessageEmbed()
-								.setColor("BLUE")
+								const embednew = new EmbedBuilder()
+								.setColor(0x0099FF)
 								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
-								.setAuthor(`${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, playersdata.iconurl,playersdata.playerurl)
-								.addField("`Result`",`**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${parseFloat(recentpp.ppwithacc).toFixed(2)}** / ${iffcpp.SSPP} [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]  {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, true)
-								sentMessage.edit(embednew)
+								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+								.addFields({ name: "`Result`", value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${parseFloat(recentpp.ppwithacc).toFixed(2)}** / ${iffcpp.SSPP} [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]  {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+								sentMessage.edit({ enbeds: [embednew] })
 							}, 20000
 						)
 					}
@@ -1976,35 +3113,35 @@ client.on("message", async(message) =>
 				}
 
 				//メッセージを送信
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
+				const embed = new EmbedBuilder()
+					.setColor(0x0099FF)
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
-					.setAuthor(`${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`,playersdata.iconurl,playersdata.playerurl)
-					.addField("`Grade`", `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, true)
-					.addField("`Score`", recentplay.score, true)
-					.addField("`Acc`", `${acc}%`, true)
-					.addField("`PP`", `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
-					.addField("`Combo`",`${recentplay.maxcombo}x / ${GetMapInfo.combo}x`,true)
-					.addField("`Hits`",`{${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`,true)
-					.addField("`If FC`", `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
-					.addField("`Acc`", `${ifFCacc}%`, true)
-					.addField("`Hits`", `{${ifFC300}/${ifFC100}/${ifFC50}/0}`, true)
-					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
+					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, inline: true })
+					.addFields({ name: "`Score`", value: recentplay.score, inline: true })
+					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
+					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
+					.addFields({ name: "`Combo`", value: `${recentplay.maxcombo}x / ${GetMapInfo.combo}x`, inline: true })
+					.addFields({ name: "`Hits`", value: `{${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
+					.addFields({ name: "`If FC`", value: `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
+					.addFields({ name: "`Acc`", value: `${ifFCacc}%`, inline: true })
+					.addFields({ name: "`Hits`", value: `{${ifFC300}/${ifFC100}/${ifFC50}/0}`, inline: true })
+					.addFields({ name: "`Map Info`", value: `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, inline: true })
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
-					.setFooter(`${Mapstatus} mapset of ${GetMapInfo.mapper}`, mappersdata.iconurl);
-					await message.channel.send(embed).then((sentMessage) => {
+					.setFooter({ text: `${Mapstatus} mapset of ${GetMapInfo.mapper}`, iconURL: mappersdata.iconurl });
+					await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
 						setTimeout(() =>
 							{
-								const embednew = new MessageEmbed()
-								.setColor("BLUE")
+								const embednew = new EmbedBuilder()
+								.setColor(0x0099FF)
 								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
-								.setAuthor(`${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, playersdata.iconurl,playersdata.playerurl)
-								.addField("`Result`",`**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, true)
-								sentMessage.edit(embednew)
+								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+								.addFields({ name: "`Result`", value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
+								sentMessage.edit({ enbeds: [embednew] })
 							}, 20000
 						)
 					}
@@ -2142,35 +3279,35 @@ client.on("message", async(message) =>
 				let recent300 = recentplay.count300 + recentplay.countgeki;
 
 				//メッセージを送信
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
+				const embed = new EmbedBuilder()
+					.setColor(0x0099FF)
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
-					.setAuthor(`${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`,playersdata.iconurl,playersdata.playerurl)
-					.addField("`Grade`", `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, true)
-					.addField("`Score`", recentplay.score, true)
-					.addField("`Acc`", `${acc}%`, true)
-					.addField("`PP`", `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
-					.addField("`Combo`",`${recentplay.maxcombo}x / ${GetMapInfo.combo}x`,true)
-					.addField("`Hits`",`{${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`,true)
-					.addField("`If FC`", `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, true)
-					.addField("`Acc`", `${ifFCacc}%`, true)
-					.addField("`Hits`", `{${ifFC300}/${ifFC100}/${ifFC50}/0}`, true)
-					.addField("`Map Info`", `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, true)
+					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, inline: true })
+					.addFields({ name: "`Score`", value: recentplay.score, inline: true })
+					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
+					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
+					.addFields({ name: "`Combo`", value: `${recentplay.maxcombo}x / ${GetMapInfo.combo}x`,inline: true })
+					.addFields({ name: "`Hits`", value: `{${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
+					.addFields({ name: "`If FC`", value: `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
+					.addFields({ name: "`Acc`", value: `${ifFCacc}%`, inline: true })
+					.addFields({ name: "`Hits`", value: `{${ifFC300}/${ifFC100}/${ifFC50}/0}`, inline: true })
+					.addFields({ name: "`Map Info`", value: `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, inline: true })
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
-					.setFooter(`${Mapstatus} mapset of ${GetMapInfo.mapper}`, mappersdata.iconurl);
-					await message.channel.send(embed).then((sentMessage) => {
+					.setFooter({ text: `${Mapstatus} mapset of ${GetMapInfo.mapper}`, iconURL: mappersdata.iconurl });
+					await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
 						setTimeout(() =>
 							{
-								const embednew = new MessageEmbed()
-								.setColor("BLUE")
+								const embednew = new EmbedBuilder()
+								.setColor(0x0099FF)
 								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
-								.setAuthor(`${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, playersdata.iconurl,playersdata.playerurl)
-								.addField("`Result`",`**${recentplay.rank}** (**${percentage}%**) + **${modforresult}**  **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, true)
-								sentMessage.edit(embednew)
+								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+								.addFields({ name: "`Result`", value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult}**  **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
+								sentMessage.edit({ enbeds: [embednew] })
 							}, 20000
 						)
 					}
@@ -2181,7 +3318,6 @@ client.on("message", async(message) =>
 				return
 			}
 		}
-
 
 		//!r◯のコマンド説明(osu!BOT)
 		if (message.content == "!r") {
@@ -2218,304 +3354,6 @@ client.on("message", async(message) =>
 			} catch (e) {
 				console.log(e)
 				message.reply("ユーザーを登録する際にエラーが発生しました。")
-				return
-			}
-		}
-
-		//PP譜面か判断するコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!ispp") {
-			try {
-				//!isppのみ入力された場合の処理
-				if (message.content == "!ispp") {
-					message.reply("使い方: !ispp <マップリンク> <Mods(省略可)>")
-					return
-				}
-
-				//Modsの処理
-				let mods = [];
-				let modsforcalc;
-
-				//マップリンクが入力されなかったときの処理、されたときの処理
-				if (message.content.split(" ")[1] == undefined) {
-					message.reply("マップリンクを入力してください。")
-					return
-				} else if (message.content.split(" ")[1] == "") {
-					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//Modsが入力されなかったときの処理、されたときの処理
-				if (message.content.split(" ")[2] == undefined) {
-					mods.push("NM")
-					modsforcalc = 0
-				} else if (message.content.split(" ")[2] == "") {
-					message.reply("Modsの前の空白が1つ多い可能性があります。")
-					return
-				} else {
-					mods.push(message.content.split(" ")[2].toUpperCase())
-
-					//Modsを配列に変える処理
-					mods = splitString(mods)
-
-					//Modsが正しいかどうか判別する処理
-					if (!checkStrings(mods)) {
-						message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
-						return
-					}
-					if ((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")) )) {
-						message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。")
-						return
-					}
-
-					//ModsにNCが入っていたときにDTに置き換える処理
-					if (mods.includes("NC")) {
-						let modsnotDT = Mods.filter((item) => /NC/.exec(item) == null)
-						modsnotDT.push("DT")
-						modsforcalc = parseModString(modsnotDT);
-					} else {
-						modsforcalc = parseModString(mods);
-					}
-				}
-
-				//マップリンクから必要な情報を取得
-				const maplink = message.content.split(" ")[1];
-				let data = await getMapInfo(maplink, apikey, mods);
-				let sr = await calculateSR(data.beatmapId, modsforcalc, modeconvert(data.mode));
-
-				//Mapstatusを取得(Ranked, Loved, Qualified, Pending, WIP, Graveyard)
-				const Mapstatus = mapstatus(data.approved);
-
-				//PP、FPを計算
-				const FP = parseFloat(sr.S0 / data.totallength * 100).toFixed(1);
-				let FPmessage;
-				let rankplayer;
-
-				//FPによってメッセージを変える処理
-				if (FP >= 700) {
-					FPmessage = "**This is SO GOOD PP map**"
-				} else if (FP >= 400) {
-					FPmessage = "**This is PP map**"
-				} else if (FP >= 200) {
-					FPmessage = "**This is PP map...?idk**"
-				} else if (FP >= 100) {
-					FPmessage = "This is no PP map ;-;"
-				} else {
-					FPmessage = "This is no PP map ;-;"
-				}
-
-				//PPによってメッセージを変える処理
-				if (sr.S0 >= 750) {
-					rankplayer = "**High rank player**"
-				} else if(sr.S0 >= 500) {
-					rankplayer = "**Middle rank player**"
-				} else if(sr.S0 >= 350) {
-					rankplayer = "**Funny map player**"
-				} else {
-					rankplayer = "**Beginner player**"
-				}
-
-				//"PP/s"を計算
-				const ppdevidetotallength = (sr.S0 / data.totallength);
-				const ppdevideparsefloat = parseFloat(ppdevidetotallength).toFixed(1);
-
-				//メッセージを送信
-				message.reply(`Totalpp : **${sr.S0}** (**${Mapstatus}**) | Farmscore : **${FP}** For ${rankplayer} | ${FPmessage} (${ppdevideparsefloat} pp/s)`);
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
-				return
-			}
-		}
-
-		//Mods別ランキングを作成するコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!lb") {
-			try {
-				//!lbのみ入力された場合の処理
-				if (message.content == "!lb") {
-					message.reply("使い方: !s <マップリンク> <Mods(省略可)>")
-					return
-				}
-
-				//マップリンクを取得
-				const maplink = message.content.split(" ")[1];
-
-				//マップリンクが入力されてなかったときの処理
-				if (maplink == undefined) {
-					message.reply("マップリンクを入力してください。")
-					return
-				}
-
-				//マップリンクの前に空白が1つより多かったときの処理
-				if (maplink == "") {
-					message.reply("マップリンクの前の空白が1つ多いかも知れません。")
-					return
-				}
-
-				//BeatmapIdをメッセージから取得
-				const beatmapid = maplink.split("/")[5].split(" ")[0];
-
-				//Modsの処理
-				let mods = [];
-
-				//Modsが入力されなかったときの処理、されたときの処理
-				if (message.content.split(" ")[2] == "") {
-					message.reply("Modsの前の空白が1つ多いかも知れません。")
-					return
-				}
-				if (message.content.split(" ")[2] == undefined) {
-					mods.push("NM")
-				} else {
-					mods.push(message.content.split(" ")[2].toUpperCase());
-					mods = splitString(mods)
-				}
-
-				//Modsが正しいかどうか判別する処理
-				if (!checkStrings(mods)) {
-					message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
-					return
-				}
-				if ((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")))) {
-					message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。")
-					return
-				}
-
-				//ModsにNCが入っていたときにDTに置き換える処理
-				let modsnotNC = mods;
-				if (mods.includes("NC")) {
-					mods.push("DT")
-					modsnotNC = mods.filter((item) => /NC/.exec(item) == null)
-				}
-
-				//マップリンクから必要な情報を取得
-				const Mapinfo = await getMapInfo(maplink, apikey, mods);
-				const mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
-
-				//マッパーの情報の取得中にエラーが発生した場合の処理
-				if (mapperinfo == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
-					return
-				}
-
-				const mapsetlink = Mapinfo.maplink.split("/")[4].split("#")[0];
-
-				//SR、BPMを計算
-				let SR = await calculateSR(beatmapid, parseModString(modsnotNC), modeconvert(Mapinfo.mode));
-				let BPM = Mapinfo.bpm;
-
-				//Mods、BPMの処理
-				if (mods.includes('NC')) {
-					mods.push('DT')
-				}
-				if (mods.includes("NC") || mods.includes("DT")) {
-					BPM *= 1.5
-				} else if (mods.includes("HT")) {
-					BPM *= 0.75
-				}
-
-				//top5を取得
-				const resulttop5 = await GetMapScore(beatmapid, parseModString(mods), apikey, Mapinfo.mode);
-
-				if (resulttop5 == undefined) {
-					message.reply("この譜面には選択されたModの記録が無いようです")
-					return
-				}
-
-				//ModsにDT、NCの療法が含まれていたときの処理
-				if (mods.includes("DT") && mods.includes("NC")) {
-					let modsnotDT = mods.filter((item) => /DT/.exec(item) == null)
-					mods = modsnotDT
-				}
-
-				//メッセージ内容を作成、送信
-				let acc0;
-				let acc1;
-				let acc2;
-				let acc3;
-				let acc4;
-				if (resulttop5.length == 5) {
-					acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-					acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
-					acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
-					acc3 = tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode))
-					acc4 = tools.accuracy({300: resulttop5[4].count300, 100: resulttop5[4].count100, 50: resulttop5[4].count50, 0: resulttop5[4].countmiss, geki:  resulttop5[4].countgeki, katu: resulttop5[4].countkatu}, modeconvert(Mapinfo.mode))
-						const embed = new MessageEmbed()
-							.setColor("BLUE")
-							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-							.setURL(maplink)
-							.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
-							.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-							.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
-							.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
-							.addField("\`#3\`", `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`,false)
-							.addField("\`#4\`", `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`,false)
-							.addField("\`#5\`", `**Rank**: \`${resulttop5[4].rank}\` **Player**: \`${resulttop5[4].username}\` **Score**: ${resulttop5[4].score} \n [\`${resulttop5[4].maxcombo}\`combo] \`${acc4}\`% \`${resulttop5[4].pp}\`pp miss:${resulttop5[4].countmiss}`,false)
-							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-					message.channel.send(embed)
-					return
-				} else if (resulttop5.length == 4) {
-					acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-					acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
-					acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
-					acc3 = tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode))
-						const embed = new MessageEmbed()
-							.setColor("BLUE")
-							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-							.setURL(maplink)
-							.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
-							.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-							.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
-							.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
-							.addField("\`#3\`", `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`,false)
-							.addField("\`#4\`", `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`,false)
-							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-					message.channel.send(embed)
-					return
-				} else if (resulttop5.length == 3) {
-					acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-					acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
-					acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
-						const embed = new MessageEmbed()
-							.setColor("BLUE")
-							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-							.setURL(maplink)
-							.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
-							.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-							.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
-							.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
-							.addField("\`#3\`", `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`,false)
-							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-					message.channel.send(embed)
-					return
-				} else if (resulttop5.length == 2) {
-					acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-					acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
-						const embed = new MessageEmbed()
-							.setColor("BLUE")
-							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-							.setURL(maplink)
-							.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
-							.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-							.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
-							.addField("\`#2\`", `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`,false)
-							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-					message.channel.send(embed)
-					return
-				} else {
-					acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-					const embed = new MessageEmbed()
-						.setColor("BLUE")
-						.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-						.setURL(maplink)
-						.setAuthor(`Mapped by ${mapperinfo.username}`, mapperinfo.iconurl, `https://osu.ppy.sh/users/${mapperinfo.user_id}`)
-						.addField("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-						.addField("\`#1\`", `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`,false)
-						.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-					message.channel.send(embed)
-					return
-				}
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
 			}
 		}
@@ -2566,6 +3404,11 @@ client.on("message", async(message) =>
 				//マップリンクの前に空白が1つより多かったときの処理
 				if (maplink == "") {
 					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
+					return
+				}
+
+				if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+					message.reply("マップリンクの形式が間違っています。")
 					return
 				}
 
@@ -2640,93 +3483,31 @@ client.on("message", async(message) =>
 				}
 
 				//メッセージ送信
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
+				const embed = new EmbedBuilder()
+					.setColor(0x0099FF)
 					.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 					.setURL(maplink)
-					.setAuthor(`Mapped by ${Mapinfo.mapper}`, Mapperinfo.iconurl, `https://osu.ppy.sh/users/${Mapperinfo.user_id}`)
-					.addField("Player name",`[${playername}](https://osu.ppy.sh/users/${playername})`,true)
-					.addField("SR", `\`★${srpp.sr}\``, true)
-					.addField("BPM", `\`${bpm}\``, true)
-					.addField("Rank", `\`${playersscore.rank}\``, true)
-					.addField("Hits", Hits, true)
-					.addField("Mods", `\`${showonlymods.join("")}\``, true)
-					.addField("Accuracy", `\`${acc}%\``, true)
-					.addField("PP", `**${srpp.ppwithacc}** / ${srpp.SSPP} `, true)
-					.addField("Mirror Download link",`[Nerinyan](https://api.nerinyan.moe/d/${Mapinfo.beatmapset_id}?nv=1) \n [Beatconnect](https://beatconnect.io/b/${Mapinfo.beatmapset_id})`, true)
+					.setAuthor({ name: `Mapped by ${Mapinfo.mapper}`,  iconURL: Mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${Mapperinfo.user_id}` })
+					.addFields({ name: "Player name", value: `[${playername}](https://osu.ppy.sh/users/${playername})`, inline: true })
+					.addFields({ name: "SR", value: `\`★${srpp.sr}\``, inline: true })
+					.addFields({ name: "BPM", value: `\`${bpm}\``, inline: true })
+					.addFields({ name: "Rank", value: `\`${playersscore.rank}\``, inline: true })
+					.addFields({ name: "Hits", value: Hits, inline: true })
+					.addFields({ name: "Mods", value: `\`${showonlymods.join("")}\``, inline: true })
+					.addFields({ name: "Accuracy", value: `\`${acc}%\``, inline: true })
+					.addFields({ name: "PP", value: `**${srpp.ppwithacc}** / ${srpp.SSPP} `, inline: true })
+					.addFields({ name: "Mirror Download link", value: `[Nerinyan](https://api.nerinyan.moe/d/${Mapinfo.beatmapset_id}?nv=1) \n [Beatconnect](https://beatconnect.io/b/${Mapinfo.beatmapset_id})`, inline: true })
 					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
-					.setFooter(`Played by ${playername}  #${Playersinfo.pp_rank} (${Playersinfo.country}${Playersinfo.pp_country_rank})`, Playersinfo.iconurl);
-					message.channel.send(embed)
+					.setFooter({ text: `Played by ${playername}  #${Playersinfo.pp_rank} (${Playersinfo.country}${Playersinfo.pp_country_rank})`, iconURL: Playersinfo.iconurl });
+					message.channel.send({ embeds: [embed] })
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
 			}
 		}
-
-		//!previewコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!preview") {
-			try {
-				//!previewのみ入力された時の処理
-				if (message.content == "!preview") {
-					message.reply("使い方: !preview <マップリンク>")
-					return
-				}
-
-				//メッセージからマップリンクを取得
-				const maplink = message.content.split(" ")[1];
-
-				if (maplink == undefined) {
-					message.reply("マップリンクを入力してください。")
-					return
-				}
-
-				//マップリンクの前に空白が1つより多かったときの処理
-				if (maplink == "") {
-					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//マップリンクではなかった時の処理
-				if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
-					message.reply("マップリンク形式が間違っているようです。https://osu.ppy.sh/beatmapsets/で始まるマップリンクを入力してください。")
-					return
-				}
-
-				//マップ情報を取得
-				const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
-				const beatmapid = Mapinfo.beatmapId;
-				const previewlink = `https://osu-preview.jmir.ml/preview#${beatmapid}`
-				const SR = await calculateSR(beatmapid, 0, modeconvert(Mapinfo.mode));
-
-				//Mapinfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
-				let lengthsec;
-				if (numDigits(parseFloat(Mapinfo.lengthsec.toFixed(0))) == 1) {
-					lengthsec = ('00' + parseFloat(Mapinfo.lengthsec).toFixed(0)).slice(-2)
-				} else {
-					lengthsec = parseFloat(Mapinfo.lengthsec).toFixed(0)
-				}
-
-				const mapperdata = await getplayersdata(apikey, Mapinfo.mapper);
-
-				//メッセージを作成
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
-					.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-					.setDescription(`Combo: \`${Mapinfo.combo}\` Stars: \`${SR.sr}\` \n Length: \`${Mapinfo.lengthmin}:${lengthsec}\` BPM: \`${Mapinfo.bpm}\` Objects: \`${Mapinfo.combo}\` \n CS: \`${Mapinfo.cs}\` AR: \`${Mapinfo.ar}\` OD: \`${Mapinfo.od.toFixed(1)}\` HP: \`${Mapinfo.hp}\` Spinners: \`${Mapinfo.countspinner}\``)
-					.setURL(Mapinfo.maplink)
-					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${mapperdata.user_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
-					.addField("Preview link", `[Preview this map!](${previewlink})`, true)
-					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
-				message.channel.send(embed)
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
-				return
-			}
-		}
-
-		//Beatmapリンクが入力されたときの処理
+		
+		//Beatmapリンクが入力されたときの処理(osu!BOT)
 		if (message.content.startsWith("https://osu.ppy.sh/beatmapsets/")) {
 			try {
 				//チャンネルidを取得
@@ -2754,15 +3535,15 @@ client.on("message", async(message) =>
 				}
 
 				//メッセージを送信
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
-					.setAuthor(`${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, mapperdata.iconurl, message.content)
+				const embed = new EmbedBuilder()
+					.setColor(0x0099FF)
+					.setAuthor({ text: `${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, iconURL: mapperdata.iconurl, url: message.content })
 					.setDescription(`**Length**: ${mapdata.lengthmin}:${lengthsec} **BPM**: ${mapdata.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapdata.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapdata.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapdata.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapdata.beatmapset_id})`)
-					.addField(`**[__${mapdata.version}__]**`, `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, false)
+					.addFields({ name: `**[__${mapdata.version}__]**`, value: `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, inline: false })
 					.setTimestamp()
 					.setImage(`https://assets.ppy.sh/beatmaps/${mapdata.beatmapset_id}/covers/cover.jpg`)
-					.setFooter(`${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}`);
-				message.channel.send(embed)
+					.setFooter({ text: `${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}` });
+				message.channel.send({ embeds: [embed] })
 			} catch (e) {
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				console.log(e)
@@ -2846,220 +3627,17 @@ client.on("message", async(message) =>
 				const showonlymods = message.content.split(" ")[1].toUpperCase();
 
 				//メッセージを送信
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
-					.setAuthor(`${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, mapperdata.iconurl, recentmaplink)
+				const embed = new EmbedBuilder()
+					.setColor(0x0099FF)
+					.setAuthor({ name: `${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, iconURL: mapperdata.iconurl, url: recentmaplink })
 					.setDescription(`**Length**: ${mapdata.lengthmin}:${lengthsec} **BPM**: ${mapdata.bpm} **Mods**: ${showonlymods}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapdata.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapdata.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapdata.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapdata.beatmapset_id})`)
-					.addField(`**[__${mapdata.version}__]**`, `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, false)
+					.addFields({ name: `**[__${mapdata.version}__]**`, value: `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, inline: false })
 					.setTimestamp()
 					.setImage(`https://assets.ppy.sh/beatmaps/${mapdata.beatmapset_id}/covers/cover.jpg`)
-					.setFooter(`${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}`);
-				message.channel.send(embed)
+					.setFooter({ text: `${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}` });
+				message.channel.send({ embeds: [embed] })
 			} catch(e) {
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
-				console.log(e)
-				return
-			}
-		}
-
-		//!linkコマンド(osu!BOT)
-		if (message.content == "!link") {
-			try {
-				//チャンネルidを取得
-				const channelid = message.channel.id;
-
-				//全ての登録済みのチャンネルを取得、チャンネルidが既にChannels.txtにあった場合の処理
-				const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
-				if (allchannels.includes(channelid)) {
-					message.reply("このチャンネルは既にマップ情報が表示されるようになっています。")
-					return
-				}
-
-				//Channels.txtにチャンネルidを追加
-				fs.appendFile("./BeatmapLinkChannels/Channels.txt", `${channelid} `, function (err) {
-					if (err) throw err
-				})
-
-				//メッセージ送信
-				message.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されるようになりました。解除したい場合は!unlinkコマンドを使用してください。`)
-			} catch (e){
-				console.log(e)
-				return
-			}
-		}
-
-		//!unlinkコマンド(osu!BOT)
-		if (message.content == "!unlink") {
-			try {
-				//チャンネルidを取得
-				const channelid = message.channel.id
-
-				//全ての登録済みのチャンネルを取得、チャンネルidが既にChannels.txtにあった場合の処理(削除)
-				const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
-				if (allchannels.includes(channelid)) {
-					const currentchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8")
-					const newchannels = currentchannels.replace(`${channelid} `, "")
-					fs.writeFileSync("./BeatmapLinkChannels/Channels.txt", newchannels)
-				} else {
-					message.reply("このチャンネルでは既にマップ情報が表示されないようになっています。")
-					return
-				}
-
-				//メッセージ送信
-				message.reply(`このチャンネルにマップリンクが送信されてもマップ情報が表示されないようになりました。再度表示したい場合は!linkコマンドを使用してください。`)
-			} catch (e){
-				console.log(e)
-				return
-			}
-		}
-
-		//Streamの長さをチェックするコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!check") {
-			try {
-				//!checkのみ入力された時の処理
-				if (message.content == "!check") {
-					message.reply("使い方: !check <マップリンク>")
-					return
-				}
-
-				//マップリンク欄の前の空白が1つより多かった場合の処理
-				if (message.content.split(" ")[1] == "") {
-					message.reply("マップリンクの前に空白が1つ多い可能性があります。")
-					return
-				}
-
-				//マップリンクが入力されてなかった場合の処理
-				if (message.content.split(" ")[1] == undefined) {
-					message.reply("マップリンクを入力してください。")
-					return
-				}
-
-				//マップリンク、BeatmapIdを取得し、必要な情報を取得
-				const beatmapId = message.content.split(" ")[1].split("/")[5];
-				const bpm = await getMapInfowithoutmods(message.content.split(" ")[1], apikey);
-				await getOsuBeatmapFile(beatmapId);
-				const streamdata = await checkStream(beatmapId, bpm.bpm);
-
-				//メッセージ送信
-				await message.reply(`Streamlength: ${streamdata} `);
-
-				//一時的なBeatmapファイルを削除
-				try {
-					fs.unlinkSync(`./BeatmapFolder/${beatmapId}.txt`);
-				} catch (e) {
-					console.log(e)
-					message.reply("Beatmapファイルを削除する際にエラーが発生しました。この事を開発者に報告してください。")
-					return
-				}
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
-				return
-			}
-		}
-
-		//!qfコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!qf") {
-			try {
-				//!qfのみ入力された時の処理
-				if (message.content == "!qf") {
-					message.reply("使い方: !qf <モード(osu, taiko, catch, mania)>")
-					return
-				}
-				const channelid = message.channel.id
-				const mode = message.content.split(" ")[1]
-				if (mode == undefined) {
-					message.reply("モードを入力してください。")
-					return
-				}
-				if (mode == "") {
-					message.reply("モードの前の空白が1つ多い可能性があります。")
-					return
-				}
-				if (!(mode == "osu" || mode == "taiko" || mode == "catch" || mode == "mania")) {
-					message.reply("モードの指定方法が間違っています。osu, taiko, catch, maniaのどれかを入力してください。")
-					return
-				}
-				const allchannels = fs.readFileSync(`./MapcheckChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
-				if (allchannels.includes(channelid)) {
-					message.reply("このチャンネルは既にQualfied、Rankedチェックチャンネルとして登録されています。")
-					return
-				}
-				fs.appendFile(`./MapcheckChannels/${mode}/Channels.txt`, `${channelid} `, function (err) {
-					if (err) throw err
-				})
-				message.reply(`このチャンネルを${mode}のQualfied、Rankedチェックチャンネルとして登録しました。`)
-			} catch (e){
-				console.log(e)
-				return
-			}
-		}
-
-		//!deqfコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!deqf") {
-			try {
-				//!qfのみ入力された時の処理
-				if (message.content == "!deqf") {
-					message.reply("使い方: !deqf <モード(osu, taiko, catch, mania)>")
-					return
-				}
-				const channelid = message.channel.id
-				const mode = message.content.split(" ")[1]
-				if (mode == undefined) {
-					message.reply("モードを入力してください。")
-					return
-				}
-				if (mode == "") {
-					message.reply("モードの前の空白が1つ多い可能性があります。")
-					return
-				}
-				if (!(mode == "osu" || mode == "taiko" || mode == "catch" || mode == "mania")) {
-					message.reply("モードの指定方法が間違っています。osu, taiko, catch, maniaのどれかを入力してください。")
-					return
-				}
-				const allchannels = fs.readFileSync(`./MapcheckChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
-				if (allchannels.includes(channelid)) {
-					const currentchannels = fs.readFileSync(`./MapcheckChannels/${mode}/Channels.txt`, "utf-8")
-					const newchannels = currentchannels.replace(`${channelid} `, "")
-					fs.writeFileSync(`./MapcheckChannels/${mode}/Channels.txt`, newchannels)
-				} else {
-					message.reply("このチャンネルはQualfied、Rankedチェックチャンネルとして登録されていません。")
-					return
-				}
-				message.reply(`このチャンネルを${mode}のQualfiedチェックチャンネルから削除しました。`)
-			} catch (e){
-				console.log(e)
-				return
-			}
-		}
-
-		//!bgコマンド(osu!BOT)
-		if (message.content.split(" ")[0] == "!bg") {
-			try {
-				//!bgのみ入力された時の処理
-				if (message.content == "!bg") {
-					message.reply("使い方: !bg <マップリンク>")
-					return
-				}
-
-				//マップリンクの前に空白が一つ多かった場合の処理
-				if (message.content.split(" ")[1] == "") {
-					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//メッセージからリンクを取得
-				const maplink = message.content.split(" ")[1];
-
-				//osuのbeatmapリンクか判断する
-				if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
-					message.reply(`${maplink}、これはマップリンクではない可能性があります。`)
-					return
-				}
-				const BeatmapsetId = await getMapInfowithoutmods(maplink, apikey);
-				const BeatmapId = BeatmapsetId.beatmapset_id;
-				message.channel.send(`https://assets.ppy.sh/beatmaps/${BeatmapId}/covers/raw.jpg`)
-			} catch (e) {
 				console.log(e)
 				return
 			}
@@ -3187,23 +3765,23 @@ client.on("message", async(message) =>
 				}
 
 				if(!foundflag) {
-					const notfoundembed = new MessageEmbed()
-						.setColor("BLUE")
+					const notfoundembed = new EmbedBuilder()
+						.setColor(0x0099FF)
 						.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
 						.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${forbpranking.indexOf(enteredpp) + 1} best play.\nTheir pp would change by **+${parseFloat((globalPP - userdata.pp_raw).toFixed(2)).toLocaleString()}** to **${parseFloat(globalPP.toFixed(2)).toLocaleString()}pp** and they would reach approx. rank <#6000(Calculations are not available after page 120.).`)
 						.setThumbnail(userdata.iconurl)
-						.setAuthor(`${userdata.username}: ${userdata.pp_raw.toLocaleString()}pp (#${userdata.pp_rank.toLocaleString()} ${userdata.country}${userdata.pp_country_rank.toLocaleString()})`, userdata.iconurl, userdata.playerurl)
-					message.channel.send(notfoundembed)
+						.setAuthor({ name: `${userdata.username}: ${userdata.pp_raw.toLocaleString()}pp (#${userdata.pp_rank.toLocaleString()} ${userdata.country}${userdata.pp_country_rank.toLocaleString()})`, iconURL: userdata.iconurl, url: userdata.playerurl })
+					message.channel.send({ embeds: [notfoundembed] })
 					return
 				}
 
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
+				const embed = new EmbedBuilder()
+					.setColor(0x0099FF)
 					.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
 					.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${forbpranking.indexOf(enteredpp) + 1} best play.\nTheir pp would change by **+${parseFloat((globalPP - userdata.pp_raw).toFixed(2)).toLocaleString()}** to **${parseFloat(globalPP.toFixed(2)).toLocaleString()}pp** and they would reach approx. rank #${ranking.toLocaleString()} (+${(userdata.pp_rank - ranking).toLocaleString()}).`)
 					.setThumbnail(userdata.iconurl)
-					.setAuthor(`${userdata.username}: ${userdata.pp_raw.toLocaleString()}pp (#${userdata.pp_rank.toLocaleString()} ${userdata.country}${userdata.pp_country_rank.toLocaleString()})`, userdata.iconurl, userdata.playerurl)
-				message.channel.send(embed)
+					.setAuthor({ name: `${userdata.username}: ${userdata.pp_raw.toLocaleString()}pp (#${userdata.pp_rank.toLocaleString()} ${userdata.country}${userdata.pp_country_rank.toLocaleString()})`, iconURL: userdata.iconurl, url: userdata.playerurl })
+				message.channel.send({ embeds: [embed] })
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
@@ -3211,630 +3789,7 @@ client.on("message", async(message) =>
 			}
 		}
 
-		//!ifmodコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!ifmod") {
-			try{
-				//!ifmodのみ入力された時の処理
-				if (message.content == "!ifmod") {
-					message.reply("使い方: !ifmod <マップリンク> <MOD>")
-					return
-				}
-
-				//ユーザーネームを取得
-				let playername;
-				try {
-					let username = message.author.id
-					let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
-					playername = osuid
-				} catch (e) {
-					console.log(e)
-					message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
-					return
-				}
-
-				//メッセージからマップリンクを取得
-				const maplink = message.content.split(" ")[1];
-
-				//マップリンクが入力されてなかったときの処理
-				if (maplink == undefined) {
-					message.reply("マップリンクを入力してください。")
-					return
-				}
-
-				//マップリンクの前に空白が1つより多かったときの処理
-				if (maplink == "") {
-					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-				if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
-					message.reply(`これはマップリンクではない可能性があります。`)
-					return
-				}
-
-				//MODが入力されてなかったときの処理
-				if (message.content.split(" ")[2] == undefined) {
-					message.reply("MODを入力してください。")
-					return
-				}
-
-				//MODの前に空白が1つより多かったときの処理
-				if (message.content.split(" ")[2] == "") {
-					message.reply("MODの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//メッセージからMODを取得
-				const modmessage = [message.content.split(" ")[2].toUpperCase()];
-				let modforcalc = splitString(modmessage)
-
-				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
-
-				//MODが存在するか、指定できないMODが指定されていないか確認
-				if (!checkStrings(modforcalc)) {
-					message.reply("Modが存在しないか、指定できないModです。")
-					return
-				}
-
-				if((modforcalc.includes("NC") && modforcalc.includes("HT")) || (modforcalc.includes("DT") && modforcalc.includes("HT") || (modforcalc.includes("DT") && modforcalc.includes("NC")) || (modforcalc.includes("EZ") && modforcalc.includes("HR")))) {
-					message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
-					return
-				}
-
-				//modsforcalcにDTとNCの両方があった場合の処理
-				if (modforcalc.includes("NC")) {
-					let modsnotNC = modforcalc.filter((item) => /NC/.exec(item) == null)
-					modsnotNC.push("DT")
-					modforcalc = modsnotNC
-				} else if (modforcalc.length == 0) {
-					modforcalc.push("NM")
-				}
-
-				//マップ情報、スコア情報を取得
-				const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
-				const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
-
-				//スコア情報がなかった時の処理
-				if (playersscore == undefined) {
-					message.reply(`${playername}さんのスコアが見つかりませんでした。`)
-					return
-				}
-
-				//マップ情報、プレイヤー情報、マッパー情報を取得
-				const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
-
-				//プレイヤーの情報の取得中にエラーが発生した場合の処理
-				if (Playersinfo == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
-					return
-				}
-
-				const Mapperinfo = await getplayersdata(apikey, Mapinfo.mapper);
-
-				//マッパーの情報の取得中にエラーが発生した場合の処理
-				if (Mapperinfo == 0) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
-					return
-				}
-
-				//Accを計算
-				const acc = tools.accuracy({300: playersscore.count300.toString(), 100: playersscore.count100.toString(), 50: playersscore.count50.toString(), 0: playersscore.countmiss.toString(), geki : playersscore.countgeki.toString(), katu: playersscore.countgeki.toString()}, modeconvert(Mapinfo.mode));
-				
-				//Modsを取得
-				let stringmodsbefore = playersscore.enabled_mods;
-				let stringmodsafter = modforcalc;
-
-				//SS時のPPを取得
-				const PPbefore = await calculateSRwithacc(beatmapId, stringmodsbefore, modeconvert(Mapinfo.mode), acc, playersscore.countmiss, playersscore.maxcombo);
-				const PPafter = await calculateSRwithacc(beatmapId, parseModString(stringmodsafter), modeconvert(Mapinfo.mode), acc, playersscore.countmiss, playersscore.maxcombo);
-
-				//表示専用のMod欄を作成
-				let showonlymodsforbefore = parseMods(playersscore.enabled_mods);
-				if (showonlymodsforbefore.includes("DT") && showonlymodsforbefore.includes("NC")) {
-					let modsnotDT = showonlymodsforbefore.filter((item) => item.match("DT") == null)
-					showonlymodsforbefore = modsnotDT
-				} else if (showonlymodsforbefore.length == 0) {
-					showonlymodsforbefore.push("NM")
-				}
-
-				//モードを取得
-				let mode = "";
-				let modeforranking = "";
-				if (modeconvert(Mapinfo.mode) == "osu") {
-					mode = "0"
-					modeforranking = "osu"
-				} else if (modeconvert(Mapinfo.mode) == "taiko") {
-					mode = "1"
-					modeforranking = "taiko"
-				} else if (modeconvert(Mapinfo.mode) == "catch") {
-					mode = "2"
-					modeforranking = "fruits"
-				} else {
-					mode = "3"
-					modeforranking = "mania"
-				}
-				message.reply(`${playername}さんのランキングを計算中です。`)
-
-				//ユーザー情報、PPなどを取得
-				const response = await axios.get(
-					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${mode}&u=${playername}&limit=100`
-				);
-				const mapperdata = await getplayersdata(apikey, Mapinfo.mapper, mode);
-				const userplays = response.data;
-				let pp = [];
-				let oldpp = [];
-				for (const element of userplays) {
-					pp.push(Math.round(element.pp))
-					oldpp.push(Math.round(element.pp))
-				}
-
-				pp.push(Math.round(PPafter.ppwithacc))
-				pp.sort((a, b) => b - a)
-
-				//PPが変動しないときの処理(101個目のものと同じ場合)
-				if (Math.round(PPafter.ppwithacc) == pp[pp.length - 1]) {
-					message.reply("PPに変動は有りません。")
-					const embed = new MessageEmbed()
-						.setColor("BLUE")
-						.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
-						.addField(`Mods: ${showonlymodsforbefore.join("")} → ${modmessage.join("")} Acc: ${acc}% Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, true)
-						.setURL(Mapinfo.maplink)
-						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${mapperdata.user_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
-						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
-					message.channel.send(embed)
-					return
-				}
-
-				if (pp.indexOf(Math.round(PPbefore.ppwithacc)) == -1) {
-					pp.pop()
-				} else {
-					//ppからPPbeforeを削除
-					for (let i = 0; i < pp.length; i++) {
-						let foundflag = false;
-						if (pp[i] == Math.round(PPbefore.ppwithacc) && !foundflag) {
-							foundflag = true;
-							pp.splice(i, 1)
-						}
-						if (foundflag) {
-							break;
-						}
-					}
-				}
-
-				pp.sort((a, b) => b - a)
-
-				//GlobalPPやBonusPPなどを計算する
-				const userdata = await getplayersdata(apikey, playername, mode);
-				const playcount = userdata.count_rank_ss + userdata.count_rank_ssh + userdata.count_rank_s + userdata.count_rank_sh + userdata.count_rank_a;
-				const oldglobalPPwithoutBonusPP = calculateScorePP(oldpp, playcount);
-				const globalPPwithoutBonusPP = calculateScorePP(pp, playcount);
-				const bonusPP = userdata.pp_raw - oldglobalPPwithoutBonusPP;
-				const globalPP = globalPPwithoutBonusPP + bonusPP;
-
-				//ランキングを取得
-				let ranking = 0;
-				await auth.login(osuclientid, osuclientsecret);
-				let foundflagforranking = false;
-				for (let page = 0; page <= 120; page++) {
-					const object = { "cursor[page]": page + 1 };
-					let rankingdata = await v2.ranking.details(modeforranking, "performance", object);
-					if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp && !foundflagforranking) {
-						foundflagforranking = true;
-						for (let position = 0; position < 50; position++) {
-							if (globalPP > rankingdata.ranking[position].pp) {
-								ranking = (page * 50) + position + 1;
-								break;
-							}
-						}
-					}
-					
-					if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) break;
-				}
-
-				if(!foundflagforranking) {
-					const embed = new MessageEmbed()
-						.setColor("BLUE")
-						.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
-						.addField(`Mods: ${showonlymodsforbefore.join("")} → ${modmessage.join("")} Acc: ${acc}% Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, true)
-						.setURL(Mapinfo.maplink)
-						.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${mapperdata.user_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
-						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
-					message.channel.send(embed)
-					return
-				}
-
-				const embed = new MessageEmbed()
-					.setColor("BLUE")
-					.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-					.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
-					.addField(`Mods: ${showonlymodsforbefore.join("")} → ${modmessage.join("")} Acc: ${acc}% Miss: ${playersscore.countmiss}`,`**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, true)
-					.addField(`Rank`, `**${userdata.pp_raw}**pp (#${userdata.pp_rank}) → **${globalPP.toFixed(1)}**pp +${(globalPP - userdata.pp_raw).toFixed(1)} (#${ranking} +${userdata.pp_rank - ranking})`, false)
-					.setURL(Mapinfo.maplink)
-					.setAuthor(`Mapped by ${Mapinfo.mapper}`, `https://a.ppy.sh/${mapperdata.user_id}`, `https://osu.ppy.sh/users/${Mapinfo.mapper}`)
-					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
-				message.channel.send(embed)
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
-				return
-			}
-		}
-
-		//!srコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!sr") {
-			try {
-				//!srのみ入力された時の処理
-				if (message.content == "!sr") {
-					message.reply("使い方: !sr <マップリンク>")
-					return
-				}
-
-				//マップリンクを取得
-				const maplink = message.content.split(" ")[1];
-				
-				if (maplink == undefined) {
-					message.reply("マップリンクを入力してください。")
-					return
-				}
-
-				if (maplink == "") {
-					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
-					message.reply("マップリンク形式が間違っているようです。https://osu.ppy.sh/beatmapsets/ で始まるマップリンクを入力してください。")
-					return
-				}
-
-				//マップ情報を取得
-				const mapdata = await getMapInfowithoutmods(maplink, apikey);
-				const beatmapid = mapdata.beatmapId;
-				if (mapdata.combo < 100) {
-					message.reply("100combo未満のマップは計算できません。")
-					return
-				} else if (mapdata.combo > 5000) {
-					message.reply("5000combo以上のマップは計算できません。")
-					return
-				}
-
-				//チャートの作成
-				message.reply("SRの計算中です。")
-				await srchart(beatmapid, modeconvert(mapdata.mode));
-				const sr = await calculateSR(beatmapid, 0, modeconvert(mapdata.mode));
-				await message.channel.send(`**${mapdata.artist} - ${mapdata.title} [${mapdata.version}]**のSRチャートです。最高は${sr.sr}★です。`);
-				await message.channel.send({ files: [{ attachment: `./BeatmapFolder/${beatmapid}.png`, name: 'SRchart.png' }] });
-				fs.remove(`./BeatmapFolder/${beatmapid}.png`);
-				fs.remove(`./BeatmapFolder/${beatmapid}.osu`);
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
-				return
-			}
-		}
-
-		//!osubgquizコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!osubgquiz") {
-			try {
-				//!osuquizのみ入力された時の処理
-				if (message.content == "!osubgquiz") {
-					message.reply("使い方: !osubgquiz <ユーザー名> <モード(o, t, c, m)>")
-					return
-				}
-
-				//ユーザー名が入力されなかったときの処理
-				if (message.content.split(" ")[1] == undefined) {
-					message.reply("ユーザー名を入力してください。")
-					return
-				} else if (message.content.split(" ")[1] == "") {
-					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//モードが入力されなかったときの処理
-				if (message.content.split(" ")[2] == undefined) {
-					message.reply("モードを入力してください。")
-					return
-				} else if (message.content.split(" ")[2] == "") {
-					message.reply("モードの前の空白が1つ多い可能性があります。")
-					return
-				} else if (!(message.content.split(" ")[2] == "o" || message.content.split(" ")[2] == "t" || message.content.split(" ")[2] == "c" || message.content.split(" ")[2] == "m")) {
-					message.reply("モードはo, t, c, mのいずれかで指定してください。")
-					return
-				}
-
-				//クイズが既に開始しているかをファイルの存在から確認する
-				if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
-					message.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
-					return
-				}
-
-				//クイズの問題を取得
-				const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${message.content.split(" ")[1]}&type=string&m=${modeconvert(message.content.split(" ")[2])}&limit=100`);
-				const quizdata = quiz.data;
-				if (quizdata.length < 10) {
-					message.reply("クイズの問題を取得できませんでした。")
-					return
-				}
-
-				//0-99までのランダムな数字を10個取得
-				const randomnumber = [];
-				while (randomnumber.length < 10) {
-					const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
-					if (!randomnumber.includes(randomNumber)) {
-						randomnumber.push(randomNumber)
-					}
-				}
-
-				//ランダムな数字からランダムなマップを取得
-				const randommap = [];
-				const randommaptitle = [];
-				for (const element of randomnumber) {
-					const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
-					randommap.push(beatmapsetid.beatmapset_id)
-					randommaptitle.push(beatmapsetid.title)
-				}
-				
-				let randomjson = JSON.parse("[]");
-				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false})
-				}
-				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
-				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
-				
-				message.channel.send(`問題1のBGを表示します。`)
-				const response = await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' });
-				const BGdata = response.data;
-				message.channel.send({ files: [{ attachment: BGdata, name: 'audio.jpg' }] });
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
-				return
-			}
-		}
-
-		//!osubgquizコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!osubgquizpf") {
-			try {
-				//!osuquizのみ入力された時の処理
-				if (message.content == "!osubgquizpf") {
-					message.reply("使い方: !osubgquizpf <ユーザー名> <モード(o, t, c, m)>")
-					return
-				}
-
-				//ユーザー名が入力されなかったときの処理
-				if (message.content.split(" ")[1] == undefined) {
-					message.reply("ユーザー名を入力してください。")
-					return
-				} else if (message.content.split(" ")[1] == "") {
-					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//モードが入力されなかったときの処理
-				if (message.content.split(" ")[2] == undefined) {
-					message.reply("モードを入力してください。")
-					return
-				} else if (message.content.split(" ")[2] == "") {
-					message.reply("モードの前の空白が1つ多い可能性があります。")
-					return
-				} else if (!(message.content.split(" ")[2] == "o" || message.content.split(" ")[2] == "t" || message.content.split(" ")[2] == "c" || message.content.split(" ")[2] == "m")) {
-					message.reply("モードはo, t, c, mのいずれかで指定してください。")
-					return
-				}
-
-				//クイズが既に開始しているかをファイルの存在から確認する
-				if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
-					message.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
-					return
-				}
-
-				//クイズの問題を取得
-				const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${message.content.split(" ")[1]}&type=string&m=${modeconvert(message.content.split(" ")[2])}&limit=100`);
-				const quizdata = quiz.data;
-				if (quizdata.length < 10) {
-					message.reply("クイズの問題を取得できませんでした。")
-					return
-				}
-
-				//0-99までのランダムな数字を10個取得
-				const randomnumber = [];
-				while (randomnumber.length < 10) {
-					const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
-					if (!randomnumber.includes(randomNumber)) {
-						randomnumber.push(randomNumber)
-					}
-				}
-
-				//ランダムな数字からランダムなマップを取得
-				const randommap = [];
-				const randommaptitle = [];
-				for (const element of randomnumber) {
-					const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
-					randommap.push(beatmapsetid.beatmapset_id)
-					randommaptitle.push(beatmapsetid.title)
-				}
-				
-				let randomjson = JSON.parse("[]");
-				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false})
-				}
-				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
-				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
-				
-				message.channel.send(`問題1のBGを表示します。`)
-				const response = await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' });
-				const BGdata = response.data;
-				message.channel.send({ files: [{ attachment: BGdata, name: 'audio.jpg' }] });
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
-				return
-			}
-		}
-
-		//!osuquizコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!osuquiz") {
-			try {
-				//!osuquizのみ入力された時の処理
-				if (message.content == "!osuquiz") {
-					message.reply("使い方: !osuquiz <ユーザー名> <モード(o, t, c, m)>")
-					return
-				}
-
-				//ユーザー名が入力されなかったときの処理
-				if (message.content.split(" ")[1] == undefined) {
-					message.reply("ユーザー名を入力してください。")
-					return
-				} else if (message.content.split(" ")[1] == "") {
-					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//モードが入力されなかったときの処理
-				if (message.content.split(" ")[2] == undefined) {
-					message.reply("モードを入力してください。")
-					return
-				} else if (message.content.split(" ")[2] == "") {
-					message.reply("モードの前の空白が1つ多い可能性があります。")
-					return
-				} else if (!(message.content.split(" ")[2] == "o" || message.content.split(" ")[2] == "t" || message.content.split(" ")[2] == "c" || message.content.split(" ")[2] == "m")) {
-					message.reply("モードはo, t, c, mのいずれかで指定してください。")
-					return
-				}
-
-				//クイズが既に開始しているかをファイルの存在から確認する
-				if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
-					message.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
-					return
-				}
-
-				//クイズの問題を取得
-				const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${message.content.split(" ")[1]}&type=string&m=${modeconvert(message.content.split(" ")[2])}&limit=100`);
-				const quizdata = quiz.data;
-				if (quizdata.length < 10) {
-					message.reply("クイズの問題を取得できませんでした。")
-					return
-				}
-
-				//0-99までのランダムな数字を10個取得
-				const randomnumber = [];
-				while (randomnumber.length < 10) {
-					const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
-					if (!randomnumber.includes(randomNumber)) {
-						randomnumber.push(randomNumber)
-					}
-				}
-
-				//ランダムな数字からランダムなマップを取得
-				const randommap = [];
-				const randommaptitle = [];
-				for (const element of randomnumber) {
-					const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
-					randommap.push(beatmapsetid.beatmapset_id)
-					randommaptitle.push(beatmapsetid.title)
-				}
-				
-				let randomjson = JSON.parse("[]");
-				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false})
-				}
-				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
-				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
-				
-				message.channel.send(`問題1のプレビューを再生します。`)
-				const response = await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' });
-				const audioData = response.data;
-				message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
-				return
-			}
-		}
-
-		//!osuquizコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!osuquizpf") {
-			try {
-				//!osuquizのみ入力された時の処理
-				if (message.content == "!osuquizpf") {
-					message.reply("使い方: !osuquizpf <ユーザー名> <モード(o, t, c, m)>")
-					return
-				}
-
-				//ユーザー名が入力されなかったときの処理
-				if (message.content.split(" ")[1] == undefined) {
-					message.reply("ユーザー名を入力してください。")
-					return
-				} else if (message.content.split(" ")[1] == "") {
-					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//モードが入力されなかったときの処理
-				if (message.content.split(" ")[2] == undefined) {
-					message.reply("モードを入力してください。")
-					return
-				} else if (message.content.split(" ")[2] == "") {
-					message.reply("モードの前の空白が1つ多い可能性があります。")
-					return
-				} else if (!(message.content.split(" ")[2] == "o" || message.content.split(" ")[2] == "t" || message.content.split(" ")[2] == "c" || message.content.split(" ")[2] == "m")) {
-					message.reply("モードはo, t, c, mのいずれかで指定してください。")
-					return
-				}
-
-				//クイズが既に開始しているかをファイルの存在から確認する
-				if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
-					message.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
-					return
-				}
-
-				//クイズの問題を取得
-				const quiz = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${message.content.split(" ")[1]}&type=string&m=${modeconvert(message.content.split(" ")[2])}&limit=100`);
-				const quizdata = quiz.data;
-				if (quizdata.length < 10) {
-					message.reply("クイズの問題を取得できませんでした。")
-					return
-				}
-
-				//0-99までのランダムな数字を10個取得
-				const randomnumber = [];
-				while (randomnumber.length < 10) {
-					const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
-					if (!randomnumber.includes(randomNumber)) {
-						randomnumber.push(randomNumber)
-					}
-				}
-
-				//ランダムな数字からランダムなマップを取得
-				const randommap = [];
-				const randommaptitle = [];
-				for (const element of randomnumber) {
-					const beatmapsetid = await getMapforRecent(quizdata[element].beatmap_id, apikey, "NM");
-					randommap.push(beatmapsetid.beatmapset_id)
-					randommaptitle.push(beatmapsetid.title)
-				}
-				
-				let randomjson = JSON.parse("[]");
-				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false})
-				}
-				fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(randomjson, null, 4))
-				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
-				
-				message.channel.send(`問題1のプレビューを再生します。`)
-				const response = await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' });
-				const audioData = response.data;
-				message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
-				return
-			}
-		}
-
-		//答えを?が最後にあるものとして取得
+		//クイズの答えの取得(osu!BOT)
 		if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`) && message.content.endsWith("?")) {
 			try {
 				//Botの発言には反応しないようにする
@@ -4224,359 +4179,8 @@ client.on("message", async(message) =>
 			}
 		}
 
-		//!quizendコマンドの処理(osu!BOT)
-		if (message.content == "!quizend") {
-			try {
-				if (!fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`)) {
-					message.reply("クイズが開始されていません。")
-					return
-				}
-				const answererarray = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"))
-				let answererstring = ""
-				for (let i = 0; i < answererarray.length; i++) {
-					if (answererarray[i].Answerer == "") continue;
-					if (answererarray[i].hint) {
-						answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`
-					} else {
-						answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`
-					}
-				}
-				message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`)
-				fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
-				return
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンドの処理中になんらかのエラーが発生しました。")
-				return
-			}
-		}
-
-		//?slayerコマンド(Hypixel Skyblock)
-		if (message.content.split(" ")[0] == "?slayer") {
-			try {
-				//?slayerのみ入力された時の処理
-				if (message.content == "?slayer") {
-					message.reply("使い方: ?slayer <Minecraftユーザー名> <スレイヤーのID(1（ゾンスレ）, 2（クモスレ）, 3（ウルフスレ）, 4（エンスレ）, 5（ブレイズスレ）)> <プロファイルID>")
-					return
-				}
-
-				//メッセージからユーザー名を取得
-				const username = message.content.split(" ")[1]
-
-				//ユーザー名が入力されてなかった時、の処理
-				if (username == undefined) {
-					message.reply("ユーザー名を入力してください。")
-					return
-				}
-				
-				//ユーザー名の前の空白が1つ多かった時の処理
-				if (username == "") {
-					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//メッセージからスレイヤーのIDを取得
-				const slayerid = message.content.split(" ")[2]
-
-				//スレイヤーのIDが入力されてなかった時の処理
-				if (slayerid == undefined) {
-					message.reply("スレイヤーのIDを入力してください。1 = ゾンスレ、2 = クモスレ、3 = ウルフスレ、4 = エンスレ、5 = ブレイズスレ")
-					return
-				}
-
-				//スレイヤーのIDの前の空白が1つ多かった時の処理
-				if (slayerid == "") {
-					message.reply("スレイヤーのIDの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//メッセージからプロファイル番号を取得
-				const i = message.content.split(" ")[3]
-
-				//プロファイル番号が入力されてなかった時の処理
-				if (i == undefined) {
-					message.reply("プロファイル番号を入力してください。")
-					return
-				}
-
-				//プロファイル番号の前の空白が1つ多かった時の処理
-				if (i == "") {
-					message.reply("プロファイル番号の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//プロファイル番号が数字かどうかの処理
-				if (!/^[\d.]+$/g.test(i)) {
-					message.reply("プロファイル番号は数字のみで入力してください。")
-					return
-				}
-
-				//ユーザー名からUUIDを取得
-				let useruuidresponce
-				useruuidresponce = await axios.get(
-					`https://api.mojang.com/users/profiles/minecraft/${username}`
-				).catch(()=> {
-					useruuidresponce = undefined
-				});
-
-				////ユーザーが存在しなかった場合の処理
-				if (useruuidresponce == undefined) {
-					message.reply("ユーザー名が間違っているか、Mojang APIがダウンしている可能性があります。")
-					return
-				}
-
-				//先程取得したUUIDからプロファイル情報を取得
-				const responce = await axios.get(
-					`https://api.hypixel.net/skyblock/profiles?key=${hypixelapikey}&uuid=${useruuidresponce.data.id}`
-				);
-
-				//プロファイル情報が取得できなかった場合の処理
-				if (!responce.data.success) {
-					message.reply("データを取得するのに失敗しました。")
-					return
-				}else if (responce.data.profiles == null) {
-					message.reply("このユーザーはSkyblockをしていないようです。")
-					return
-				}
-
-				//スレイヤーのIDからスレイヤーの名前を取得
-				let slayername;
-				if (slayerid == "1") {
-					slayername = "zombie"
-				} else if (slayerid == "2") {
-					slayername = "spider"
-				} else if (slayerid == "3") {
-					slayername = "wolf"
-				} else if (slayerid == "4") {
-					slayername = "enderman"
-				} else if (slayerid == "5") {
-					slayername = "blaze"
-				} else if (slayerid == "6") {
-					message.reply("このスレイヤーの処理機能はまだ実装されていません。")
-					return
-				} else {
-					message.reply("スレイヤーのIDが不正です。")
-					return
-				}
-
-				//スレイヤーの名前から表示用のスレイヤーの名前を取得
-				let showonlyslayername;
-				if (slayername == "zombie") {
-					showonlyslayername = "ゾンスレ"
-				} else if (slayername == "spider") {
-					showonlyslayername = "クモスレ"
-				} else if (slayername == "wolf") {
-					showonlyslayername = "ウルフスレ"
-				} else if (slayername == "enderman") {
-					showonlyslayername = "エンスレ"
-				} else if (slayername == "blaze") {
-					showonlyslayername = "ブレイズスレ"
-				}
-
-				//プロファイルが存在しなかった場合の処理
-				if (responce.data.profiles[i] == undefined) {
-					message.reply("このプロファイルは存在しないようです。")
-					return
-				}
-
-				//取得したデータからユーザーの指定したプロファイルのスレイヤーのXPを取得
-				const userslayerxp = eval(`responce.data.profiles[${i}].members.${useruuidresponce.data.id}.slayer_bosses.${slayername}.xp`);
-
-				//スレイヤーのXPが存在しなかった場合の処理(未プレイとされる)
-				if (userslayerxp == undefined) {
-					message.reply(`プロファイル:${responce.data.profiles[i].cute_name} | このプレイヤーは${showonlyslayername}をしていないみたいです。`)
-					return
-				}
-
-				//スレイヤーXPなどの計算をし、メッセージを送信する
-				if (userslayerxp >= 1000000) {
-					message.reply(`プロファイル:${responce.data.profiles[i].cute_name} | このプレイヤーの${showonlyslayername}レベルは既に**Lv9**です。`)
-					return
-				} else if (userslayerxp >= 400000) {
-					const remainxp = 1000000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv8**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1000000 * 100).toFixed(1))}${(userslayerxp / 1000000 * 100).toFixed(1)}%`)
-				} else if (userslayerxp >= 100000) {
-					const remainxp = 400000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv7**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 400000 * 100).toFixed(1))}${(userslayerxp / 400000 * 100).toFixed(1)}%`)
-				} else if (userslayerxp >= 20000) {
-					const remainxp = 100000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv6**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 100000 * 100).toFixed(1))}${(userslayerxp / 100000 * 100).toFixed(1)}%`)
-				} else if (userslayerxp >= 5000) {
-					const remainxp = 20000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv5**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 20000 * 100).toFixed(1))}${(userslayerxp / 20000 * 100).toFixed(1)}%`)
-				} else if (((slayername == "zombie" || slayername == "spider") && userslayerxp >= 1000) || ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 1500)) {
-					const remainxp = 5000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv4**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 5000 * 100).toFixed(1))}${(userslayerxp / 5000 * 100).toFixed(1)}%`)
-				} else if ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 200) {
-					const remainxp = 1000 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1000 * 100).toFixed(1))}${(userslayerxp / 1000 * 100).toFixed(1)}%`)
-				} else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 250) {
-					const remainxp = 1500 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1500 * 100).toFixed(1))}${(userslayerxp / 1500 * 100).toFixed(1)}%`)
-				} else if ((slayername == "zombie" && userslayerxp >= 15) || (slayername == "spider" && userslayerxp >= 25)) {
-					const remainxp = 200 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 200 * 100).toFixed(1))}${(userslayerxp / 200 * 100).toFixed(1)}%`)
-				}else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 30) {
-					const remainxp = 250 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 250 * 100).toFixed(1))}${(userslayerxp / 250 * 100).toFixed(1)}%`)
-				} else if ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 5) {
-					let remainxp = 0
-					if (slayername == "zombi") {
-						remainxp = 15 - userslayerxp
-						message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 15 * 100).toFixed(1))}${(userslayerxp / 15 * 100).toFixed(1)}%`)
-					} else if (slayername == "spider") {
-						remainxp = 25 - userslayerxp
-						message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 25 * 100).toFixed(1))}${(userslayerxp / 25 * 100).toFixed(1)}%`)
-					}
-				} else if ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 10) {
-					const remainxp = 30 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 30 * 100).toFixed(1))}${(userslayerxp / 30 * 100).toFixed(1)}%`)
-				} else {
-					const remainxp = 5 - userslayerxp
-					message.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | このプレイヤーの${showonlyslayername}はLv1に達していません。次のレベルまでに必要なXPは${remainxp}です。`)
-				}
-			} catch(e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
-				return
-			}
-		}
-
-		//?ehpコマンド(Hypixel Skyblock)
-		if (message.content.split(" ")[0] == "?ehp") {
-			try {
-				//?ehpのみ入力された時の処理
-				if (message.content == "?ehp") {
-					message.reply("使い方: ?ehp <Defense> <Health>")
-					return
-				}
-
-				//メッセージからDefenseを取得
-				const defense = message.content.split(" ")[1]
-				if (defense == undefined) {
-					message.reply("Defenseを入力してください。")
-					return
-				} else if (defense == "") {
-					message.reply("Defenseの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//Defenseが数字かどうかの処理
-				if (!/^[\d.]+$/g.test(defense)) {
-					message.reply("Defenseは数字のみで入力してください。")
-					return
-				}
-
-				//Defenseが0以下の時の処理
-				if (Number(defense) <= 0) {
-					message.reply("Defenseは1以上で入力してください。")
-					return
-				}
-
-				//メッセージからHealthを取得
-				const Health = message.content.split(" ")[2]
-				if (Health == undefined) {
-					message.reply("Healthを入力してください。")
-					return
-				} else if (Health == "") {
-					message.reply("Healthの前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//Healthが数字かどうかの処理
-				if (!/^[\d.]+$/g.test(Health)) {
-					message.reply("Healthは数字のみで入力してください。")
-					return
-				}
-
-				//Healthが0以下の時の処理
-				if (Number(Health) <= 0) {
-					message.reply("Healthは1以上で入力してください。")
-					return
-				}
-
-				const ehp = Health * (defense / 100 + 1)
-				message.channel.send(`Defense: **${defense}**\nHealth: **${Health}**\n----------------------\nEHP = **__${ehp}__**`)
-			} catch (e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
-				return
-			}
-		}
-
-		//?profileコマンド(Hypixel Skyblock)
-		if (message.content.split(" ")[0] == "?profile") {
-			try {
-				//?profileのみ入力された時の処理
-				if (message.content == "?profile") {
-					message.reply("使い方: ?profile <Minecraftユーザー名>")
-					return
-				}
-
-				//メッセージからユーザー名を取得
-				const username = message.content.split(" ")[1];
-
-				//ユーザー名が入力されてなかった時、の処理
-				if (username == undefined) {
-					message.reply("ユーザー名を入力してください。")
-					return
-				}
-
-				//ユーザー名の前の空白が1つ多かった時の処理
-				if (username == "") {
-					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//ユーザー名からUUIDを取得
-				let useruuidresponce
-				useruuidresponce = await axios.get(
-					`https://api.mojang.com/users/profiles/minecraft/${username}`
-				).catch(()=> {
-					useruuidresponce = undefined
-				});
-
-				//ユーザーが存在しなかった場合の処理
-				if (useruuidresponce == undefined) {
-					message.reply("ユーザー名が間違っているか、Mojang APIがダウンしている可能性があります。")
-					return
-				}
-
-				//先程取得したUUIDからプロファイル情報を取得
-				const responce = await axios.get(
-					`https://api.hypixel.net/skyblock/profiles?key=${hypixelapikey}&uuid=${useruuidresponce.data.id}`
-				);
-
-				//プロファイル情報が取得できなかった場合の処理
-				if (!responce.data.success) {
-					message.reply("データを取得するのに失敗しました。")
-					return
-				}else if (responce.data.profiles == null) {
-					message.reply("このユーザーはSkyblockをしていないようです。")
-					return
-				}
-
-				//メッセージ内容を作成する処理
-				let showprofilemessage = ["__**プロファイル一覧**__"];
-				let showonlyselected;
-				for (let i = 0; i < responce.data.profiles.length; i++) {
-					if (responce.data.profiles[i].selected) {
-						showonlyselected = "✅"
-					} else {
-						showonlyselected = "❌"
-					}
-					showprofilemessage.push(`**${i}**: ${responce.data.profiles[i].cute_name} | 選択中: ${showonlyselected}`)
-				}
-				message.reply(showprofilemessage.join("\n"));
-			} catch(e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
-				return
-			}
-		}
-
 		//計算機
-		if (message.content.match(/^\d+([-+*/^])\d+$/)) {
+		if (RegExp(/^\d+([-+*/^])\d+$/).exec(message.content)) {
 			let left;
 			let right;
 			if (message.content.includes("+")) {
@@ -4605,272 +4209,6 @@ client.on("message", async(message) =>
 				if (isNaN(left) || isNaN(right)) return;
 				message.reply(`${left} ^ ${right} = ${Number(left) ** Number(right)}`)
 			} else {
-				return
-			}
-		}
-
-		//!locコマンドの処理(Github bot)
-		if (message.content.split(" ")[0] == "!loc") {
-			try {
-				//!locのみ入力された時の処理
-				if (message.content == "!loc") {
-					message.reply("使い方: !loc <ユーザー名> <リポジトリ名>")
-					return
-				}
-
-				//メッセージからユーザー名を取得
-				const username = message.content.split(" ")[1];
-
-				//ユーザー名が入力されてなかった時、の処理
-				if (username == undefined) {
-					message.reply("ユーザー名を入力してください。")
-					return
-				} else if (username == "") {
-					message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-					return
-				}
-
-				//メッセージからリポジトリ名を取得
-				const reponame = message.content.split(" ")[2];
-
-				//リポジトリ名が入力されてなかった時、の処理
-				if (reponame == undefined) {
-					message.reply("リポジトリ名を入力してください。")
-					return
-				} else if (reponame == "") {
-					message.reply("リポジトリ名の前の空白が1つ多い可能性があります。")
-					return
-				}
-				message.reply("LOCの計算中です。")
-				let error = false;
-				let locdata = await axios.get(`https://api.codetabs.com/v1/loc?github=${username}/${reponame}`).catch(()=> {
-					error = true;
-				})
-				if (error) {
-					message.reply("データを取得するのに失敗しました。")
-					return
-				}
-				const data = locdata.data
-				let totalfilecount;
-				let totalline;
-				let totalblanks;
-				let comments;
-				let totalLOC;
-				for (const element of data) {
-					if (element.language === 'Total') {
-						totalfilecount = element.files
-						totalline = element.lines
-						totalblanks = element.blanks
-						comments = element.comments
-						totalLOC = element.linesOfCode
-					}
-				}
-				message.reply(`リポジトリ: **${username}/${reponame}**\nファイル数: **${totalfilecount}**\n総行数: **${totalline}**\n空白行数: **${totalblanks}**\nコメント行数: **${comments}**\n---------------\nコード行数: **${totalLOC}**`)
-			} catch(e) {
-				console.log(e)
-				message.reply("コマンド処理中になんらかのエラーが発生しました。")
-				return
-			}
-		}
-
-		//Helpコマンド(AllBOT)
-		if (message.content == "!bothelp") {
-			message.reply("使い方: !bothelp <osu | casino | furry | ohuzake | Skyblock | Admin | pic | quote | github>")
-		} else if (message.content == "!bothelp osu") {
-			message.reply("__**osu!のコマンドの使い方**__ \n1: `!map <マップリンク> <Mods(省略可)> <Acc(省略可)>` マップのPPなどの情報や曲の詳細を見ることが出来ます。\n2: `!r<モード(o, t, c, m)> <ユーザーネーム(省略可)>` 24時間以内での各モードの最新の記録を確認することが出来ます。\n3: `!reg <osu!ユーザーネーム>` ユーザーネームを省略できるコマンドで、ユーザーネームを省略することが可能になります。\n4: `!ispp <マップリンク> <Mods(省略可)>` どのくらいPPの効率が良いかを知ることが出来ます。\n5: `!lb <マップリンク> <Mods(省略可)>` Mod別のランキングTOP5を見ることが出来ます。\n6: `!s <マップリンク> <ユーザーネーム(省略可)>` 指定されたユーザーかあなたの、その譜面での最高記録を見ることが出来ます。\n7: `!check <マップリンク>` 1/4 Streamの最高の長さを確認することが出来ます。\n8: `!qf <モード(osu, taiko, catch, mania)>` マップがQualfied、Rankedした際に通知を送信するか設定できます。\n9: `!deqf <モード(osu, taiko, catch, mania)>` !qfコマンドで登録したチャンネルを削除することができます。\n10: `!bg <マップリンク>` BackGround画像を高画質で見ることができます。\n11: `!link` チャンネルにマップリンクが送信されたら、自動でマップ情報が表示されるようになります。\n12: `!unlink` !linkコマンドで登録したチャンネルを削除することができます。\n13: `!m <Mods>` 最後に入力されたマップリンクにModsを加えた状態のマップ情報が表示されます。!linkコマンドが必須です。\n14: `!wi◯(o, t, c, m) <PP>` もし入力されたPPを取ったらPPはどのくらい上がるのか、ランキングはどう上がるのかを教えてくれます。!regコマンドが必須です。\n15: `!preview <マップリンク>` マップのプレビューが見れるリンクをマップ情報とともに教えてくれます。\n16: `!ifmod <マップリンク> <Mod>` あなたのその譜面での最高記録(精度, ミス)で、指定されたModだった時のPPを計算してくれます。!regコマンドが必須です。\n17: `!osuquiz <ユーザーネーム> <モード(o, t, c, m)>` 指定したユーザーのBPからランダムで曲を取得し、プレビュークイズを作成します。答えは (答え)?と言うと正解か不正解か教えてくれます。!osuquizpf のように最後にPFをつけると完全回答のみになります。\n18: `!skip` クイズの答えが分からなかった時に答えを教えてくれて、次の問題に移ります。\n19: `!quizend` クイズを終了します。\n20: `!sr <マップリンク>` SRがどのように上がっているのかをチャートで確認することができます。\n21: `!osubgquiz <ユーザーネーム> <モード(o, t, c, m)>` 指定したユーザーのBPからランダムで曲を取得し、BGクイズを作成します。答えは (答え)?と言うと正解か不正解か教えてくれます。!osubgquizpf のように最後にPFをつけると完全回答のみになります。\n22: `!hint` クイズの答えの1/3を表示してくれます。")
-		} else if (message.content == "!bothelp casino") {
-			message.reply("__**カジノのコマンドの使い方**__ \n1: `/slot <賭け金額>` スロットを回すことが出来ます。\n2: `/safeslot <賭け金額>` slotとほぼ同じ挙動をし、勝ったときは普通のslotの70%になりますが、負けたときに賭け金の20%が帰ってきます。\n3: `/bank` 自分の銀行口座に今何円はいっているかを確認できます。\n4: `/send <あげたい人> <金額>` 他人にお金を上げることのできるコマンドです。\n5: `/amount <確認したい金額>` 京や垓などの単位で確認したい金額を表してくれます。\n6: `/reg` カジノにユーザー登録することが出来ます。\n7: `/reco` おすすめのslotコマンドを教えてくれます。\n8: `/lv` 今持っている金額を基にレベルを計算してくれるコマンドです。\n9: `/bankranking` カジノ機能に参加している人全員の口座の金額の桁数でランキングが作成されます。\n10: `/recoshot` /recoで出されるslotコマンドを自動で実行してくれるコマンドです。※このコマンドは口座の金額が1000溝以上の人のみ使うことのできるコマンドです。報酬金額が通常時の80%になります。\n11: `/dice` ランダムで1-6の値を出すことが出来ます。\n12: `/roulette`: 赤か黒かをランダムで出すことが出来ます。")
-		} else if (message.content == "!bothelp furry") {
-			message.reply("__**Furryコマンドの使い方**__ \n1: `/kemo` ケモ画像を表示することが出来ます。\n2:`!count` 保存されている全てのケモの画像や映像の数を知ることが出来ます。\n3: `!delete <メディアリンク>` 保存されている画像を削除することが出来ます。メディアリンクが必要となります。")
-		} else if (message.content == "!bothelp ohuzake") {
-			message.reply("__**おふざけコマンドの使い方**__ \n1: `!kunii <単語(2つ以上)>` それぞれの単語の1文字目を入れ替えることが出来ます。")
-		} else if (message.content == "!bothelp Skyblock") {
-			message.reply("__**Skyblockコマンドの使い方**__ \n1: `?profile <Minecraftユーザー名>` SkyblockのプロファイルのIDを知ることが出来ます。?slayerコマンドで使います。\n2: `?slayer <Minecraftユーザー名> <スレイヤーのID(1（ゾンスレ）, 2（クモスレ）, 3（ウルフスレ）, 4（エンスレ）, 5（ブレイズスレ）)> <プロファイルID>` Skyblockのスレイヤーのレベルを上げるのに必要な経験値、周回数を知ることが出来ます。\n3: `?ehp <Defense> <Health>` SkyblockのEHPを計算することが出来ます。")
-		} else if (message.content == "!bothelp pic") {
-			message.reply("__**All pictureコマンドの使い方**__ \n1: `!pic <タグ名>` そのタグに追加されたファイルを見ることができます。/kemoコマンドの拡張版のようなものです。\n2: `!settag` 入力されたチャンネルの名前でタグが作成され、そこで画像や動画を送信すると自動的に保存されるようになります。\n3: `!delpic <メディアリンク>` そのタグ(チャンネル)に登録されたファイルを削除することができます。\n4: `!deltag` タグを削除することができます。また追加されない限り、送られたファイルが保存されなくなります。\n5: `!allcount` 送信されたチャンネルのタグに登録されているファイルの数がしれます。\n5: `!alltags` タグ一覧を見ることができます。\n6: `!downloadtag` タグに入っている全てのファイルをダウンロードできます。")
-		} else if (message.content == "!bothelp Admin") {
-			message.reply("__**Adminコマンドの使い方**__ \n1: `^backup <何時間前のバックアップを復元するか>` 指定した期間のバックアップを復元することが出来ます。\n2: `^update` 最新のファイルデータをダウンロードし、Botをアップデートします。\n3: `^allupdate` ^updateはHoshinoBot.jsのみのアップデートで、こちらは全データのアップデートを行います。")
-		} else if (message.content == "!bothelp quote") {
-			message.reply("__**Quoteコマンドの使い方**__ \n1: `!quote <タグ名>` 指定したタグからランダムで名言を送信します。\n2: `!setquotetag` 入力されたチャンネルの名前でタグが作成され、そこでメッセージ(コマンド以外)を送信すると自動的に保存されるようになります。\n3: `!delquote <削除したい名言>` そのタグ(チャンネル)に登録された名言を削除することができます。\n4: `!delquotetag` タグを削除することができます。また追加されない限り、送られた名言が保存されなくなります。\n5: `!allquotecount` 送信されたチャンネルのタグに登録されている名言の数がしれます。\n5: `!allquotetags` タグ一覧を見ることができます。")
-		} else if (message.content == "!bothelp github") {
-			message.reply("__**Githubコマンドの使い方**__ \n1: `!loc <ユーザー名> <リポジトリ名>` コードのLOC(Lines of Code)を教えてくれます。")
-		}
-
-		//^backupコマンドの処理(復元用)
-		if (message.content.split(" ")[0] == "^backup") {
-			try {
-				//管理者のみ実行するようにする
-				if (message.author.id != BotadminId) {
-					message.reply("このコマンドはBOT管理者のみ実行できます。")
-					return
-				}
-
-				//^backupのみ入力された時の処理
-				if (message.content == "^backup") {
-					message.reply("使い方: ^backup <何時間前か> ※管理者のみ実行できます。")
-					return
-				}
-
-				//バックアップファイルの中身を取得
-				const backupfiles = fs.readdirSync("./Backups").reverse()
-				const wannabackuptime = message.content.split(" ")[1] - 1
-				const wannabackup = backupfiles[wannabackuptime]
-
-				//バックアップファイルが存在しなかった時の処理
-				if (wannabackup == undefined) {
-					message.reply("その期間のバックアップファイルは存在しません。")
-					return
-				}
-
-				//復元作業
-				message.reply(`${wannabackup}のバックアップを復元中です。(0%)`);
-				await fs.copy(`./Backups/${wannabackup}/Player infomation`,`./Player infomation`);
-				message.reply("Player infomationフォルダの復元が完了しました。(20%)");
-				await fs.copy(`./Backups/${wannabackup}/MapcheckChannels`,`./MapcheckChannels`);
-				message.reply("MapcheckChannelsフォルダの復元が完了しました。(40%)");
-				await fs.copy(`./Backups/${wannabackup}/BeatmapLinkChannels`,`./BeatmapLinkChannels`);
-				message.reply("BeatmapLinkChannelsフォルダの復元が完了しました。(60%)");
-				await fs.copy(`./Backups/${wannabackup}/Player Bank`, `./Player Bank`);
-				message.reply("Player Bankフォルダの復元が完了しました。(80%)");
-				await fs.copy(`./Backups/${wannabackup}/tag`, `./tag`);
-				await fs.copy(`./Backups/${wannabackup}/quotetag`, `./quotetag`);
-				message.reply("tagフォルダの復元が完了しました。(100%)");
-				message.reply(`${wannabackup}のバックアップの全ての復元が完了しました。`)
-			} catch (e) {
-				console.log(e)
-				message.reply("バックアップの復元中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//^updateコマンドの処理(更新用)
-		if (message.content == "^update") {
-			try {
-				//管理者のみ実行するようにする
-				if (message.author.id != BotadminId) {
-					message.reply("このコマンドはBOT管理者のみ実行できます。")
-					return
-				}
-
-				//更新処理
-				message.reply("更新中です。");
-
-				//ファイルの指定、保存先の指定
-				const fileUrl = Githuburl;
-				const savePath = botfilepath;
-
-				//ファイルのダウンロード
-				message.reply("ファイルのダウンロード中です。")
-				downloadHoshinobotFile(fileUrl, savePath, (error) => {
-					if (error) {
-						message.reply("ファイルのダウンロードに失敗しました。");
-					} else {
-						getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
-							if (error) {
-								console.log(error);
-								message.reply("ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
-							} else {
-								message.reply(`ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
-							}
-						});
-					}
-				});
-			} catch (e) {
-				console.log(e)
-				message.reply("更新中にエラーが発生しました。")
-				return
-			}
-		}
-
-		//^allupdateコマンドの処理
-		if (message.content == "^allupdate") {
-			try {
-				//管理者のみ実行するようにする
-				if (message.author.id != BotadminId) {
-					message.reply("このコマンドはBOT管理者のみ実行できます。")
-					return
-				}
-
-				//更新処理
-				message.reply("Updateフォルダをリセットしています。")
-				await fs.remove('./updatetemp');
-				message.reply("Updateフォルダのリセットが完了しました。")
-				message.reply("リポジトリのクローン中です。");
-				git(`https://github.com/${owner}/${repo}.git`, './updatetemp', {}, (error) => {
-					if (error) {
-						console.log(error);
-						message.reply("リポジトリのクローン時に失敗しました");
-						return;
-					}
-
-					message.reply("リポジトリのクローンが完了しました。");
-
-					// ファイルとフォルダのコピー
-					const sourceDir = './updatetemp';
-					const destinationDir = './';
-					const excludedFiles = ['(dotenv).env'];
-					const excludedFolders = ['quotetag', 'OsuPreviewquiz', 'Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
-
-					fs.readdir(sourceDir, (err, files) => {
-						message.reply("ディリクトリを読み込んでいます。")
-						if (err) {
-							console.log(err);
-							message.reply("ディレクトリの読み込み中にエラーが発生しました");
-							return;
-						}
-						message.reply("ディリクトリの読み込みが完了しました。")
-
-						//ファイルのコピー
-						const copyFile = (src, dest) => {
-							if (!excludedFiles.includes(path.basename(src))) {
-								fs.copy(src, dest)
-								.catch((err) => {
-									throw err;
-								});
-							}
-						};
-
-						//フォルダのコピー
-						const copyFolder = (src, dest) => {
-							if (!excludedFolders.includes(path.basename(src))) {
-								fs.copy(src, dest)
-								.catch((err) => {
-									throw err;
-								});
-							}
-						};
-
-						message.reply("ファイルのコピー中です。")
-
-						files.forEach((file) => {
-							const srcPath = path.join(sourceDir, file);
-							const destPath = path.join(destinationDir, file);
-							try {
-								if (fs.lstatSync(srcPath).isDirectory()) {
-									copyFolder(srcPath, destPath);
-								} else {
-									copyFile(srcPath, destPath);
-								}
-							} catch (err) {
-								console.log(err);
-								message.reply("ファイルのコピー中にエラーが発生しました。")
-								return;
-							}
-						});
-
-						getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
-							if (error) {
-								console.log(error);
-								message.reply("全ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
-							} else {
-								message.reply(`全ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
-							}
-						});
-					});
-				});
-			} catch (e) {
-				console.log(e)
-				message.reply("更新中にエラーが発生しました。")
 				return
 			}
 		}
@@ -5057,17 +4395,17 @@ async function checkqualfiedosu() {
 		}
 
 		//メッセージの送信
-		const embed = new MessageEmbed()
-			.setColor("BLUE")
+		const embed = new EmbedBuilder()
+			.setColor(0x0099FF)
 			.setAuthor(`🎉New Qualfied Osu Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addField("`SR`", `**${srstring}**`, false)
-			.addField("`PP`", `**${ppstring}**`, false)
-			.addField("`Qualfied 日時`",`**${dateString}**`, true)
-			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addFields("`SR`", `**${srstring}**`, false)
+			.addFields("`PP`", `**${ppstring}**`, false)
+			.addFields("`Qualfied 日時`",`**${dateString}**`, true)
+			.addFields("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
@@ -5181,17 +4519,17 @@ async function checkqualfiedtaiko() {
 		}
 
 		//メッセージの送信
-		const embed = new MessageEmbed()
-			.setColor("BLUE")
+		const embed = new EmbedBuilder()
+			.setColor(0x0099FF)
 			.setAuthor(`🎉New Qualfied Taiko Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addField("`SR`", `**${srstring}**`, false)
-			.addField("`PP`", `**${ppstring}**`, false)
-			.addField("`Qualfied 日時`",`**${dateString}**`, true)
-			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addFields("`SR`", `**${srstring}**`, false)
+			.addFields("`PP`", `**${ppstring}**`, false)
+			.addFields("`Qualfied 日時`",`**${dateString}**`, true)
+			.addFields("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
@@ -5305,17 +4643,17 @@ async function checkqualfiedcatch() {
 		}
 
 		//メッセージの送信
-		const embed = new MessageEmbed()
-			.setColor("BLUE")
+		const embed = new EmbedBuilder()
+			.setColor(0x0099FF)
 			.setAuthor(`🎉New Qualfied Catch Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addField("`SR`", `**${srstring}**`, false)
-			.addField("`PP`", `**${ppstring}**`, false)
-			.addField("`Qualfied 日時`",`**${dateString}**`, true)
-			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addFields("`SR`", `**${srstring}**`, false)
+			.addFields("`PP`", `**${ppstring}**`, false)
+			.addFields("`Qualfied 日時`",`**${dateString}**`, true)
+			.addFields("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
@@ -5429,17 +4767,17 @@ async function checkqualfiedmania() {
 		}
 
 		//メッセージの送信
-		const embed = new MessageEmbed()
-			.setColor("BLUE")
+		const embed = new EmbedBuilder()
+			.setColor(0x0099FF)
 			.setAuthor(`🎉New Qualfied Mania Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addField("`SR`", `**${srstring}**`, false)
-			.addField("`PP`", `**${ppstring}**`, false)
-			.addField("`Qualfied 日時`",`**${dateString}**`, true)
-			.addField("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addFields("`SR`", `**${srstring}**`, false)
+			.addFields("`PP`", `**${ppstring}**`, false)
+			.addFields("`Qualfied 日時`",`**${dateString}**`, true)
+			.addFields("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
@@ -5545,16 +4883,16 @@ async function checkrankedosu() {
 		}
 
 		//メッセージの送信
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setColor("YELLOW")
 			.setAuthor(`🎉New Ranked Osu Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addField("`SR`", `**${srstring}**`, false)
-			.addField("`PP`", `**${ppstring}**`, false)
-			.addField("`Ranked 日時`",`**${dateString}**`, true)
+			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addFields("`SR`", `**${srstring}**`, false)
+			.addFields("`PP`", `**${ppstring}**`, false)
+			.addFields("`Ranked 日時`",`**${dateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
@@ -5658,16 +4996,16 @@ async function checkrankedtaiko() {
 		}
 
 		//メッセージの送信
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setColor("YELLOW")
 			.setAuthor(`🎉New Ranked Taiko Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addField("`SR`", `**${srstring}**`, false)
-			.addField("`PP`", `**${ppstring}**`, false)
-			.addField("`Ranked 日時`",`**${dateString}**`, true)
+			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addFields("`SR`", `**${srstring}**`, false)
+			.addFields("`PP`", `**${ppstring}**`, false)
+			.addFields("`Ranked 日時`",`**${dateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
@@ -5771,16 +5109,16 @@ async function checkrankedcatch() {
 		}
 
 		//メッセージの送信
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setColor("YELLOW")
 			.setAuthor(`🎉New Ranked Catch Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addField("`SR`", `**${srstring}**`, false)
-			.addField("`PP`", `**${ppstring}**`, false)
-			.addField("`Ranked 日時`",`**${dateString}**`, true)
+			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addFields("`SR`", `**${srstring}**`, false)
+			.addFields("`PP`", `**${ppstring}**`, false)
+			.addFields("`Ranked 日時`",`**${dateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
@@ -5884,16 +5222,16 @@ async function checkrankedmania() {
 		}
 
 		//メッセージの送信
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setColor("YELLOW")
 			.setAuthor(`🎉New Ranked Mania Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addField("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addField("`SR`", `**${srstring}**`, false)
-			.addField("`PP`", `**${ppstring}**`, false)
-			.addField("`Ranked 日時`",`**${dateString}**`, true)
+			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
+			.addFields("`SR`", `**${srstring}**`, false)
+			.addFields("`PP`", `**${ppstring}**`, false)
+			.addFields("`Ranked 日時`",`**${dateString}**`, true)
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
 			client.channels.cache.get(element).send(embed);
