@@ -76,7 +76,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					
 					//slotを打ったユーザーが登録されていない場合の処理
 					if (!truefalseuser) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
 
@@ -137,7 +137,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					
 					//slotを打ったユーザーが登録されていない場合の処理
 					if (!truefalseuser) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
 
@@ -246,7 +246,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 					//レベルを取得するユーザーが登録されていない場合の処理
 					if (!truefalseuser) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
 
@@ -283,7 +283,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 					//recoshotを打ったユーザーが登録されていない場合の処理
 					if (!truefalseuser) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
 
@@ -355,7 +355,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//recoを打ったユーザーが登録されているかどうかの確認
 					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
 					if (!truefalseuser) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
 
@@ -385,7 +385,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					
 					//bankを打ったユーザーが登録されていない場合の処理
 					if (!truefalseuser) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/reg`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
 
@@ -448,7 +448,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//送り先のユーザー名が存在するかの確認
 					const truefalsesentuser = await checkFileExists(`./Player Bank/${sentusername}.txt`);
 					if (!truefalsesentuser) {
-						interaction.reply(`${sentusername} というユーザーはこのカジノに登録されていません。/regで登録してもらってください。`)
+						interaction.reply(`${sentusername} というユーザーはこのカジノに登録されていません。\`/regcasino\`で登録してもらってください。`)
 						return
 					}
 	
