@@ -1319,7 +1319,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						acc3 = tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode))
 						acc4 = tools.accuracy({300: resulttop5[4].count300, 100: resulttop5[4].count100, 50: resulttop5[4].count50, 0: resulttop5[4].countmiss, geki:  resulttop5[4].countgeki, katu: resulttop5[4].countkatu}, modeconvert(Mapinfo.mode))
 							const embed = new EmbedBuilder()
-								.setColor(0x0099FF)
+								.setColor("Blue")
 								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 								.setURL(maplink)
 								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
@@ -1337,7 +1337,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
 						acc3 = tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode))
 							const embed = new EmbedBuilder()
-								.setColor(0x0099FF)
+								.setColor("Blue")
 								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 								.setURL(maplink)
 								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })
@@ -1354,7 +1354,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
 						acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
 							const embed = new EmbedBuilder()
-								.setColor(0x0099FF)
+								.setColor("Blue")
 								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 								.setURL(maplink)
 								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
@@ -1368,7 +1368,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
 						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
 							const embed = new EmbedBuilder()
-								.setColor(0x0099FF)
+								.setColor("Blue")
 								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 								.setURL(maplink)
 								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
@@ -1380,7 +1380,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					} else {
 						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
 						const embed = new EmbedBuilder()
-							.setColor(0x0099FF)
+							.setColor("Blue")
 							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 							.setURL(maplink)
 							.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })							.addFields("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
@@ -1592,7 +1592,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					if (Math.round(PPafter.ppwithacc) == pp[pp.length - 1]) {
 						interaction.channel.send("PPに変動は有りません。")
 						const embed = new EmbedBuilder()
-							.setColor(0x0099FF)
+							.setColor("Blue")
 							.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 							.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
 							.addFields({ name: `Mods: ${showonlymodsforbefore.join("")} → ${modmessage.join("")} Acc: ${acc}% Miss: ${playersscore.countmiss}`, value: `**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, inline: true })
@@ -1651,7 +1651,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	
 					if(!foundflagforranking) {
 						const embed = new EmbedBuilder()
-							.setColor(0x0099FF)
+							.setColor("Blue")
 							.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 							.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
 							.addFields({ name: `Mods: ${showonlymodsforbefore.join("")} → ${modmessage.join("")} Acc: ${acc}% Miss: ${playersscore.countmiss}`, value: `**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, inline: true })
@@ -1663,7 +1663,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 	
 					const embed = new EmbedBuilder()
-						.setColor(0x0099FF)
+						.setColor("Blue")
 						.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 						.setDescription(`Played by [${playername}](https://osu.ppy.sh/users/${playername})`)
 						.addFields({ name: `Mods: ${showonlymodsforbefore.join("")} → ${modmessage.join("")} Acc: ${acc}% Miss: ${playersscore.countmiss}`, value: `**PP:** **${PPbefore.ppwithacc}**/${PPbefore.SSPP}pp → **${PPafter.ppwithacc}**/${PPafter.SSPP}pp`, inline: true })
@@ -1744,7 +1744,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	
 					//メッセージを作成
 					const embed = new EmbedBuilder()
-						.setColor(0x0099FF)
+						.setColor("Blue")
 						.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 						.setDescription(`Combo: \`${Mapinfo.combo}\` Stars: \`${SR.sr}\` \n Length: \`${Mapinfo.lengthmin}:${lengthsec}\` BPM: \`${Mapinfo.bpm}\` Objects: \`${Mapinfo.combo}\` \n CS: \`${Mapinfo.cs}\` AR: \`${Mapinfo.ar}\` OD: \`${Mapinfo.od.toFixed(1)}\` HP: \`${Mapinfo.hp}\` Spinners: \`${Mapinfo.countspinner}\``)
 						.setURL(Mapinfo.maplink)
@@ -2649,7 +2649,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//メッセージを送信
 				const embed = new EmbedBuilder()
-					.setColor(0x0099FF)
+					.setColor("Blue")
 					.setTitle(`${MapInfo.artist} - ${MapInfo.title}`)
 					.setURL(MapInfo.maplink)
 					.addFields({ name: "Music and Backgroud", value: `:musical_note:[Song Preview](https://b.ppy.sh/preview/${MapInfo.beatmapset_id}.mp3) :frame_photo:[Full background](https://assets.ppy.sh/beatmaps/${MapInfo.beatmapset_id}/covers/raw.jpg)` })
@@ -2795,7 +2795,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//メッセージを送信
 				const embed = new EmbedBuilder()
-					.setColor(0x0099FF)
+					.setColor("Blue")
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
@@ -2816,7 +2816,7 @@ client.on(Events.MessageCreate, async (message) =>
 						setTimeout(() =>
 							{
 								const embednew = new EmbedBuilder()
-								.setColor(0x0099FF)
+								.setColor("Blue")
 								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
@@ -2952,7 +2952,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//メッセージを送信
 				const embed = new EmbedBuilder()
-					.setColor(0x0099FF)
+					.setColor("Blue")
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
@@ -2973,7 +2973,7 @@ client.on(Events.MessageCreate, async (message) =>
 						setTimeout(() =>
 							{
 								const embednew = new EmbedBuilder()
-								.setColor(0x0099FF)
+								.setColor("Blue")
 								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
@@ -3114,7 +3114,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//メッセージを送信
 				const embed = new EmbedBuilder()
-					.setColor(0x0099FF)
+					.setColor("Blue")
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
@@ -3135,7 +3135,7 @@ client.on(Events.MessageCreate, async (message) =>
 						setTimeout(() =>
 							{
 								const embednew = new EmbedBuilder()
-								.setColor(0x0099FF)
+								.setColor("Blue")
 								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
@@ -3280,7 +3280,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//メッセージを送信
 				const embed = new EmbedBuilder()
-					.setColor(0x0099FF)
+					.setColor("Blue")
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
@@ -3301,7 +3301,7 @@ client.on(Events.MessageCreate, async (message) =>
 						setTimeout(() =>
 							{
 								const embednew = new EmbedBuilder()
-								.setColor(0x0099FF)
+								.setColor("Blue")
 								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
@@ -3484,7 +3484,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//メッセージ送信
 				const embed = new EmbedBuilder()
-					.setColor(0x0099FF)
+					.setColor("Blue")
 					.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 					.setURL(maplink)
 					.setAuthor({ name: `Mapped by ${Mapinfo.mapper}`,  iconURL: Mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${Mapperinfo.user_id}` })
@@ -3536,7 +3536,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//メッセージを送信
 				const embed = new EmbedBuilder()
-					.setColor(0x0099FF)
+					.setColor("Blue")
 					.setAuthor({ text: `${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, iconURL: mapperdata.iconurl, url: message.content })
 					.setDescription(`**Length**: ${mapdata.lengthmin}:${lengthsec} **BPM**: ${mapdata.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapdata.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapdata.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapdata.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapdata.beatmapset_id})`)
 					.addFields({ name: `**[__${mapdata.version}__]**`, value: `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, inline: false })
@@ -3628,7 +3628,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//メッセージを送信
 				const embed = new EmbedBuilder()
-					.setColor(0x0099FF)
+					.setColor("Blue")
 					.setAuthor({ name: `${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, iconURL: mapperdata.iconurl, url: recentmaplink })
 					.setDescription(`**Length**: ${mapdata.lengthmin}:${lengthsec} **BPM**: ${mapdata.bpm} **Mods**: ${showonlymods}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapdata.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapdata.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapdata.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapdata.beatmapset_id})`)
 					.addFields({ name: `**[__${mapdata.version}__]**`, value: `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, inline: false })
@@ -3766,7 +3766,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				if(!foundflag) {
 					const notfoundembed = new EmbedBuilder()
-						.setColor(0x0099FF)
+						.setColor("Blue")
 						.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
 						.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${forbpranking.indexOf(enteredpp) + 1} best play.\nTheir pp would change by **+${parseFloat((globalPP - userdata.pp_raw).toFixed(2)).toLocaleString()}** to **${parseFloat(globalPP.toFixed(2)).toLocaleString()}pp** and they would reach approx. rank <#6000(Calculations are not available after page 120.).`)
 						.setThumbnail(userdata.iconurl)
@@ -3776,7 +3776,7 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				const embed = new EmbedBuilder()
-					.setColor(0x0099FF)
+					.setColor("Blue")
 					.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
 					.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${forbpranking.indexOf(enteredpp) + 1} best play.\nTheir pp would change by **+${parseFloat((globalPP - userdata.pp_raw).toFixed(2)).toLocaleString()}** to **${parseFloat(globalPP.toFixed(2)).toLocaleString()}pp** and they would reach approx. rank #${ranking.toLocaleString()} (+${(userdata.pp_rank - ranking).toLocaleString()}).`)
 					.setThumbnail(userdata.iconurl)
@@ -4396,7 +4396,7 @@ async function checkqualfiedosu() {
 
 		//メッセージの送信
 		const embed = new EmbedBuilder()
-			.setColor(0x0099FF)
+			.setColor("Blue")
 			.setAuthor(`🎉New Qualfied Osu Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
@@ -4520,7 +4520,7 @@ async function checkqualfiedtaiko() {
 
 		//メッセージの送信
 		const embed = new EmbedBuilder()
-			.setColor(0x0099FF)
+			.setColor("Blue")
 			.setAuthor(`🎉New Qualfied Taiko Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
@@ -4644,7 +4644,7 @@ async function checkqualfiedcatch() {
 
 		//メッセージの送信
 		const embed = new EmbedBuilder()
-			.setColor(0x0099FF)
+			.setColor("Blue")
 			.setAuthor(`🎉New Qualfied Catch Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
@@ -4768,7 +4768,7 @@ async function checkqualfiedmania() {
 
 		//メッセージの送信
 		const embed = new EmbedBuilder()
-			.setColor(0x0099FF)
+			.setColor("Blue")
 			.setAuthor(`🎉New Qualfied Mania Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
@@ -4884,7 +4884,7 @@ async function checkrankedosu() {
 
 		//メッセージの送信
 		const embed = new EmbedBuilder()
-			.setColor("YELLOW")
+			.setColor("Yellow")
 			.setAuthor(`🎉New Ranked Osu Map🎉`)
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
