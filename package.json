@@ -1,10 +1,10 @@
 {
-    "name": "hoshino-bot",
+    "name": "hoshino-bot-14",
     "version": "1.0.0",
     "description": "A funny discord bot made by hoshino",
     "dependencies": {
         "axios": "0.21.4",
-        "discord.js": "12.3.0",
+        "discord.js": "^14.12.1",
         "dotenv": "16.2.0",
         "fs-extra": "^11.1.1",
         "git-clone": "^0.2.0",
