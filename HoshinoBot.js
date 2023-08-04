@@ -1915,10 +1915,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4))
 					const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
 					interaction.reply("クイズを開始します。問題は10問です。")
-					interaction.channel.send(`問題1のBGを表示します。`)
-					const response = await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' });
-					const BGdata = response.data;
-					interaction.channel.send({ files: [{ attachment: BGdata, name: 'audio.jpg' }] });
+					interaction.channel.send(`問題1のプレビューを再生します。`)
+					const response = await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' });
+					const audioData = response.data;
+					interaction.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] })
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンドの処理中になんらかのエラーが発生しました。")
@@ -1970,10 +1970,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4))
 					const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
 					interaction.reply("クイズを開始します。問題は10問です。")
-					interaction.channel.send(`問題1のBGを表示します。`)
-					const response = await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' });
-					const BGdata = response.data;
-					interaction.channel.send({ files: [{ attachment: BGdata, name: 'audio.jpg' }] });
+					interaction.channel.send(`問題1のプレビューを再生します。`)
+					const response = await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' });
+					const audioData = response.data;
+					interaction.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] })
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンドの処理中になんらかのエラーが発生しました。")
