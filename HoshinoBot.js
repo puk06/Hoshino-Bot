@@ -2227,7 +2227,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//メッセージからリポジトリ名を取得
 					const reponame = interaction.options.get('repository').value;
 
-					interaction.reply("LOCの計算中です。")
+					interaction.reply("LOCの計算中です...")
 					let error = false;
 					let locdata = await axios.get(`https://api.codetabs.com/v1/loc?github=${username}/${reponame}`).catch(()=> {
 						error = true;
@@ -2251,10 +2251,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 							totalLOC = element.linesOfCode
 						}
 					}
-					interaction.reply(`リポジトリ: **${username}/${reponame}**\nファイル数: **${totalfilecount}**\n総行数: **${totalline}**\n空白行数: **${totalblanks}**\nコメント行数: **${comments}**\n---------------\nコード行数: **${totalLOC}**`)
+					interaction.channel.send(`リポジトリ: **${username}/${reponame}**\nファイル数: **${totalfilecount}**\n総行数: **${totalline}**\n空白行数: **${totalblanks}**\nコメント行数: **${comments}**\n---------------\nコード行数: **${totalLOC}**`)
 				} catch(e) {
 					console.log(e)
-					interaction.reply("コマンド処理中になんらかのエラーが発生しました。")
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。")
 					return
 				}
 			}
