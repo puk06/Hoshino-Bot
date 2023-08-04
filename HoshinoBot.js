@@ -2802,7 +2802,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
 					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** + ${modforresult.join("")}`, inline: true })
-					.addFields({ name: "`Score`", value: recentplay.score, inline: true })
+					.addFields({ name: "`Score`", value: `${recentplay.score}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
 					.addFields({ name: "`Combo`", value: `${recentplay.maxcombo}x / ${GetMapInfo.combo}x`, inline: true })
@@ -2824,7 +2824,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
 								.addFields({ name: "`Result`", value: `**${recentplay.rank}** + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
-								sentMessage.edit({ enbeds: [embednew] })
+								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
 					}
@@ -2959,7 +2959,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
 					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, inline: true })
-					.addFields({ name: "`Score`", value: recentplay.score, inline: true })
+					.addFields({ name: "`Score`", value: `${recentplay.score}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
 					.addFields({ name: "`Combo`", value: `${recentplay.maxcombo}x / ${GetMapInfo.combo}x`, inline: true })
@@ -2981,7 +2981,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
 								.addFields({ name: "`Result`", value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${parseFloat(recentpp.ppwithacc).toFixed(2)}** / ${iffcpp.SSPP} [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]  {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
-								sentMessage.edit({ enbeds: [embednew] })
+								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
 					}
@@ -3121,7 +3121,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
 					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, inline: true })
-					.addFields({ name: "`Score`", value: recentplay.score, inline: true })
+					.addFields({ name: "`Score`", value: `${recentplay.score}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
 					.addFields({ name: "`Combo`", value: `${recentplay.maxcombo}x / ${GetMapInfo.combo}x`, inline: true })
@@ -3143,7 +3143,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
 								.addFields({ name: "`Result`", value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
-								sentMessage.edit({ enbeds: [embednew] })
+								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
 					}
@@ -3287,7 +3287,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
 					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, inline: true })
-					.addFields({ name: "`Score`", value: recentplay.score, inline: true })
+					.addFields({ name: "`Score`", value: `${recentplay.score}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
 					.addFields({ name: "`Combo`", value: `${recentplay.maxcombo}x / ${GetMapInfo.combo}x`,inline: true })
@@ -3309,7 +3309,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
 								.addFields({ name: "`Result`", value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult}**  **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
-								sentMessage.edit({ enbeds: [embednew] })
+								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
 					}
@@ -3539,7 +3539,7 @@ client.on(Events.MessageCreate, async (message) =>
 				//メッセージを送信
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
-					.setAuthor({ text: `${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, iconURL: mapperdata.iconurl, url: message.content })
+					.setAuthor({ name: `${mapdata.artist} - ${mapdata.title} by ${mapdata.mapper}`, iconURL: mapperdata.iconurl, url: message.content })
 					.setDescription(`**Length**: ${mapdata.lengthmin}:${lengthsec} **BPM**: ${mapdata.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapdata.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapdata.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapdata.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapdata.beatmapset_id})`)
 					.addFields({ name: `**[__${mapdata.version}__]**`, value: `▸**Difficulty:**  ${sr.sr}★ ▸**Max Combo:** ${mapdata.combo}x\n▸**OD:** ${mapdata.od} ▸**CS:** ${mapdata.cs} ▸**AR:** ${mapdata.ar} ▸**HP:** ${mapdata.hp}\n▸**PP:** ○ **95**%-${sr.S5} ○ **99**%-${sr.S2} ○ **100**%-${sr.S0}`, inline: false })
 					.setTimestamp()
