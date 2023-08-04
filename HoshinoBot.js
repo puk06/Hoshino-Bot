@@ -2007,6 +2007,61 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				}
 			}
 
+			if (interaction.commandName == "osusearch") {
+				try {
+					interaction.reply("検索中です...")
+					await auth.login(osuclientid, osuclientsecret);
+					const searchdata = {
+						query: interaction.options.get('query').value,
+						mode: interaction.options.get('mode').value,
+					}
+					const seracheddata = await v2.beatmap.search(searchdata)
+					let data = JSON.parse("[]");
+					if (seracheddata.beatmapsets.length == 0) {
+						interaction.channel.send("検索結果が見つかりませんでした。")
+						return
+					}
+					let embed = new EmbedBuilder()
+						.setColor("Blue")
+						.setTitle(`検索結果: ${searchdata.query}`)
+						.setImage(`https://assets.ppy.sh/beatmaps/${seracheddata.beatmapsets[0].beatmaps[0].beatmapset_id}/covers/cover.jpg`)
+						.setTimestamp()
+					for (let i = 0; i < Math.min(seracheddata.beatmapsets.length, 5); i++) {
+						let array = seracheddata.beatmapsets[i].beatmaps;
+						array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+						const maxRatingObj = array[array.length - 1];
+						const minRatingObj = array[0];
+						let maxsrobj = maxRatingObj.id;
+						let minsrobj = minRatingObj.id;
+						const maxsr = await calculateSR(maxsrobj, 0, interaction.options.get('mode').value);
+						const minsr = await calculateSR(minsrobj, 0, interaction.options.get('mode').value);
+						const maxppDT = await calculateSR(maxsrobj, 64, interaction.options.get('mode').value);
+						const minppDT = await calculateSR(minsrobj, 64, interaction.options.get('mode').value);
+
+						let srstring = "";
+						if (maxsr.sr == minsr.sr) {
+							srstring = `SR: ☆**${maxsr.sr.toFixed(2)}** (☆**${maxppDT.sr.toFixed(2)}**)`
+						} else {
+							srstring = `SR: ☆**${minsr.sr.toFixed(2)} ~ ${maxsr.sr.toFixed(2)}** (DT ☆**${minppDT.sr.toFixed(2)} ~ ${maxppDT.sr.toFixed(2)}**)`
+						}
+
+						let ppstring = "";
+						if (maxsr.S0 == minsr.S0) {
+							ppstring = `PP: **${maxsr.S0.toFixed(2)}**pp (DT **${maxppDT.S0.toFixed(2)}**pp)`
+						} else {
+							ppstring = `PP: **${minsr.S0.toFixed(2)} ~ ${maxsr.S0.toFixed(2)}**pp (DT **${minppDT.S0.toFixed(2)} ~ ${maxppDT.S0.toFixed(2)}**pp)`
+						}
+						data.push({ name: `${i + 1}. ${seracheddata.beatmapsets[i].title} - ${seracheddata.beatmapsets[i].artist}`, value: `Mapped by **${seracheddata.beatmapsets[i].creator}**\n${srstring}\n${ppstring}\n[BeatmapLink](https://osu.ppy.sh/beatmapsets/${seracheddata.beatmapsets[i].id})` })
+					}
+					embed.addFields(data)
+					interaction.channel.send({ embeds: [embed] })
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
 			if (interaction.commandName == "slayer") {
 				try {
 					//メッセージからユーザー名を取得
