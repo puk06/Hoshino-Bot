@@ -406,7 +406,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			if (interaction.commandName == "amount") {
 				try {
 					//amountをメッセージから取得
-					const amount = interaction.options.get('amount').value;
+					const amount = interaction.options.get('amount').value.toString();
 
 					//amountの結果を送信
 					interaction.reply(toJPUnit(amount));
