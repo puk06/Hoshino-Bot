@@ -2459,6 +2459,18 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					return
 				}
 			}
+
+			if (interaction.commandName == "echo") {
+				try {
+					const message = interaction.options.get('message').value;
+					interaction.reply({ content: '送信しますね！', ephemeral: true })
+					interaction.channel.send(message)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
 		} catch(e) {
 			console.log(e)
 			return
