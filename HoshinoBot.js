@@ -406,7 +406,11 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			if (interaction.commandName == "amount") {
 				try {
 					//amountをメッセージから取得
-					const amount = interaction.options.get('amount').value.toString();
+					const amount = interaction.options.get('amount').value;
+					if (!(/^[0-9]+$/.test(amount))) {
+						interaction.reply("数字のみ入力するようにしてください。")
+						return
+					}
 
 					//amountの結果を送信
 					interaction.reply(toJPUnit(amount));
