@@ -1,5 +1,5 @@
 //必要となるライブラリ
-const { Client, EmbedBuilder, Events, GatewayIntentBits } = require("./node_modules/discord.js");
+const { Client, EmbedBuilder, Events, GatewayIntentBits, ActivityType } = require("./node_modules/discord.js");
 require('./node_modules/dotenv').config();
 const fs = require("fs-extra");
 const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
@@ -45,16 +45,18 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 //BOTが準備完了したら実行
 client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
-    client.user.setActivity('ほしのBot V1.0.0', { type: 'PLAYING' })
-	setInterval(checkqualfiedosu, 60000);
-	setInterval(checkqualfiedtaiko, 60000);
-	setInterval(checkqualfiedcatch, 60000);
-	setInterval(checkqualfiedmania, 60000);
-	setInterval(checkrankedosu, 60000);
-	setInterval(checkrankedtaiko, 60000);
-	setInterval(checkrankedcatch, 60000);
-	setInterval(checkrankedmania, 60000);
-	setInterval(makeBackup, 3600000);
+	setInterval(() => {
+		client.user.setPresence({ activities: [{ name: `ほしのBot Ver1.0.0 ping: ${client.ws.ping}`, type: ActivityType.Playing }]})
+	}, 5000)
+	setInterval(checkqualfiedosu, 30000)
+	setInterval(checkqualfiedtaiko, 30000)
+	setInterval(checkqualfiedcatch, 30000)
+	setInterval(checkqualfiedmania, 30000)
+	setInterval(checkrankedosu, 30000)
+	setInterval(checkrankedtaiko, 30000)
+	setInterval(checkrankedcatch, 30000)
+	setInterval(checkrankedmania, 30000)
+	setInterval(makeBackup, 3600000)
 });
 
 //カジノの絵文字
