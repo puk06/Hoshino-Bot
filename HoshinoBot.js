@@ -1286,6 +1286,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					if (mods.includes('NC')) {
 						mods.push('DT')
 					}
+					
 					if (mods.includes("NC") || mods.includes("DT")) {
 						BPM *= 1.5
 					} else if (mods.includes("HT")) {
@@ -1309,88 +1310,19 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 	
 					//メッセージ内容を作成、送信
-					let acc0;
-					let acc1;
-					let acc2;
-					let acc3;
-					let acc4;
-					if (resulttop5.length == 5) {
-						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
-						acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
-						acc3 = tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode))
-						acc4 = tools.accuracy({300: resulttop5[4].count300, 100: resulttop5[4].count100, 50: resulttop5[4].count50, 0: resulttop5[4].countmiss, geki:  resulttop5[4].countgeki, katu: resulttop5[4].countkatu}, modeconvert(Mapinfo.mode))
-							const embed = new EmbedBuilder()
-								.setColor("Blue")
-								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-								.setURL(maplink)
-								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
-								.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
-								.addFields({ name: "\`#2\`", value: `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`, inline: false })
-								.addFields({ name: "\`#3\`", value: `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`, inline: false })
-								.addFields({ name: "\`#4\`", value: `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`, inline: false })
-								.addFields({ name: "\`#5\`", value: `**Rank**: \`${resulttop5[4].rank}\` **Player**: \`${resulttop5[4].username}\` **Score**: ${resulttop5[4].score} \n [\`${resulttop5[4].maxcombo}\`combo] \`${acc4}\`% \`${resulttop5[4].pp}\`pp miss:${resulttop5[4].countmiss}`, inline: false })
-								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-							interaction.channel.send({ embeds: [embed] })
-						return
-					} else if (resulttop5.length == 4) {
-						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
-						acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
-						acc3 = tools.accuracy({300: resulttop5[3].count300, 100: resulttop5[3].count100, 50: resulttop5[3].count50, 0: resulttop5[3].countmiss, geki:  resulttop5[3].countgeki, katu: resulttop5[3].countkatu}, modeconvert(Mapinfo.mode))
-							const embed = new EmbedBuilder()
-								.setColor("Blue")
-								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-								.setURL(maplink)
-								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })
-								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
-								.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
-								.addFields({ name: "\`#2\`", value: `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`, inline: false })
-								.addFields({ name: "\`#3\`", value: `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`, inline: false })
-								.addFields({ name: "\`#4\`", value: `**Rank**: \`${resulttop5[3].rank}\` **Player**: \`${resulttop5[3].username}\` **Score**: ${resulttop5[3].score} \n [\`${resulttop5[3].maxcombo}\`combo] \`${acc3}\`% \`${resulttop5[3].pp}\`pp miss:${resulttop5[3].countmiss}`, inline: false })
-								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-						interaction.channel.send({ embeds: [embed] })
-						return
-					} else if (resulttop5.length == 3) {
-						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
-						acc2 = tools.accuracy({300: resulttop5[2].count300, 100: resulttop5[2].count100, 50: resulttop5[2].count50, 0: resulttop5[2].countmiss, geki:  resulttop5[2].countgeki, katu: resulttop5[2].countkatu}, modeconvert(Mapinfo.mode))
-							const embed = new EmbedBuilder()
-								.setColor("Blue")
-								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-								.setURL(maplink)
-								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
-								.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
-								.addFields({ name: "\`#2\`", value: `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`, inline: false })
-								.addFields({ name: "\`#3\`", value: `**Rank**: \`${resulttop5[2].rank}\` **Player**: \`${resulttop5[2].username}\` **Score**: ${resulttop5[2].score} \n [\`${resulttop5[2].maxcombo}\`combo] \`${acc2}\`% \`${resulttop5[2].pp}\`pp miss:${resulttop5[2].countmiss}`, inline: false })
-								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-						interaction.channel.send({ embeds: [embed] })
-						return
-					} else if (resulttop5.length == 2) {
-						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-						acc1 = tools.accuracy({300: resulttop5[1].count300, 100: resulttop5[1].count100, 50: resulttop5[1].count50, 0: resulttop5[1].countmiss, geki:  resulttop5[1].countgeki, katu: resulttop5[1].countkatu}, modeconvert(Mapinfo.mode))
-							const embed = new EmbedBuilder()
-								.setColor("Blue")
-								.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-								.setURL(maplink)
-								.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
-								.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
-								.addFields({ name: "\`#2\`", value: `**Rank**: \`${resulttop5[1].rank}\` **Player**: \`${resulttop5[1].username}\` **Score**: ${resulttop5[1].score} \n [\`${resulttop5[1].maxcombo}\`combo] \`${acc1}\`% \`${resulttop5[1].pp}\`pp miss:${resulttop5[1].countmiss}`, inline: false })
-								.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-							interaction.channel.send({ embeds: [embed] })
-						return
-					} else {
-						acc0 = tools.accuracy({300: resulttop5[0].count300, 100: resulttop5[0].count100, 50: resulttop5[0].count50, 0: resulttop5[0].countmiss, geki:  resulttop5[0].countgeki, katu: resulttop5[0].countkatu}, modeconvert(Mapinfo.mode))
-						const embed = new EmbedBuilder()
-							.setColor("Blue")
-							.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-							.setURL(maplink)
-							.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })							.addFields("**MapInfo**", `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, true)
-							.addFields({ name: "\`#1\`", value: `**Rank**: \`${resulttop5[0].rank}\` **Player**: \`${resulttop5[0].username}\` **Score**: ${resulttop5[0].score} \n [\`${resulttop5[0].maxcombo}\`combo] \`${acc0}\`% \`${resulttop5[0].pp}\`pp miss:${resulttop5[0].countmiss}`, inline: false })
-							.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
-						interaction.channel.send({ embeds: [embed] })
-						return
+					const embed = new EmbedBuilder()
+						.setColor("Blue")
+						.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
+						.setURL(maplink)
+						.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
+						.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
+					const rankingdata = JSON.parse("[]")
+					for (let i = 0; i < Math.min(resulttop5.length, 5); i++) {
+						const acc = tools.accuracy({300: resulttop5[i].count300, 100: resulttop5[i].count100, 50: resulttop5[i].count50, 0: resulttop5[i].countmiss, geki:  resulttop5[i].countgeki, katu: resulttop5[i].countkatu}, modeconvert(Mapinfo.mode));
+						rankingdata.push({ name: `\`#${i + 1}\``, value: `**Rank**: \`${resulttop5[i].rank}\` **Player**: \`${resulttop5[i].username}\` **Score**: ${resulttop5[i].score} \n [\`${resulttop5[i].maxcombo}\`combo] \`${acc}\`% \`${resulttop5[i].pp}\`pp miss:${resulttop5[i].countmiss}`, inline: false });
 					}
+					embed.addFields(rankingdata)
+					interaction.channel.send({ embeds: [embed] })
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
