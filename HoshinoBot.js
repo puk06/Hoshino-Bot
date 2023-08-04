@@ -409,7 +409,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const amount = interaction.options.get('amount').value;
 
 					//amountの結果を送信
-					interaction.reply(`${toJPUnit(amount)}`);
+					interaction.reply(toJPUnit(amount));
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
@@ -1174,7 +1174,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	
 						//ModsにNCが入っていたときにDTに置き換える処理
 						if (mods.includes("NC")) {
-							let modsnotDT = Mods.filter((item) => /NC/.exec(item) == null)
+							let modsnotDT = mods.filter((item) => /NC/.exec(item) == null)
 							modsnotDT.push("DT")
 							modsforcalc = parseModString(modsnotDT);
 						} else {
