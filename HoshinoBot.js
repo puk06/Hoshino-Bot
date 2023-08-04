@@ -5290,8 +5290,19 @@ function timeconvert(totallength) {
 }
 
 function matchPercentage(current, total) {
-	const data = total.replace(current, "")
-    return (total.length - data.length) / total.length * 100
+	let data = [current.split('').map((_, index) => current.slice(0, index + 1))];
+	for (let i = 0; i < current.length; i++) {
+		data.push(current.slice(i));
+	}
+	data = data.flat().filter((x, i, self) => self.indexOf(x) === i);
+	let matchPercentage = 0;
+	for (const element of data) {
+		const matchdata = total.replace(element, "")
+		if ((total.length - matchdata.length) / total.length * 100 >= matchPercentage) {
+			matchPercentage = (total.length - matchdata.length) / total.length * 100;
+		}
+	}
+	return matchPercentage
 }
 
 //discord bot login
