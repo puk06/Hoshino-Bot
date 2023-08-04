@@ -407,10 +407,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//amountをメッセージから取得
 					const amount = interaction.options.get('amount').value;
-					if (!(/^[0-9]+$/.test(amount))) {
-						interaction.reply("数字のみ入力するようにしてください。")
-						return
-					}
+					console.log(amount)
 
 					//amountの結果を送信
 					interaction.reply(toJPUnit(amount));
@@ -425,7 +422,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//regを打ったユーザーが登録されているかどうかの確認
 					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
-					if (truefalseuser) {
+					if(truefalseuser) {
 						interaction.reply("あなたはもう既にこのカジノに登録されています。")
 						return
 					}
@@ -446,7 +443,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const sentusername = interaction.options.get('username').value;
 	
 					//送り先のユーザー名が自分自身の場合の処理
-					if (sentusername == interaction.user.username) {
+					if(sentusername == interaction.user.username){
 						interaction.reply("自分自身に送ることは許されていません！")
 						return
 					}
@@ -525,10 +522,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//ルーレットの結果を生成
 					const num = Math.floor(Math.random() * 2);
-					if (num == 0) {
+					if(num == 0){
 						interaction.reply("ルーレットの結果: **赤**")
 						return
-					} else if (num == 1) {
+					}else if(num == 1){
 						interaction.reply("ルーレットの結果: **黒**")
 						return
 					}
@@ -1357,6 +1354,26 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				}
 			}
 
+			if (interaction.commandName == "qfmention") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const userid = interaction.user.id
+					const alluser = fs.readFileSync(`./mentionuser/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
+					if (alluser.includes(userid)) {
+						interaction.reply("あなたは既にQualfied、Rankedチェックチャンネルのメンションを受け取るようになっています。")
+						return
+					}
+					fs.appendFile(`./mentionuser/${mode}/user.txt`, `${userid} `, function (err) {
+						if (err) throw err
+					})
+					interaction.reply(`今度から${mode}でQualfied、Rankedが検出されたらこのチャンネルにメンションが飛ぶようになりました。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
 			if (interaction.commandName == "deqf") {
 				try {
 					const mode = interaction.options.get('mode').value
@@ -1378,6 +1395,28 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					return
 				}
 			}
+
+			if (interaction.commandName == "deqfmention") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const userid = interaction.user.id
+					const alluser = fs.readFileSync(`./mentionuser/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
+					if (alluser.includes(userid)) {
+						const currentuser = fs.readFileSync(`./mentionuser/${mode}/user.txt`, "utf-8")
+						const newuser = currentuser.replace(`${userid} `, "")
+						fs.writeFileSync(`./mentionuser/${mode}/user.txt`, newuser)
+					} else {
+						interaction.reply("あなたは既にQualfied、Rankedチェックチャンネルのメンションを受け取るようになっていません。")
+						return
+					}
+					interaction.reply(`今度から${mode}でQualfied、Rankedが検出されても、このチャンネルにメンションが飛ばないようになりました。`)
+				} catch (e){
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
 
 			if (interaction.commandName == "bg") {
 				try {
@@ -2388,7 +2427,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						const sourceDir = './updatetemp';
 						const destinationDir = './';
 						const excludedFiles = ['(dotenv).env'];
-						const excludedFolders = ['quotetag', 'OsuPreviewquiz', 'Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
+						const excludedFolders = ['quotetag', 'mentionuser', 'OsuPreviewquiz', 'Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
 	
 						fs.readdir(sourceDir, (err, files) => {
 							interaction.channel.send("ディリクトリを読み込んでいます。")
@@ -4444,9 +4483,16 @@ async function checkqualfiedosu() {
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
 			.addFields({ name: "`Qualfied 日時`", value: `**${dateString}**`, inline: true })
 			.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true })
+
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
-			if (client.channels.cache.get(element) == undefined) continue;
+			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			let mentionstring = "";
+			for (const user of fs.readFileSync(`./mentionuser/osu/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				mentionstring += `<@${user}> `
+			}
+			client.channels.cache.get(element).send(mentionstring);
 		}
 	} catch(e) {
 		console.log(e)
@@ -4571,9 +4617,16 @@ async function checkqualfiedtaiko() {
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
 			.addFields({ name: "`Qualfied 日時`", value: `**${dateString}**`, inline: true })
 			.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true })
+
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
-			if (client.channels.cache.get(element) == undefined) continue;
+			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			let mentionstring = "";
+			for (const user of fs.readFileSync(`./mentionuser/taiko/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				mentionstring += `<@${user}> `
+			}
+			client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のQualfied譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -4699,8 +4752,14 @@ async function checkqualfiedcatch() {
 			.addFields({ name: "`Qualfied 日時`", value: `**${dateString}**`, inline: true })
 			.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
-			if (client.channels.cache.get(element) == undefined) continue;
+			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			let mentionstring = "";
+			for (const user of fs.readFileSync(`./mentionuser/catch/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				mentionstring += `<@${user}> `
+			}
+			client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのQualfied譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -4826,8 +4885,14 @@ async function checkqualfiedmania() {
 			.addFields({ name: "`Qualfied 日時`", value: `**${dateString}**`, inline: true })
 			.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
-			if (client.channels.cache.get(element) == undefined) continue;
+			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			let mentionstring = "";
+			for (const user of fs.readFileSync(`./mentionuser/mania/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				mentionstring += `<@${user}> `
+			}
+			client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのQualfied譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -4944,8 +5009,14 @@ async function checkrankedosu() {
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
 			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
-			if (client.channels.cache.get(element) == undefined) continue;
+			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			let mentionstring = "";
+			for (const user of fs.readFileSync(`./mentionuser/osu/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				mentionstring += `<@${user}> `
+			}
+			client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのQualfied譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -5060,8 +5131,14 @@ async function checkrankedtaiko() {
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
 			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
-			if (client.channels.cache.get(element) == undefined) continue;
+			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			let mentionstring = "";
+			for (const user of fs.readFileSync(`./mentionuser/taiko/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				mentionstring += `<@${user}> `
+			}
+			client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのRanked譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -5176,8 +5253,14 @@ async function checkrankedcatch() {
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
 			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
-			if (client.channels.cache.get(element) == undefined) continue;
+			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			let mentionstring = "";
+			for (const user of fs.readFileSync(`./mentionuser/catch/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				mentionstring += `<@${user}> `
+			}
+			client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのRanked譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -5292,8 +5375,14 @@ async function checkrankedmania() {
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
 			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
-			if (client.channels.cache.get(element) == undefined) continue;
+			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			let mentionstring = "";
+			for (const user of fs.readFileSync(`./mentionuser/mania/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				mentionstring += `<@${user}> `
+			}
+			client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのRanked譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
