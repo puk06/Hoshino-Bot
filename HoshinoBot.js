@@ -1321,7 +1321,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const rankingdata = JSON.parse("[]")
 					for (let i = 0; i < Math.min(resulttop5.length, 5); i++) {
 						const acc = tools.accuracy({300: resulttop5[i].count300, 100: resulttop5[i].count100, 50: resulttop5[i].count50, 0: resulttop5[i].countmiss, geki:  resulttop5[i].countgeki, katu: resulttop5[i].countkatu}, modeconvert(Mapinfo.mode));
-						const pp = await calculateSRwithacc(beatmapid, parseModString(mods), modeconvert, acc, resulttop5[0].countmiss, resulttop5[i].maxcombo);
+						const pp = await calculateSRwithacc(beatmapid, parseModString(mods), modeconvert(Mapinfo.mode), acc, resulttop5[0].countmiss, resulttop5[i].maxcombo);
 						rankingdata.push({ name: `\`#${i + 1}\``, value: `**Rank**: \`${resulttop5[i].rank}\` **Player**: \`${resulttop5[i].username}\` **Score**: ${resulttop5[i].score} \n [\`${resulttop5[i].maxcombo}\`combo] \`${acc}\`% \`${pp.toFixed(2)}\`pp miss:${resulttop5[i].countmiss}`, inline: false });
 					}
 					embed.addFields(rankingdata)
