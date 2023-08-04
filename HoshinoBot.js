@@ -2222,10 +2222,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			if (interaction.commandName == "loc") {
 				try {
 					//メッセージからユーザー名を取得
-					const username = interaction.options.get('Username').value;
+					const username = interaction.options.get('username').value;
 	
 					//メッセージからリポジトリ名を取得
-					const reponame = interaction.options.get('Repository').value;
+					const reponame = interaction.options.get('repository').value;
 
 					interaction.reply("LOCの計算中です。")
 					let error = false;
