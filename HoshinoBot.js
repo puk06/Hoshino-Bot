@@ -4222,7 +4222,7 @@ function generateSlotResult() {
 		const randomIndex = Math.floor(Math.random() * symbols.length)
 		result.push(symbols[randomIndex])
 	}
-	return result;
+	return result
 }
 
 function evaluateSlotResult(result) {
@@ -4279,17 +4279,17 @@ function checkStrings(array) {
 
 function findDifferentElements(array1, array2) {
 	if (array1.length > array2.length) {
-		return null;
+		return null
 	}
 	if (array1.toString() == array2.toString()) {
-		return null;
+		return null
 	}
 	for (let i = 0; i < array1.length; i++) {
 		if (array1[i] !== array2[i]) {
-			return array2[i];
+			return array2[i]
 		}
 	}
-	return null;
+	return null
 }
 
 //Qualfiedチェックをする関数(全mode対応)
@@ -4397,18 +4397,18 @@ async function checkqualfiedosu() {
 		//メッセージの送信
 		const embed = new EmbedBuilder()
 			.setColor("Blue")
-			.setAuthor(`🎉New Qualfied Osu Map🎉`)
+			.setAuthor({ name: `🎉New Qualfied Osu Map🎉` })
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addFields("`SR`", `**${srstring}**`, false)
-			.addFields("`PP`", `**${ppstring}**`, false)
-			.addFields("`Qualfied 日時`",`**${dateString}**`, true)
-			.addFields("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
+			.addFields({ name: "`Qualfied 日時`", value: `**${dateString}**`, inline: true })
+			.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			client.channels.cache.get(element).send(embed);
+			client.channels.cache.get(element).send({ embeds: [embed] });
 		}
 	} catch(e) {
 		console.log(e)
@@ -4521,18 +4521,18 @@ async function checkqualfiedtaiko() {
 		//メッセージの送信
 		const embed = new EmbedBuilder()
 			.setColor("Blue")
-			.setAuthor(`🎉New Qualfied Taiko Map🎉`)
+			.setAuthor({ name: `🎉New Qualfied Taiko Map🎉` })
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addFields("`SR`", `**${srstring}**`, false)
-			.addFields("`PP`", `**${ppstring}**`, false)
-			.addFields("`Qualfied 日時`",`**${dateString}**`, true)
-			.addFields("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
+			.addFields({ name: "`Qualfied 日時`", value: `**${dateString}**`, inline: true })
+			.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			client.channels.cache.get(element).send(embed);
+			client.channels.cache.get(element).send({ embeds: [embed] });
 		}
 	} catch(e) {
 		console.log(e)
@@ -4645,18 +4645,18 @@ async function checkqualfiedcatch() {
 		//メッセージの送信
 		const embed = new EmbedBuilder()
 			.setColor("Blue")
-			.setAuthor(`🎉New Qualfied Catch Map🎉`)
+			.setAuthor({ name: `🎉New Qualfied Catch Map🎉` })
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addFields("`SR`", `**${srstring}**`, false)
-			.addFields("`PP`", `**${ppstring}**`, false)
-			.addFields("`Qualfied 日時`",`**${dateString}**`, true)
-			.addFields("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
+			.addFields({ name: "`Qualfied 日時`", value: `**${dateString}**`, inline: true })
+			.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			client.channels.cache.get(element).send(embed);
+			client.channels.cache.get(element).send({ embeds: [embed] });
 		}
 	} catch(e) {
 		console.log(e)
@@ -4769,18 +4769,18 @@ async function checkqualfiedmania() {
 		//メッセージの送信
 		const embed = new EmbedBuilder()
 			.setColor("Blue")
-			.setAuthor(`🎉New Qualfied Mania Map🎉`)
+			.setAuthor({ name: `🎉New Qualfied Mania Map🎉` })
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addFields("`SR`", `**${srstring}**`, false)
-			.addFields("`PP`", `**${ppstring}**`, false)
-			.addFields("`Qualfied 日時`",`**${dateString}**`, true)
-			.addFields("`Ranked 日時(予測)`",`**${rankeddateString}**`, true)
+			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
+			.addFields({ name: "`Qualfied 日時`", value: `**${dateString}**`, inline: true })
+			.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			client.channels.cache.get(element).send(embed);
+			client.channels.cache.get(element).send({ embeds: [embed] });
 		}
 	} catch(e) {
 		console.log(e)
@@ -4885,17 +4885,17 @@ async function checkrankedosu() {
 		//メッセージの送信
 		const embed = new EmbedBuilder()
 			.setColor("Yellow")
-			.setAuthor(`🎉New Ranked Osu Map🎉`)
+			.setAuthor({ name: `🎉New Ranked Osu Map🎉` })
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addFields("`SR`", `**${srstring}**`, false)
-			.addFields("`PP`", `**${ppstring}**`, false)
-			.addFields("`Ranked 日時`",`**${dateString}**`, true)
+			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			client.channels.cache.get(element).send(embed);
+			client.channels.cache.get(element).send({ embeds: [embed] });
 		}
 	} catch(e) {
 		console.log(e)
@@ -4997,18 +4997,18 @@ async function checkrankedtaiko() {
 
 		//メッセージの送信
 		const embed = new EmbedBuilder()
-			.setColor("YELLOW")
-			.setAuthor(`🎉New Ranked Taiko Map🎉`)
+			.setColor("Yellow")
+			.setAuthor({ name: `🎉New Ranked Taiko Map🎉` })
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addFields("`SR`", `**${srstring}**`, false)
-			.addFields("`PP`", `**${ppstring}**`, false)
-			.addFields("`Ranked 日時`",`**${dateString}**`, true)
+			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			client.channels.cache.get(element).send(embed);
+			client.channels.cache.get(element).send({ embeds: [embed] });
 		}
 	} catch(e) {
 		console.log(e)
@@ -5110,18 +5110,18 @@ async function checkrankedcatch() {
 
 		//メッセージの送信
 		const embed = new EmbedBuilder()
-			.setColor("YELLOW")
-			.setAuthor(`🎉New Ranked Catch Map🎉`)
+			.setColor("Yellow")
+			.setAuthor({ name: `🎉New Ranked Catch Map🎉` })
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addFields("`SR`", `**${srstring}**`, false)
-			.addFields("`PP`", `**${ppstring}**`, false)
-			.addFields("`Ranked 日時`",`**${dateString}**`, true)
+			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			client.channels.cache.get(element).send(embed);
+			client.channels.cache.get(element).send({ embeds: [embed] });
 		}
 	} catch(e) {
 		console.log(e)
@@ -5223,18 +5223,18 @@ async function checkrankedmania() {
 
 		//メッセージの送信
 		const embed = new EmbedBuilder()
-			.setColor("YELLOW")
-			.setAuthor(`🎉New Ranked Mania Map🎉`)
+			.setColor("Yellow")
+			.setAuthor({ name: `🎉New Ranked Mania Map🎉` })
 			.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
 			.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 			.setURL(GetMapInfo.maplink)
-			.addFields("`Mapinfo`", `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, true)
-			.addFields("`SR`", `**${srstring}**`, false)
-			.addFields("`PP`", `**${ppstring}**`, false)
-			.addFields("`Ranked 日時`",`**${dateString}**`, true)
+			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache.get(element) == undefined) continue;
-			client.channels.cache.get(element).send(embed);
+			client.channels.cache.get(element).send({ embeds: [embed] });
 		}
 	} catch(e) {
 		console.log(e)
@@ -5244,10 +5244,10 @@ async function checkrankedmania() {
 
 //プログレスバー作成関数
 function createProgressBar(percent) {
-	const progress = parseInt((20 * percent / 100).toFixed(0))
-	const emptyProgress = parseInt((20 * (100 - percent) / 100).toFixed(0))
-	const progressText = "#".repeat(progress)
-	const emptyProgressText = "-".repeat(emptyProgress)
+	const progress = parseInt((20 * percent / 100).toFixed(0));
+	const emptyProgress = parseInt((20 * (100 - percent) / 100).toFixed(0));
+	const progressText = "#".repeat(progress);
+	const emptyProgressText = "-".repeat(emptyProgress);
 	return `[${progressText}${emptyProgressText}]`
 }
 
@@ -5260,18 +5260,18 @@ async function makeBackup() {
 	const hours = now.getHours();
 	const minutes = now.getMinutes();
 	const dateString = `${year}-${month}-${day} ${hours} ${minutes}`;
-	await fs.mkdir(`./Backups/${dateString}`);
-	await fs.mkdir(`./Backups/${dateString}/Player infomation`);
-	await fs.mkdir(`./Backups/${dateString}/MapcheckChannels`);
-	await fs.mkdir(`./Backups/${dateString}/BeatmapLinkChannels`);
-	await fs.mkdir(`./Backups/${dateString}/Player Bank`);
-	await fs.mkdir(`./Backups/${dateString}/tag`);
-	await fs.copy(`./Player infomation`, `./Backups/${dateString}/Player infomation`);
-	await fs.copy(`./MapcheckChannels`, `./Backups/${dateString}/MapcheckChannels`);
-	await fs.copy(`./BeatmapLinkChannels`, `./Backups/${dateString}/BeatmapLinkChannels`);
-	await fs.copy(`./Player Bank`, `./Backups/${dateString}/Player Bank`);
-	await fs.copy(`./tag`, `./Backups/${dateString}/tag`);
-	await fs.copy(`./quotetag`, `./Backups/${dateString}/quotetag`);
+	await fs.mkdir(`./Backups/${dateString}`)
+	await fs.mkdir(`./Backups/${dateString}/Player infomation`)
+	await fs.mkdir(`./Backups/${dateString}/MapcheckChannels`)
+	await fs.mkdir(`./Backups/${dateString}/BeatmapLinkChannels`)
+	await fs.mkdir(`./Backups/${dateString}/Player Bank`)
+	await fs.mkdir(`./Backups/${dateString}/tag`)
+	await fs.copy(`./Player infomation`, `./Backups/${dateString}/Player infomation`)
+	await fs.copy(`./MapcheckChannels`, `./Backups/${dateString}/MapcheckChannels`)
+	await fs.copy(`./BeatmapLinkChannels`, `./Backups/${dateString}/BeatmapLinkChannels`)
+	await fs.copy(`./Player Bank`, `./Backups/${dateString}/Player Bank`)
+	await fs.copy(`./tag`, `./Backups/${dateString}/tag`)
+	await fs.copy(`./quotetag`, `./Backups/${dateString}/quotetag`)
 }
 
 //時間を分と秒に変換する関数
