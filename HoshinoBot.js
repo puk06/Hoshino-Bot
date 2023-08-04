@@ -4347,6 +4347,9 @@ async function checkqualfiedosu() {
 		//現在のQualfiedのIDを取得(ローカルファイルから１分前の物を取得)
 		const currentQFlistfile = fs.readFileSync(`./QualfiedBeatmaps/osu.txt`, 'utf8');
 		const currentQFlistarray = currentQFlistfile.split(",");
+		for (let i = 0; i < currentQFlistarray.length; i++) {
+			currentQFlistarray[i] = Number(currentQFlistarray[i])
+		}
 
 		//先程の検索結果と現在のQualfiedのIDを比較し、違う物を取得
 		const differentQF = findDifferentElements(currentQFlistarray, qfarray);
@@ -4470,6 +4473,9 @@ async function checkqualfiedtaiko() {
 		//現在のQualfiedのIDを取得(ローカルファイルから１分前の物を取得)
 		const currentQFlistfile = fs.readFileSync(`./QualfiedBeatmaps/taiko.txt`, 'utf8');
 		const currentQFlistarray = currentQFlistfile.split(",");
+		for (let i = 0; i < currentQFlistarray.length; i++) {
+			currentQFlistarray[i] = Number(currentQFlistarray[i])
+		}
 
 		//先程の検索結果と現在のQualfiedのIDを比較し、違う物を取得
 		const differentQF = findDifferentElements(currentQFlistarray, qfarray);
@@ -4594,6 +4600,9 @@ async function checkqualfiedcatch() {
 		//現在のQualfiedのIDを取得(ローカルファイルから１分前の物を取得)
 		const currentQFlistfile = fs.readFileSync(`./QualfiedBeatmaps/catch.txt`, 'utf8');
 		const currentQFlistarray = currentQFlistfile.split(",");
+		for (let i = 0; i < currentQFlistarray.length; i++) {
+			currentQFlistarray[i] = Number(currentQFlistarray[i])
+		}
 
 		//先程の検索結果と現在のQualfiedのIDを比較し、違う物を取得
 		const differentQF = findDifferentElements(currentQFlistarray, qfarray);
@@ -4718,6 +4727,9 @@ async function checkqualfiedmania() {
 		//現在のQualfiedのIDを取得(ローカルファイルから１分前の物を取得)
 		const currentQFlistfile = fs.readFileSync(`./QualfiedBeatmaps/mania.txt`, 'utf8');
 		const currentQFlistarray = currentQFlistfile.split(",");
+		for (let i = 0; i < currentQFlistarray.length; i++) {
+			currentQFlistarray[i] = Number(currentQFlistarray[i])
+		}
 
 		//先程の検索結果と現在のQualfiedのIDを比較し、違う物を取得
 		const differentQF = findDifferentElements(currentQFlistarray, qfarray);
@@ -4843,6 +4855,9 @@ async function checkrankedosu() {
 		//現在のRankedのIDを取得(ローカルファイルから１分前の物を取得)
 		const currentrankedlistfile = fs.readFileSync(`./RankedBeatmaps/osu.txt`, 'utf8');
 		const currentrankedlistarray = currentrankedlistfile.split(",");
+		for (let i = 0; i < currentrankedlistarray.length; i++) {
+			currentrankedlistarray[i] = Number(currentrankedlistarray[i])
+		}
 
 		//先程の検索結果と現在のRankedのIDを比較し、違う物を取得
 		const differentranked = findDifferentElements(currentrankedlistarray, rankedarray);
@@ -4957,6 +4972,9 @@ async function checkrankedtaiko() {
 		//現在のRankedのIDを取得(ローカルファイルから１分前の物を取得)
 		const currentrankedlistfile = fs.readFileSync(`./RankedBeatmaps/taiko.txt`, 'utf8');
 		const currentrankedlistarray = currentrankedlistfile.split(",");
+		for (let i = 0; i < currentrankedlistarray.length; i++) {
+			currentrankedlistarray[i] = Number(currentrankedlistarray[i])
+		}
 
 		//先程の検索結果と現在のRankedのIDを比較し、違う物を取得
 		const differentranked = findDifferentElements(currentrankedlistarray, rankedarray);
@@ -5070,6 +5088,9 @@ async function checkrankedcatch() {
 		//現在のRankedのIDを取得(ローカルファイルから１分前の物を取得)
 		const currentrankedlistfile = fs.readFileSync(`./RankedBeatmaps/catch.txt`, 'utf8');
 		const currentrankedlistarray = currentrankedlistfile.split(",");
+		for (let i = 0; i < currentrankedlistarray.length; i++) {
+			currentrankedlistarray[i] = Number(currentrankedlistarray[i])
+		}
 
 		//先程の検索結果と現在のRankedのIDを比較し、違う物を取得
 		const differentranked = findDifferentElements(currentrankedlistarray, rankedarray);
@@ -5183,6 +5204,9 @@ async function checkrankedmania() {
 		//現在のRankedのIDを取得(ローカルファイルから１分前の物を取得)
 		const currentrankedlistfile = fs.readFileSync(`./RankedBeatmaps/mania.txt`, 'utf8');
 		const currentrankedlistarray = currentrankedlistfile.split(",");
+		for (let i = 0; i < currentrankedlistarray.length; i++) {
+			currentrankedlistarray[i] = Number(currentrankedlistarray[i])
+		}
 
 		//先程の検索結果と現在のRankedのIDを比較し、違う物を取得
 		const differentranked = findDifferentElements(currentrankedlistarray, rankedarray);
