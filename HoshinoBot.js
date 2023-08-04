@@ -1254,6 +1254,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
 						return
 					}
+
 					if ((mods.includes("NC") && mods.includes("HT")) || (mods.includes("DT") && mods.includes("HT") || (mods.includes("DT") && mods.includes("NC")) || (mods.includes("EZ") && mods.includes("HR")))) {
 						interaction.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。")
 						return
@@ -1286,7 +1287,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					if (mods.includes('NC')) {
 						mods.push('DT')
 					}
-					
+
 					if (mods.includes("NC") || mods.includes("DT")) {
 						BPM *= 1.5
 					} else if (mods.includes("HT")) {
@@ -1314,12 +1315,14 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						.setColor("Blue")
 						.setTitle(`Map leaderboard:${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 						.setURL(maplink)
-						.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })								.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
+						.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperinfo.iconurl, url: `https://osu.ppy.sh/users/${mapperinfo.user_id}` })
+						.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.join("")}** \`SR\`: **${SR.sr}** \`BPM\`: **${BPM}**`, inline: true })
 						.setImage(`https://assets.ppy.sh/beatmaps/${mapsetlink}/covers/cover.jpg`)
 					const rankingdata = JSON.parse("[]")
 					for (let i = 0; i < Math.min(resulttop5.length, 5); i++) {
 						const acc = tools.accuracy({300: resulttop5[i].count300, 100: resulttop5[i].count100, 50: resulttop5[i].count50, 0: resulttop5[i].countmiss, geki:  resulttop5[i].countgeki, katu: resulttop5[i].countkatu}, modeconvert(Mapinfo.mode));
-						rankingdata.push({ name: `\`#${i + 1}\``, value: `**Rank**: \`${resulttop5[i].rank}\` **Player**: \`${resulttop5[i].username}\` **Score**: ${resulttop5[i].score} \n [\`${resulttop5[i].maxcombo}\`combo] \`${acc}\`% \`${resulttop5[i].pp}\`pp miss:${resulttop5[i].countmiss}`, inline: false });
+						const pp = await calculateSRwithacc(beatmapid, parseModString(mods), modeconvert, acc, resulttop5[0].countmiss, resulttop5[i].maxcombo);
+						rankingdata.push({ name: `\`#${i + 1}\``, value: `**Rank**: \`${resulttop5[i].rank}\` **Player**: \`${resulttop5[i].username}\` **Score**: ${resulttop5[i].score} \n [\`${resulttop5[i].maxcombo}\`combo] \`${acc}\`% \`${pp.toFixed(2)}\`pp miss:${resulttop5[i].countmiss}`, inline: false });
 					}
 					embed.addFields(rankingdata)
 					interaction.channel.send({ embeds: [embed] })
