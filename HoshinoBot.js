@@ -2219,6 +2219,33 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				}
 			}
 
+			if (interaction.commandName == "skyblockpatch") {
+				try {
+					//データ取得
+					let error = false;
+					const data = await axios.get(`https://api.hypixel.net/skyblock/news?key=${hypixelapikey}`).catch(()=> {
+						interaction.reply("データを取得するのに失敗しました。")
+						error = true;
+					})
+
+					//データ取得に失敗した時の処理
+					if (error) return;
+					const patchdata = data.data.items[0]
+					const embed = new EmbedBuilder()
+						.setColor("Blue")
+						.setTitle(`最新のパッチ: ${patchdata.title}`)
+						.setURL(patchdata.link)
+						.setDescription(patchdata.text)
+						.setFooter({ text: "Hypixel Skyblock News" })
+						.setTimestamp()
+					interaction.reply({ embeds: [embed] })
+				} catch(e) {
+					console.log(e)
+					interaction.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					return
+				}
+			}
+
 			if (interaction.commandName == "loc") {
 				try {
 					//メッセージからユーザー名を取得
