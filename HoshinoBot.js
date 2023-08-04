@@ -407,7 +407,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//amountをメッセージから取得
 					const amount = interaction.options.get('amount').value;
-					console.log(amount)
+					if (!(/^[0-9]+$/.test(amount))) {
+						interaction.reply("数字のみ入力するようにしてください。")
+						return
+					}
 
 					//amountの結果を送信
 					interaction.reply(toJPUnit(amount));
@@ -422,7 +425,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//regを打ったユーザーが登録されているかどうかの確認
 					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
-					if(truefalseuser) {
+					if (truefalseuser) {
 						interaction.reply("あなたはもう既にこのカジノに登録されています。")
 						return
 					}
@@ -443,7 +446,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const sentusername = interaction.options.get('username').value;
 	
 					//送り先のユーザー名が自分自身の場合の処理
-					if(sentusername == interaction.user.username){
+					if (sentusername == interaction.user.username) {
 						interaction.reply("自分自身に送ることは許されていません！")
 						return
 					}
@@ -522,10 +525,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//ルーレットの結果を生成
 					const num = Math.floor(Math.random() * 2);
-					if(num == 0){
+					if (num == 0) {
 						interaction.reply("ルーレットの結果: **赤**")
 						return
-					}else if(num == 1){
+					} else if (num == 1) {
 						interaction.reply("ルーレットの結果: **黒**")
 						return
 					}
