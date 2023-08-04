@@ -3872,7 +3872,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 
 					return
-				} else if (matchPercentage(answer, currentanswer) > 80 && !isperfect) {
+				} else if (matchPercentage(answer, currentanswer) > 90 && !isperfect) {
 					message.reply(`ほぼ正解です！答え: ${currenttitle}`)
 					let foundflagforans = false;
 					for (let element of parsedjson) {
@@ -3976,7 +3976,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 
 					return
-				} else if (matchPercentage(answer, currentanswer) > 20 && !isperfect) {
+				} else if (matchPercentage(answer, currentanswer) > 35 && !isperfect) {
 					message.reply(`惜しかったです！ 答え: ${currenttitle}`)
 					let foundflagforans = false;
 					for (let element of parsedjson) {
