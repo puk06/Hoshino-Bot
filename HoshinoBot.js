@@ -2619,7 +2619,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 								}
 							}
 						}
-						interaction.reply(`あなたのこのサーバーでのレベルは**Lv${level}**です。\n**${(talkcount / nextlevelcount * 100).toFixed(2)}**%${createProgressBar(talkcount / nextlevelcount * 100)}(次のレベル: **${talkcount} / ${nextlevelcount}**)です。`);
+						interaction.reply(`あなたのこのサーバーでのレベルは**Lv${level}**です。\n**${(talkcount / nextlevelcount * 100).toFixed(2)}**%${createProgressBar(talkcount / nextlevelcount * 100)}(次のレベル: **${talkcount} / ${nextlevelcount}**)`);
 					}
 				} catch (e) {
 					console.log(e)
