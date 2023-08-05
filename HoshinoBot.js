@@ -2609,13 +2609,17 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let level = 0;
 						let i;
 						let nextlevelcount = 0;
-						for (i = 0; i <= talkcount; i += Math.floor(Math.pow(i, 1.01))) {
-							if (i <= talkcount) {
-								level++
-								nextlevelcount = i + Math.floor(Math.pow(i, 1.01))
+						if (talkcount < 1 + Math.floor(Math.pow(count, 1.01))) {
+							level = 0
+							nextlevelcount = 1 + Math.floor(Math.pow(count, 1.01))
+						} else {
+							for (count = 1; count <= talkcount; count += Math.floor(Math.pow(count, 1.01))) {
+								if (i <= talkcount) {
+									level++
+									nextlevelcount = count + Math.floor(Math.pow(count, 1.01))
+								}
 							}
 						}
-
 						interaction.reply(`あなたのこのサーバーでのレベルは**Lv${level}**です。\n**${(talkcount / nextlevelcount * 100).toFixed(2)}**%${createProgressBar(talkcount / nextlevelcount * 100)}(次のレベル: **${talkcount} / ${nextlevelcount}**)です。`);
 					}
 				} catch (e) {
@@ -2646,13 +2650,18 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let level = 0;
 						let count;
 						let nextlevelcount = 0;
-						for (count = 0; count <= talkcount; count += Math.floor(Math.pow(count, 1.01))) {
-							if (i <= talkcount) {
-								level++
-								nextlevelcount = count + Math.floor(Math.pow(count, 1.01))
+						if (talkcount < 1 + Math.floor(Math.pow(count, 1.01))) {
+							level = 0
+							nextlevelcount = 1 + Math.floor(Math.pow(count, 1.01))
+						} else {
+							for (count = 1; count <= talkcount; count += Math.floor(Math.pow(count, 1.01))) {
+								if (i <= talkcount) {
+									level++
+									nextlevelcount = count + Math.floor(Math.pow(count, 1.01))
+								}
 							}
 						}
-						talkrankingmessage.push(`**${i + 1}位**: ${username.globalName} | Lv. ${level} | 次のレベル: **${talkcount} / ${nextlevelcount}** (**${(talkcount / nextlevelcount * 100).toFixed(2)}**%)`)
+						talkrankingmessage.push(`**${i + 1}位**: ${username.globalName} | Lv. **${level}** | 次のレベル: **${talkcount} / ${nextlevelcount}** (**${(talkcount / nextlevelcount * 100).toFixed(2)}**%)`)
 					}
 					interaction.reply(talkrankingmessage.join("\n"))
 				} catch (e) {
