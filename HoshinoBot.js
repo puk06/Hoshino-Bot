@@ -2374,7 +2374,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const embed = new EmbedBuilder()
 						.setColor("Blue")
 						.setTitle(`バックアップ一覧`)
-						.setDescription(backupfiles.join("\n"))
+						.setDescription(backupfileslist.join("\n"))
 						.setFooter({ text: "バックアップ一覧" })
 						.setTimestamp()
 					interaction.reply({ embeds: [embed], ephemeral: true })
