@@ -2359,7 +2359,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 					const backupfiles = fs.readdirSync("./Backups").reverse()
 					const backupfileslist = [];
-					for (let i = 0; i <= 10; i++) {
+					for (let i = 0; i < 10; i++) {
 						const inputString = backupfiles[i];
 						const [datePart, hour, minute] = inputString.split(' ');
 						const [year, month, day] = datePart.split('-');
