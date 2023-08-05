@@ -2350,6 +2350,58 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				}
 			}
 
+			if (interaction.commandName == "backuplist") {
+				try {
+					//管理者のみ実行するようにする
+					if (interaction.user.id != BotadminId) {
+						interaction.reply("このコマンドはBOT管理者のみ実行できます。")
+						return
+					}
+					const backupfiles = fs.readdirSync("./Backups").reverse()
+					const backupfileslist = [];
+					for (let i = 0; i <= 10; i++) {
+						const inputString = backupfiles[i];
+						const [datePart, hour, minute] = inputString.split(' ');
+						const [year, month, day] = datePart.split('-');
+						const formattedMonth = month.length === 1 ? '0' + month : month;
+						const formattedDay = day.length === 1 ? '0' + day : day;
+						const formattedHour = hour.length === 1 ? '0' + hour : hour;
+						const formattedMinute = minute.length === 1 ? '0' + minute : minute;
+						const formattedString = `${year}年${formattedMonth}月${formattedDay}日 ${formattedHour}時${formattedMinute}分`;
+						backupfileslist.push(`${i + 1} | ${formattedString}`)
+					}
+
+					const embed = new EmbedBuilder()
+						.setColor("Blue")
+						.setTitle(`バックアップ一覧`)
+						.setDescription(backupfiles.join("\n"))
+						.setFooter({ text: "バックアップ一覧" })
+						.setTimestamp()
+					interaction.reply({ embeds: [embed], ephemeral: true })
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("バックアップファイルの取得中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "backupcreate") {
+				try {
+					//管理者のみ実行するようにする
+					if (interaction.user.id != BotadminId) {
+						interaction.reply("このコマンドはBOT管理者のみ実行できます。")
+						return
+					}
+					interaction.reply("バックアップを作成します。")
+					await makeBackup()
+					interaction.channel.send("バックアップの作成が完了しました。")
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("バックアップの作成中にエラーが発生しました。")
+					return
+				}
+			}
+
 			if (interaction.commandName == "update") {
 				try {
 					//管理者のみ実行するようにする

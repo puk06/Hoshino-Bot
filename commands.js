@@ -577,6 +577,16 @@ module.exports = [
     },
     {
         data: new SlashCommandBuilder()
+            .setName("backuplist")
+            .setDescription("バックアップの一覧を表示します。管理者専用です。")
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("backupcreate")
+            .setDescription("バックアップを作成します。管理者専用です。")
+    },
+    {
+        data: new SlashCommandBuilder()
             .setName("update")
             .setDescription("サーバーデータを更新します。管理者専用です。")
     },
