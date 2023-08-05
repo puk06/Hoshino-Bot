@@ -4514,7 +4514,7 @@ async function checkqualfiedosu() {
 				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
-			client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のQualfied譜面が出ました！`);
+			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のQualfied譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -4648,7 +4648,7 @@ async function checkqualfiedtaiko() {
 				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
-			client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのQualfied譜面が出ました！`);
+			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのQualfied譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -4781,7 +4781,7 @@ async function checkqualfiedcatch() {
 				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
-			client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのQualfied譜面が出ました！`);
+			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのQualfied譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -4914,7 +4914,7 @@ async function checkqualfiedmania() {
 				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
-			client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのQualfied譜面が出ました！`);
+			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのQualfied譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -5038,7 +5038,7 @@ async function checkrankedosu() {
 				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
-			client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のRanked譜面が出ました！`);
+			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のRanked譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -5160,7 +5160,7 @@ async function checkrankedtaiko() {
 				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
-			client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのRanked譜面が出ました！`);
+			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのRanked譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -5282,7 +5282,7 @@ async function checkrankedcatch() {
 				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
-			client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのRanked譜面が出ました！`);
+			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのRanked譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
@@ -5404,7 +5404,7 @@ async function checkrankedmania() {
 				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
-			client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのRanked譜面が出ました！`);
+			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのRanked譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
