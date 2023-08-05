@@ -2335,12 +2335,12 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//復元作業
 					const allbackupfilescount = fs.readdirSync(`./Backups/${wannabackup}`).length
 					const message = await interaction.reply(`${wannabackup}のバックアップの復元中です。(${allbackupfilescount}ファイル)\n${createProgressBar(0)}`)
-					const percentstep = Math.ceil(allbackupfilescount / 100)
+					const percentstep = Math.ceil(100 / allbackupfilescount)
 					let backupfilescount = 0
 					for (const backupfiles of fs.readdirSync(`./Backups/${wannabackup}`)) {
 						await fs.copy(`./Backups/${wannabackup}/${backupfiles}`,`./${backupfiles}`);
 						backupfilescount++
-						await message.edit(`バックアップの復元中です。(${backupfilescount}ファイル)\n${createProgressBar(Math.ceil(percentstep * backupfilescount))}(${Math.ceil(percentstep * backupfilescount)}%)`)
+						await message.edit(`バックアップの復元中です。(${backupfilescount}ファイル)\n${createProgressBar(Math.ceil(percentstep * backupfilescount))}`)
 					}
 					await message.edit(`バックアップの復元が完了しました。(${allbackupfilescount}ファイル)`)
 				} catch (e) {
