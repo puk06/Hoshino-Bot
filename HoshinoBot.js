@@ -2610,9 +2610,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let count;
 						let nextlevelcount = 0;
 						if (talkcount < 1 + Math.floor(Math.pow(1, 1.01))) {
+							console.log(1 + Math.floor(Math.pow(1, 1.01)))
 							nextlevelcount = 1 + Math.floor(Math.pow(1, 1.01))
 						} else {
-							for (count = 1; count <= talkcount; count += Math.floor(Math.pow(count, 1.01))) {
+							for (count = 1; count <= talkcount + 1; count += Math.floor(Math.pow(count, 1.01))) {
 								if (count <= talkcount) {
 									level++
 									nextlevelcount = count + Math.floor(Math.pow(count, 1.01))
@@ -2650,10 +2651,11 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let count;
 						let nextlevelcount = 0;
 						if (talkcount < 1 + Math.floor(Math.pow(1, 1.01))) {
+							console.log(1 + Math.floor(Math.pow(1, 1.01)))
 							nextlevelcount = 1 + Math.floor(Math.pow(1, 1.01))
 						} else {
-							for (count = 1; count <= talkcount; count += Math.floor(Math.pow(count, 1.01))) {
-								if (i <= talkcount) {
+							for (count = 1; count <= talkcount + 1; count += Math.floor(Math.pow(count, 1.01))) {
+								if (count <= talkcount) {
 									level++
 									nextlevelcount = count + Math.floor(Math.pow(count, 1.01))
 								}
@@ -2661,7 +2663,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						}
 						talkrankingmessage.push(`**${i + 1}位**: ${username.globalName} | Lv. **${level}** | 次のレベル: **${talkcount} / ${nextlevelcount}** (**${(talkcount / nextlevelcount * 100).toFixed(2)}**%)`)
 					}
-					interaction.channel.send(talkrankingmessage.join("\n"))
+					interaction.reply(talkrankingmessage.join("\n"))
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("エラーが発生しました。")
