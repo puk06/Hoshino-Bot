@@ -9,20 +9,18 @@ const util = require('util');
 const git = require('git-clone');
 
 //必要なファイルの読み込み
-const { calculateSR, calculateSRwithacc } = require("./CalculateSR/CalculateSRPP");
-const { modeconvert } = require("./Mode/Mode");
-const { getMapInfo, mapstatus, getMapforRecent, getMapInfowithoutmods } = require("./GetmapInfo/GetMapInfo");
-const { GetMapScore } = require("./GetmapInfo/GetMapScore");
-const { Recentplay } = require("./GetmapInfo/GetRecentScore");
-const { parseModString, parseMods, splitString } = require("./Modsconvert/Mods");
-const { getplayersdata, getplayerscore } = require("./GetUser/userplays");
-const { numDigits } = require("./numDigit/numDigit");
-const { ODscaled } = require("./OD/ODscaled");
-const { getOsuBeatmapFile, checkStream } = require("./Streamcheck/Streamcheck");
-const { checkFileExists } = require("./Checkuser/CheckUser");
-const { calculateScorePP } = require("./CalcGlobalPP/calculateglobalPP");
+const { calculateSR, calculateSRwithacc } = require("./src/CalculateSR/CalculateSRPP");
+const { modeconvert } = require("./src/Mode/Mode");
+const { getMapInfo, mapstatus, getMapforRecent, getMapInfowithoutmods } = require("./src/GetmapInfo/GetMapInfo");
+const { GetMapScore } = require("./src/GetmapInfo/GetMapScore");
+const { Recentplay } = require("./src/GetmapInfo/GetRecentScore");
+const { parseModString, parseMods, splitString } = require("./src/Modsconvert/Mods");
+const { getplayersdata, getplayerscore } = require("./src/GetUser/userplays");
+const { ODscaled } = require("./src/OD/ODscaled");
+const { getOsuBeatmapFile, checkStream } = require("./src/Streamcheck/Streamcheck");
+const { calculateScorePP } = require("./src/CalcGlobalPP/calculateglobalPP");
 const { downloadHoshinobotFile, getCommitDiffofHoshinobot } = require("./HoshinoBot updater");
-const { srchart } = require("./CheckSRgraph/checksr");
+const { srchart } = require("./src/CheckSRgraph/checksr");
 
 //APIキーやTOKENなど
 const apikey = process.env.APIKEY;
@@ -73,11 +71,9 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					let betAmount = interaction.options.get('betamount')?.value;
 					betAmount = BigInt(betAmount);
-
-					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
 					
 					//slotを打ったユーザーが登録されていない場合の処理
-					if (!truefalseuser) {
+					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
@@ -134,11 +130,9 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					let betAmount = interaction.options.get('betamount')?.value;
 					betAmount = BigInt(betAmount);
-
-					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
 					
 					//slotを打ったユーザーが登録されていない場合の処理
-					if (!truefalseuser) {
+					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
@@ -188,7 +182,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 					//slotを打ったユーザーのslot後の銀行口座残高を更新
 					const newBankBalance = newcurrentBalance + reward;
-					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBankBalance.toString(), 'utf-8');	
+					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBankBalance.toString(), 'utf-8');
 				} catch(e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
@@ -243,11 +237,8 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 			if (interaction.commandName == "lv") {
 				try {
-					//レベルを取得するユーザーが登録されているかどうかの確認
-					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
-
 					//レベルを取得するユーザーが登録されていない場合の処理
-					if (!truefalseuser) {
+					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
@@ -280,11 +271,8 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 			if (interaction.commandName == "recoshot") {
 				try {
-					//recoshotを打ったユーザーが登録されているかどうかの確認
-					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
-
 					//recoshotを打ったユーザーが登録されていない場合の処理
-					if (!truefalseuser) {
+					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
@@ -355,8 +343,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			if (interaction.commandName == "reco") {
 				try {
 					//recoを打ったユーザーが登録されているかどうかの確認
-					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
-					if (!truefalseuser) {
+					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
@@ -382,11 +369,8 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 			if (interaction.commandName == "bank") {
 				try {
-					//bankを打ったユーザーが登録されているかどうかの確認
-					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
-					
 					//bankを打ったユーザーが登録されていない場合の処理
-					if (!truefalseuser) {
+					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
@@ -424,8 +408,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			if (interaction.commandName == "regcasino") {
 				try {
 					//regを打ったユーザーが登録されているかどうかの確認
-					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
-					if (truefalseuser) {
+					if (fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("あなたはもう既にこのカジノに登録されています。")
 						return
 					}
@@ -452,15 +435,13 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 	
 					//送り先のユーザー名が存在するかの確認
-					const truefalsesentuser = await checkFileExists(`./Player Bank/${sentusername}.txt`);
-					if (!truefalsesentuser) {
+					if (!fs.existsSync(`./Player Bank/${sentusername}.txt`)) {
 						interaction.reply(`${sentusername} というユーザーはこのカジノに登録されていません。\`/regcasino\`で登録してもらってください。`)
 						return
 					}
 	
 					//送る本人が存在するかの確認
-					const truefalseuser = await checkFileExists(`./Player Bank/${interaction.user.username}.txt`);
-					if (!truefalseuser) {
+					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
 						return
 					}
@@ -1717,7 +1698,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	
 					//Mapinfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 					let lengthsec;
-					if (numDigits(parseFloat(Mapinfo.lengthsec.toFixed(0))) == 1) {
+					if (Mapinfo.lengthsec.toFixed(0).length == 1) {
 						lengthsec = ('00' + parseFloat(Mapinfo.lengthsec).toFixed(0)).slice(-2)
 					} else {
 						lengthsec = parseFloat(Mapinfo.lengthsec).toFixed(0)
@@ -2430,8 +2411,6 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						const sourceDir = './updatetemp';
 						const destinationDir = './';
 						const excludedFiles = ['(dotenv).env'];
-						const excludedFolders = ['quotetag', 'mentionuser', 'OsuPreviewquiz', 'Backups', 'BeatmapFolder', 'BeatmapLinkChannels', 'Furry', 'Player Bank', 'Player infomation', 'QualfiedBeatmaps', 'RankedBeatmaps', 'MapcheckChannels', 'tag', 'updatetemp'];
-	
 						fs.readdir(sourceDir, (err, files) => {
 							interaction.channel.send("ディリクトリを読み込んでいます。")
 							if (err) {
@@ -2468,7 +2447,9 @@ client.on(Events.InteractionCreate, async(interaction) =>
 								const destPath = path.join(destinationDir, file);
 								try {
 									if (fs.lstatSync(srcPath).isDirectory()) {
-										copyFolder(srcPath, destPath);
+										if (srcPath == "./updatetemp/src") {
+											copyFolder(srcPath, destPath);
+										}
 									} else {
 										copyFile(srcPath, destPath);
 									}
@@ -2690,7 +2671,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//MapInfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec;
-				if (numDigits(parseFloat(MapInfo.lengthsec.toFixed(0))) == 1) {
+				if (MapInfo.lengthsec.toFixed(0).length == 1) {
 					lengthsec = ('00' + MapInfo.lengthsec.toString()).slice(-2)
 				} else {
 					lengthsec = parseFloat(MapInfo.lengthsec.toString()).toFixed(0)
@@ -2850,7 +2831,7 @@ client.on(Events.MessageCreate, async (message) =>
 				
 				//MapInfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec;
-				if (numDigits(parseFloat(GetMapInfo.lengthsec.toFixed(0))) == 1) {
+				if (GetMapInfo.lengthsec.toFixed(0).length == 1) {
 					lengthsec = ('00' + GetMapInfo.lengthsec).slice(-2)
 				} else {
 					lengthsec = GetMapInfo.lengthsec
@@ -3007,7 +2988,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//MapInfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec;
-				if (numDigits(parseFloat(GetMapInfo.lengthsec.toFixed(0))) == 1) {
+				if (GetMapInfo.lengthsec.toFixed(0).length == 1) {
 					lengthsec = ('00' + parseFloat(GetMapInfo.lengthsec).toFixed(0)).slice(-2);
 				} else {
 					lengthsec = parseFloat(GetMapInfo.lengthsec).toFixed(0);
@@ -3169,7 +3150,7 @@ client.on(Events.MessageCreate, async (message) =>
 				
 				//MapInfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec;
-				if (numDigits(parseFloat(GetMapInfo.lengthsec.toFixed(0))) == 1) {
+				if (GetMapInfo.lengthsec.toFixed(0).length == 1) {
 					lengthsec = ('00' + parseFloat(GetMapInfo.lengthsec).toFixed(0)).slice(-2)
 				} else {
 					lengthsec = parseFloat(GetMapInfo.lengthsec).toFixed(0)
@@ -3332,7 +3313,7 @@ client.on(Events.MessageCreate, async (message) =>
 				
 				//MapInfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec
-				if (numDigits(parseFloat(GetMapInfo.lengthsec.toFixed(0))) == 1) {
+				if (GetMapInfo.lengthsec.toFixed(0).length == 1) {
 					lengthsec = ('00' + parseFloat(GetMapInfo.lengthsec).toFixed(0)).slice(-2)
 				} else {
 					lengthsec = parseFloat(GetMapInfo.lengthsec).toFixed(0)
@@ -3605,7 +3586,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//マップの時間の秒数を分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec;
-				if (numDigits(parseFloat(mapdata.lengthsec.toFixed(0))) == 1) {
+				if (mapdata.lengthsec.toFixed(0).length == 1) {
 					lengthsec = ('00' + mapdata.lengthsec.toString()).slice(-2)
 				} else {
 					lengthsec = parseFloat(mapdata.lengthsec.toString()).toFixed(0)
@@ -3694,7 +3675,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//マップの時間の秒数を分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec;
-				if (numDigits(parseFloat(mapdata.lengthsec.toFixed(0))) == 1) {
+				if (mapdata.lengthsec.toFixed(0).length == 1) {
 					lengthsec = ('00' + mapdata.lengthsec.toString()).slice(-2)
 				} else {
 					lengthsec = parseFloat(mapdata.lengthsec.toString()).toFixed(0)
