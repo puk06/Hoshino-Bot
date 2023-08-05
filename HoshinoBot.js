@@ -2609,7 +2609,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let level = 0;
 						let i;
 						let nextlevelcount = 0;
-						for (i = 1; i <= talkcount; i += Math.floor(Math.pow(i, 1.01))) {
+						for (i = 0; i <= talkcount; i += Math.floor(Math.pow(i, 1.01))) {
 							if (i <= talkcount) {
 								level++
 								nextlevelcount = i + Math.floor(Math.pow(i, 1.01))
@@ -2646,7 +2646,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let level = 0;
 						let count;
 						let nextlevelcount = 0;
-						for (count = 1; count <= talkcount; count += Math.floor(Math.pow(count, 1.01))) {
+						for (count = 0; count <= talkcount; count += Math.floor(Math.pow(count, 1.01))) {
 							if (i <= talkcount) {
 								level++
 								nextlevelcount = count + Math.floor(Math.pow(count, 1.01))
