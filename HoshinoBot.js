@@ -69,7 +69,11 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			//コマンドの処理
 			if (interaction.commandName == "slot") {
 				try {
-					let betAmount = interaction.options.get('betamount')?.value;
+					let betAmount = interaction.options.get('betamount').value;
+					if (!(/^\d+$/.test(betAmount))) {
+						interaction.reply("数字のみ入力するようにしてください。")
+						return
+					}
 					betAmount = BigInt(betAmount);
 					
 					//slotを打ったユーザーが登録されていない場合の処理
@@ -128,7 +132,11 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 			if (interaction.commandName == "safeslot") {
 				try {
-					let betAmount = interaction.options.get('betamount')?.value;
+					let betAmount = interaction.options.get('betamount').value;
+					if (!(/^\d+$/.test(betAmount))) {
+						interaction.reply("数字のみ入力するようにしてください。")
+						return
+					}
 					betAmount = BigInt(betAmount);
 					
 					//slotを打ったユーザーが登録されていない場合の処理
@@ -391,7 +399,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//amountをメッセージから取得
 					const amount = interaction.options.get('amount').value;
-					if (!(/^[0-9]+$/.test(amount))) {
+					if (!(/^\d+$/.test(amount))) {
 						interaction.reply("数字のみ入力するようにしてください。")
 						return
 					}
@@ -2325,19 +2333,16 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 
 					//復元作業
-					interaction.reply(`${wannabackup}のバックアップを復元中です。(0%)`);
-					await fs.copy(`./Backups/${wannabackup}/Player infomation`,`./Player infomation`);
-					interaction.channel.send("Player infomationフォルダの復元が完了しました。(20%)");
-					await fs.copy(`./Backups/${wannabackup}/MapcheckChannels`,`./MapcheckChannels`);
-					interaction.channel.send("MapcheckChannelsフォルダの復元が完了しました。(40%)");
-					await fs.copy(`./Backups/${wannabackup}/BeatmapLinkChannels`,`./BeatmapLinkChannels`);
-					interaction.channel.send("BeatmapLinkChannelsフォルダの復元が完了しました。(60%)");
-					await fs.copy(`./Backups/${wannabackup}/Player Bank`, `./Player Bank`);
-					interaction.channel.send("Player Bankフォルダの復元が完了しました。(80%)");
-					await fs.copy(`./Backups/${wannabackup}/tag`, `./tag`);
-					await fs.copy(`./Backups/${wannabackup}/quotetag`, `./quotetag`);
-					interaction.channel.send("tagフォルダの復元が完了しました。(100%)");
-					interaction.channel.send(`${wannabackup}のバックアップの全ての復元が完了しました。`)
+					const allbackupfilescount = fs.readdirSync(`./Backups/${wannabackup}`).length
+					const message = await interaction.reply(`${wannabackup}のバックアップの復元中です。(${allbackupfilescount}ファイル)\n${createProgressBar(0)}`)
+					const percentstep = Math.ceil(allbackupfilescount / 100)
+					let backupfilescount = 0
+					for (const backupfiles of fs.readdirSync(`./Backups/${wannabackup}`)) {
+						await fs.copy(`./Backups/${wannabackup}/${backupfiles}`,`./${backupfiles}`);
+						backupfilescount++
+						await message.edit(`バックアップの復元中です。(${backupfilescount}ファイル)\n${createProgressBar(Math.ceil(percentstep * backupfilescount))}(${Math.ceil(percentstep * backupfilescount)}%)`)
+					}
+					await message.edit(`バックアップの復元が完了しました。(${allbackupfilescount}ファイル)`)
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("バックアップの復元中にエラーが発生しました。")
@@ -2497,12 +2502,39 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("このサーバーでは、まだ誰も喋っていないようです。")
 						return
 					} else if (serverJSONdata[interaction.guildId][userid] == undefined) {
-						interaction.reply("あなたはまだ喋ったことがないようです。")
+						interaction.reply("あなたはまだこのサーバーで喋ったことがないようです。")
 						return
 					} else {
 						interaction.reply(`あなたはこのサーバーで**${serverJSONdata[interaction.guildId][userid]}**回喋りました。`)
 						return
 					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "talkranking") {
+				try {
+					let serverJSONdata = JSON.parse(fs.readFileSync(`./talkcount.json`, 'utf-8'))
+					if (serverJSONdata[interaction.guildId] == undefined) {
+						interaction.reply("このサーバーでは、まだ誰も喋っていないようです。")
+						return
+					}
+					let talkranking = []
+					for (const [key, value] of Object.entries(serverJSONdata[interaction.guildId])) {
+						talkranking.push([key, value])
+					}
+					talkranking.sort(function(a, b) {
+						return b[1] - a[1];
+					});
+					let talkrankingmessage = ["__**話した回数ランキング**__"]
+					for (let i = 0; i < Math.min(talkranking.length, 10); i++) {
+						const username = await client.users.fetch(talkranking[i][0])
+						talkrankingmessage.push(`**${i + 1}位**: ${username.globalName} | ${talkranking[i][1]}回`)
+					}
+					interaction.reply(talkrankingmessage.join("\n"))
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("エラーが発生しました。")
@@ -3446,7 +3478,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 			try {
 				fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
-				message.reply(`${message.author.username} さんは ${osuid} として保存されました!`)
+				const globalusername = await client.users.fetch(username)
+				message.reply(`${globalusername.globalName} さんは ${osuid} として保存されました!`)
 			} catch (e) {
 				console.log(e)
 				message.reply("ユーザーを登録する際にエラーが発生しました。")
@@ -5442,6 +5475,8 @@ async function makeBackup() {
 	await fs.copy(`./Player Bank`, `./Backups/${dateString}/Player Bank`)
 	await fs.copy(`./tag`, `./Backups/${dateString}/tag`)
 	await fs.copy(`./quotetag`, `./Backups/${dateString}/quotetag`)
+	await fs.copy(`./mentionuser`, `./Backups/${dateString}/mentionuser`)
+	await fs.copy(`./talkcount.json`, `./Backups/${dateString}/talkcount.json`)
 }
 
 //時間を分と秒に変換する関数

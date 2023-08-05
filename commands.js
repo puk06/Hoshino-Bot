@@ -5,7 +5,7 @@ module.exports = [
         data: new SlashCommandBuilder()
             .setName("slot")
             .setDescription("スロットを回します。")
-            .addNumberOption(option =>
+            .addStringOption(option =>
                 option
                     .setName('betamount')
                     .setDescription('賭け金額')
@@ -17,7 +17,7 @@ module.exports = [
         data: new SlashCommandBuilder()
             .setName("safeslot")
             .setDescription("スロットを回します。負けても報酬が0ではないです。")
-            .addNumberOption(option =>
+            .addStringOption(option =>
                 option
                     .setName('betamount')
                     .setDescription('賭け金額')
@@ -600,5 +600,15 @@ module.exports = [
                     .setDescription('送りたいメッセージ')
                     .setRequired(true)
             )
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("talkcount")
+            .setDescription("あなたがどのくらいこのサーバーで喋ったかを表示します。")
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("talkranking")
+            .setDescription("このサーバーでの、話した回数のランキングを表示します。")
     },
 ]
