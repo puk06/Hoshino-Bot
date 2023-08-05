@@ -2610,7 +2610,6 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let count;
 						let nextlevelcount = 0;
 						if (talkcount < 1 + Math.floor(Math.pow(1, 1.01))) {
-							console.log(1 + Math.floor(Math.pow(1, 1.01)))
 							nextlevelcount = 1 + Math.floor(Math.pow(1, 1.01))
 						} else {
 							for (count = 1; count <= talkcount + 1; count += Math.floor(Math.pow(count, 1.01))) {
@@ -2651,7 +2650,6 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let count;
 						let nextlevelcount = 0;
 						if (talkcount < 1 + Math.floor(Math.pow(1, 1.01))) {
-							console.log(1 + Math.floor(Math.pow(1, 1.01)))
 							nextlevelcount = 1 + Math.floor(Math.pow(1, 1.01))
 						} else {
 							for (count = 1; count <= talkcount + 1; count += Math.floor(Math.pow(count, 1.01))) {
