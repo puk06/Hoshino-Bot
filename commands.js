@@ -621,4 +621,14 @@ module.exports = [
             .setName("talkranking")
             .setDescription("このサーバーでの、話した回数のランキングを表示します。")
     },
+    {
+        data: new SlashCommandBuilder()
+            .setName("talklevel")
+            .setDescription("あなたのこのサーバーでの話した回数をレベルを表示します。")
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("talklevelranking")
+            .setDescription("このサーバーでの、話した回数のレベルランキングを表示します。")
+    },
 ]
