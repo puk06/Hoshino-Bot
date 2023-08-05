@@ -2488,7 +2488,28 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					return
 				}
 			}
-		} catch(e) {
+
+			if (interaction.commandName == "talkcount") {
+				try {
+					const userid = interaction.user.id
+					let serverJSONdata = JSON.parse(fs.readFileSync(`./talkcount.json`, 'utf-8'))
+					if (serverJSONdata[interaction.guildId] == undefined) {
+						interaction.reply("このサーバーでは、まだ誰も喋っていないようです。")
+						return
+					} else if (serverJSONdata[interaction.guildId][userid] == undefined) {
+						interaction.reply("あなたはまだ喋ったことがないようです。")
+						return
+					} else {
+						interaction.reply(`あなたはこのサーバーで**${serverJSONdata[interaction.guildId][userid]}**回喋りました。`)
+						return
+					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+		} catch (e) {
 			console.log(e)
 			return
 		}
@@ -2497,6 +2518,23 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 client.on(Events.MessageCreate, async (message) =>
 	{
+		try {
+			//ユーザーの喋った数をサーバーごとに記録する処理
+			if (message.author.bot) return;
+			let serverJSONdata = JSON.parse(fs.readFileSync(`./talkcount.json`, 'utf-8'))
+			if (serverJSONdata[message.guildId] == undefined) {
+				serverJSONdata[message.guildId] = {}
+			}
+			if (serverJSONdata[message.guildId][message.author.id] == undefined) {
+				serverJSONdata[message.guildId][message.author.id] = 1
+			} else {
+				if (!message.content.startsWith("!")) serverJSONdata[message.guildId][message.author.id] += 1
+			}
+			fs.writeFileSync(`./talkcount.json`, JSON.stringify(serverJSONdata, null, "\t"))
+		} catch(e) {
+			console.log(e)
+		}
+		
 		//特定のチェンネルに添付画像などが送られたら実行する処理(FurryBOT)
 		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.endsWith('.avi') || attachment.url.endsWith('.mov') || attachment.url.endsWith('.mp4') || attachment.url.endsWith('.png') || attachment.url.endsWith('.jpg') || attachment.url.endsWith('.gif')) && message.channel.id == Furrychannel) {
 			try {
