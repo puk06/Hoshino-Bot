@@ -2340,7 +2340,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					for (const backupfiles of fs.readdirSync(`./Backups/${wannabackup}`)) {
 						await fs.copy(`./Backups/${wannabackup}/${backupfiles}`,`./${backupfiles}`);
 						backupfilescount++
-						await message.edit(`バックアップの復元中です。(${backupfilescount}ファイル)\n${createProgressBar(Math.floor(percentstep * backupfilescount))}`)
+						await message.edit(`バックアップの復元中です。(${backupfilescount}ファイル)\n${createProgressBar(Math.floor(percentstep * backupfilescount))}(${Math.floor(percentstep * backupfilescount)}%)`)
 					}
 					await message.edit(`バックアップの復元が完了しました。(${allbackupfilescount}ファイル)`)
 				} catch (e) {
