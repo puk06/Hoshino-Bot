@@ -53,7 +53,7 @@ module.exports = [
         data: new SlashCommandBuilder()
             .setName("amount")
             .setDescription("数値を漢字で表示します。")
-            .addNumberOption(option =>
+            .addStringOption(option =>
                 option
                     .setName('amount')
                     .setDescription('数値')
@@ -272,11 +272,69 @@ module.exports = [
         data: new SlashCommandBuilder()
             .setName("qf")
             .setDescription("送られたチャンネルをQF、rankチャンネルに設定します。")
+            .addStringOption(option =>
+                option
+                    .setName('mode')
+                    .setDescription('モード')
+                    .addChoices(
+                        { name: 'osu!', value: 'osu' },
+                        { name: 'osu!taiko', value: 'taiko' },
+                        { name: 'osu!catch', value: 'catch' },
+                        { name: 'osu!mania', value: 'mania' }
+                    )
+                    .setRequired(true)
+            )
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("qfmention")
+            .setDescription("QF、rankedが検出されたらメンションします。")
+            .addStringOption(option =>
+                option
+                    .setName('mode')
+                    .setDescription('モード')
+                    .addChoices(
+                        { name: 'osu!', value: 'osu' },
+                        { name: 'osu!taiko', value: 'taiko' },
+                        { name: 'osu!catch', value: 'catch' },
+                        { name: 'osu!mania', value: 'mania' }
+                    )
+                    .setRequired(true)
+            )
     },
     {
         data: new SlashCommandBuilder()
             .setName("deqf")
             .setDescription("送られたチャンネルをQF、rankチャンネルから削除します。")
+            .addStringOption(option =>
+                option
+                    .setName('mode')
+                    .setDescription('モード')
+                    .addChoices(
+                        { name: 'osu!', value: 'osu' },
+                        { name: 'osu!taiko', value: 'taiko' },
+                        { name: 'osu!catch', value: 'catch' },
+                        { name: 'osu!mania', value: 'mania' }
+                    )
+                    .setRequired(true)
+            )
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("deqfmention")
+            .setDescription("QF、rankedが検出されたらメンションするのを解除します。")
+            .addStringOption(option =>
+                option
+                    .setName('mode')
+                    .setDescription('モード')
+                    .addChoices(
+                        { name: 'osu!', value: 'osu' },
+                        { name: 'osu!taiko', value: 'taiko' },
+                        { name: 'osu!catch', value: 'catch' },
+                        { name: 'osu!mania', value: 'mania' }
+                    )
+                    .setRequired(true)
+            )
     },
     {
         data: new SlashCommandBuilder()
@@ -427,6 +485,29 @@ module.exports = [
     },
     {
         data: new SlashCommandBuilder()
+            .setName("osusearch")
+            .setDescription("osu!のビートマップを検索します。")
+            .addStringOption(option =>
+                option
+                    .setName('query')
+                    .setDescription('検索したいキーワード')
+                    .setRequired(true)
+            )
+            .addStringOption(option =>
+                option
+                    .setName('mode')
+                    .setDescription('モード')
+                    .addChoices(
+                        { name: 'osu!', value: 'osu' },
+                        { name: 'osu!taiko', value: 'taiko' },
+                        { name: 'osu!catch', value: 'catch' },
+                        { name: 'osu!mania', value: 'mania' }
+                    )
+                    .setRequired(true)
+            )
+    },
+    {
+        data: new SlashCommandBuilder()
             .setName("slayer")
             .setDescription("スレイヤーの周回数などを表示します。")
             .addStringOption(option =>
@@ -503,5 +584,21 @@ module.exports = [
         data: new SlashCommandBuilder()
             .setName("allupdate")
             .setDescription("全てのサーバーデータを更新します。管理者専用です。")
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("skyblockpatch")
+            .setDescription("最新のSkyBlockのパッチノートを表示します。")
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("echo")
+            .setDescription("メッセージをあなたの代わりに送信します。")
+            .addStringOption(option =>
+                option
+                    .setName('message')
+                    .setDescription('送りたいメッセージ')
+                    .setRequired(true)
+            )
     },
 ]
