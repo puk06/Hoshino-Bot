@@ -4514,7 +4514,7 @@ async function checkqualfiedosu() {
 				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
-			client.channels.cache.get(element).send(mentionstring);
+			client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のQualfied譜面が出ました！`);
 		}
 	} catch(e) {
 		console.log(e)
