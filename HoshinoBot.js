@@ -2593,6 +2593,74 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					return
 				}
 			}
+
+			if (interaction.commandName == "talklevel") {
+				try {
+					const userid = interaction.user.id
+					let serverJSONdata = JSON.parse(fs.readFileSync(`./talkcount.json`, 'utf-8'))
+					if (serverJSONdata[interaction.guildId] == undefined) {
+						interaction.reply("このサーバーでは、まだ誰も喋っていないようです。")
+						return
+					} else if (serverJSONdata[interaction.guildId][userid] == undefined) {
+						interaction.reply("あなたはまだこのサーバーで喋ったことがないようです。")
+						return
+					} else {
+						const talkcount = serverJSONdata[interaction.guildId][userid]
+						let level = 0;
+						let i;
+						let nextlevelcount = 0;
+						for (i = 1; i <= talkcount; i += Math.floor(Math.pow(i, 1.01))) {
+							if (i <= talkcount) {
+								level++
+								nextlevelcount = i + Math.floor(Math.pow(i, 1.01))
+							}
+						}
+
+						interaction.reply(`あなたのこのサーバーでのレベルは**Lv${level}**です。\n**${(talkcount / nextlevelcount * 100).toFixed(2)}**%${createProgressBar(talkcount / nextlevelcount * 100)}(次のレベル: **${talkcount} / ${nextlevelcount}**)です。`);
+					}
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "talklevelranking") {
+				try {
+					let serverJSONdata = JSON.parse(fs.readFileSync(`./talkcount.json`, 'utf-8'))
+					if (serverJSONdata[interaction.guildId] == undefined) {
+						interaction.reply("このサーバーでは、まだ誰も喋っていないようです。")
+						return
+					}
+					let talkranking = []
+					for (const [key, value] of Object.entries(serverJSONdata[interaction.guildId])) {
+						talkranking.push([key, value])
+					}
+					talkranking.sort(function(a, b) {
+						return b[1] - a[1];
+					});
+					let talkrankingmessage = ["__**トークレベルランキング**__"]
+					for (let i = 0; i < Math.min(talkranking.length, 10); i++) {
+						const username = await client.users.fetch(talkranking[i][0])
+						const talkcount = talkranking[i][1]
+						let level = 0;
+						let count;
+						let nextlevelcount = 0;
+						for (count = 1; count <= talkcount; count += Math.floor(Math.pow(count, 1.01))) {
+							if (i <= talkcount) {
+								level++
+								nextlevelcount = count + Math.floor(Math.pow(count, 1.01))
+							}
+						}
+						talkrankingmessage.push(`**${i + 1}位**: ${username.globalName} | Lv. ${level} | 次のレベル: **${talkcount} / ${nextlevelcount}** (**${(talkcount / nextlevelcount * 100).toFixed(2)}**%)`)
+					}
+					interaction.reply(talkrankingmessage.join("\n"))
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
 		} catch (e) {
 			console.log(e)
 			return
