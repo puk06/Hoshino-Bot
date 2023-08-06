@@ -2709,9 +2709,9 @@ client.on(Events.MessageCreate, async (message) =>
 			let userJSONdata = JSON.parse(fs.readFileSync(`./usermessage.json`, 'utf-8'))
 			if (userJSONdata[message.author.id] == undefined && !limiteduser.includes(message.author.id)) {
 				userJSONdata[message.author.id] = { count: 1, limited: false }
-			} else if (!message.content.startsWith("!") && userJSONdata[message.author.id].count < 5 && !limiteduser.includes(message.author.id)) {
+			} else if (!message.content.startsWith("!") && userJSONdata[message.author.id].count < 5) {
 				userJSONdata[message.author.id].count += 1
-			} else if (!message.content.startsWith("!") && userJSONdata[message.author.id].count == 5 && !limiteduser.includes(message.author.id)) {
+			} else if (!message.content.startsWith("!") && userJSONdata[message.author.id].count == 5) {
 				userJSONdata[message.author.id].limited = true
 			}
 			fs.writeFileSync(`./usermessage.json`, JSON.stringify(userJSONdata, null, "\t"))
