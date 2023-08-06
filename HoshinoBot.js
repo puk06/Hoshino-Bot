@@ -40,26 +40,11 @@ const file = process.env.FILE;
 //discord.jsのインテンツを指定
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] })
 
-//制限用配列
-let limiteduser = [];
-
 //BOTが準備完了したら実行
 client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
 	setInterval(() => {
 		client.user.setPresence({ activities: [{ name: `ほしのBot Ver1.0.0 ping: ${client.ws.ping}`, type: ActivityType.Playing }]})
-	}, 5000)
-	setInterval(() => {
-		limiteduser = [];
-		const persecdata = JSON.parse(fs.readFileSync("./usermessage.json", 'utf-8'))
-		const userlist = Object.keys(persecdata);
-		for (const user of userlist) {
-			if (persecdata[user]["limited"]) {
-				limiteduser.push(user)
-			}
-		}
-		const jsondata = JSON.parse("{}");
-		fs.writeFileSync("./usermessage.json", JSON.stringify(jsondata, null, "\t"))
 	}, 5000)
 	setInterval(checkqualfiedosu, 30000)
 	setInterval(checkqualfiedtaiko, 30000)
@@ -2736,19 +2721,9 @@ client.on(Events.MessageCreate, async (message) =>
 			if (serverJSONdata[message.guildId][message.author.id] == undefined) {
 				serverJSONdata[message.guildId][message.author.id] = 1
 			} else {
-				if (!message.content.startsWith("!") && !limiteduser.includes(message.author.id)) serverJSONdata[message.guildId][message.author.id] += 1
+				if (!message.content.startsWith("!")) serverJSONdata[message.guildId][message.author.id] += 1
 			}
 			fs.writeFileSync(`./talkcount.json`, JSON.stringify(serverJSONdata, null, "\t"))
-
-			let userJSONdata = JSON.parse(fs.readFileSync(`./usermessage.json`, 'utf-8'))
-			if (userJSONdata[message.author.id] == undefined && !limiteduser.includes(message.author.id)) {
-				userJSONdata[message.author.id] = { count: 1, limited: false }
-			} else if (!message.content.startsWith("!") && userJSONdata[message.author.id].count < 5) {
-				userJSONdata[message.author.id].count += 1
-			} else if (!message.content.startsWith("!") && userJSONdata[message.author.id].count == 5) {
-				userJSONdata[message.author.id].limited = true
-			}
-			fs.writeFileSync(`./usermessage.json`, JSON.stringify(userJSONdata, null, "\t"))
 		} catch(e) {
 			console.log(e)
 		}
