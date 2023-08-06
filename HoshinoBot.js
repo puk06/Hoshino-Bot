@@ -2482,7 +2482,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						// ファイルとフォルダのコピー
 						const sourceDir = './updatetemp';
 						const destinationDir = './';
-						const excludedFiles = ['(dotenv).env', 'talkcount.json'];
+						const excludedFiles = ['(dotenv).env', 'talkcount.json', 'usermessage.json'];
 						fs.readdir(sourceDir, (err, files) => {
 							interaction.channel.send("ディリクトリを読み込んでいます。")
 							if (err) {
