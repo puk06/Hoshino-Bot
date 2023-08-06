@@ -38,7 +38,7 @@ const repo = process.env.REPO;
 const file = process.env.FILE;
 
 //discord.jsのインテンツを指定
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] })
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers] })
 
 //BOTが準備完了したら実行
 client.on(Events.ClientReady, async () => {
@@ -2320,18 +2320,6 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 
 					const backuptime = interaction.options.get('backuptime').value;
-	
-					//バックアップファイルの中身を取得
-					function getFilesSortedByDate(directory) {
-						const files = fs.readdirSync(directory);
-						const fileStats = files.map((file) => ({
-							name: file,
-							stat: fs.statSync(`${directory}/${file}`),
-						}));
-						fileStats.sort((a, b) => a.stat.mtime.getTime() - b.stat.mtime.getTime());
-						return fileStats.map((fileStat) => fileStat.name);
-					}
-					
 					const directory = './Backups';
 					const sortedFiles = getFilesSortedByDate(directory).reverse();
 					const backupfileslist = [];
@@ -2379,15 +2367,6 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					if (interaction.user.id != BotadminId) {
 						interaction.reply("このコマンドはBOT管理者のみ実行できます。")
 						return
-					}
-					function getFilesSortedByDate(directory) {
-						const files = fs.readdirSync(directory);
-						const fileStats = files.map((file) => ({
-							name: file,
-							stat: fs.statSync(`${directory}/${file}`),
-						}));
-						fileStats.sort((a, b) => a.stat.mtime.getTime() - b.stat.mtime.getTime());
-						return fileStats.map((fileStat) => fileStat.name);
 					}
 					
 					const directory = './Backups';
@@ -4582,6 +4561,17 @@ function findDifferentElements(array1, array2) {
 	return null
 }
 
+//バックアップファイルの中身を取得
+function getFilesSortedByDate(directory) {
+	const files = fs.readdirSync(directory);
+	const fileStats = files.map((file) => ({
+		name: file,
+		stat: fs.statSync(`${directory}/${file}`),
+	}));
+	fileStats.sort((a, b) => a.stat.mtime.getTime() - b.stat.mtime.getTime());
+	return fileStats.map((fileStat) => fileStat.name);
+}
+
 //Qualfiedチェックをする関数(全mode対応)
 async function checkqualfiedosu() {
 	try {
@@ -4703,9 +4693,10 @@ async function checkqualfiedosu() {
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
 			for (const user of fs.readFileSync(`./mentionuser/osu/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
-				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のQualfied譜面が出ました！`);
@@ -4837,9 +4828,10 @@ async function checkqualfiedtaiko() {
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
 			for (const user of fs.readFileSync(`./mentionuser/taiko/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
-				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのQualfied譜面が出ました！`);
@@ -4970,9 +4962,10 @@ async function checkqualfiedcatch() {
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
 			for (const user of fs.readFileSync(`./mentionuser/catch/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
-				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのQualfied譜面が出ました！`);
@@ -5056,7 +5049,6 @@ async function checkqualfiedmania() {
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
 
-
 		//QF時の日時を取得
 		const now = new Date();
 		const month = now.getMonth() + 1;
@@ -5103,9 +5095,10 @@ async function checkqualfiedmania() {
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
 			for (const user of fs.readFileSync(`./mentionuser/mania/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
-				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのQualfied譜面が出ました！`);
@@ -5227,9 +5220,10 @@ async function checkrankedosu() {
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
 			for (const user of fs.readFileSync(`./mentionuser/osu/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
-				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のRanked譜面が出ました！`);
@@ -5349,9 +5343,10 @@ async function checkrankedtaiko() {
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
 			for (const user of fs.readFileSync(`./mentionuser/taiko/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
-				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのRanked譜面が出ました！`);
@@ -5471,9 +5466,10 @@ async function checkrankedcatch() {
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
 			for (const user of fs.readFileSync(`./mentionuser/catch/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
-				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのRanked譜面が出ました！`);
@@ -5593,9 +5589,10 @@ async function checkrankedmania() {
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
+			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
 			for (const user of fs.readFileSync(`./mentionuser/mania/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
-				if (client.channels.cache?.get(element)?.guild?.members?.cache?.get(user) == undefined) continue;
+				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのRanked譜面が出ました！`);
