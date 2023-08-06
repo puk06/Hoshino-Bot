@@ -2348,7 +2348,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 					
 					const directory = './Backups';
-					const sortedFiles = getFilesSortedByDate(directory);
+					const sortedFiles = getFilesSortedByDate(directory).reverse();
 					const backupfileslist = [];
 					for (let i = 0; i < Math.min(10, sortedFiles.length); i++) {
 						const inputString = sortedFiles[i];
@@ -2406,7 +2406,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 					
 					const directory = './Backups';
-					const sortedFiles = getFilesSortedByDate(directory);
+					const sortedFiles = getFilesSortedByDate(directory).reverse();
 					const backupfileslist = [];
 					for (let i = 0; i < Math.min(10, sortedFiles.length); i++) {
 						const inputString = sortedFiles[i];
