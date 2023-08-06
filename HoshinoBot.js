@@ -2337,9 +2337,32 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const backuptime = interaction.options.get('backuptime').value;
 	
 					//バックアップファイルの中身を取得
-					const backupfiles = fs.readdirSync("./Backups").reverse()
+					function getFilesSortedByDate(directory) {
+						const files = fs.readdirSync(directory);
+						const fileStats = files.map((file) => ({
+							name: file,
+							stat: fs.statSync(`${directory}/${file}`),
+						}));
+						fileStats.sort((a, b) => a.stat.mtime.getTime() - b.stat.mtime.getTime());
+						return fileStats.map((fileStat) => fileStat.name);
+					}
+					
+					const directory = './Backups';
+					const sortedFiles = getFilesSortedByDate(directory);
+					const backupfileslist = [];
+					for (let i = 0; i < Math.min(10, sortedFiles.length); i++) {
+						const inputString = sortedFiles[i];
+						const [datePart, hour, minute] = inputString.split(' ');
+						const [year, month, day] = datePart.split('-');
+						const formattedMonth = month.length === 1 ? '0' + month : month;
+						const formattedDay = day.length === 1 ? '0' + day : day;
+						const formattedHour = hour.length === 1 ? '0' + hour : hour;
+						const formattedMinute = minute.length === 1 ? '0' + minute : minute;
+						const formattedString = `${year}年${formattedMonth}月${formattedDay}日 ${formattedHour}時${formattedMinute}分`;
+						backupfileslist.push(`${i + 1} | ${formattedString}`)
+					}
 					const wannabackuptime = backuptime - 1
-					const wannabackup = backupfiles[wannabackuptime]
+					const wannabackup = backupfileslist[wannabackuptime]
 	
 					//バックアップファイルが存在しなかった時の処理
 					if (wannabackup == undefined) {
@@ -2372,10 +2395,21 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("このコマンドはBOT管理者のみ実行できます。")
 						return
 					}
-					const backupfiles = fs.readdirSync("./Backups").reverse()
+					function getFilesSortedByDate(directory) {
+						const files = fs.readdirSync(directory);
+						const fileStats = files.map((file) => ({
+							name: file,
+							stat: fs.statSync(`${directory}/${file}`),
+						}));
+						fileStats.sort((a, b) => a.stat.mtime.getTime() - b.stat.mtime.getTime());
+						return fileStats.map((fileStat) => fileStat.name);
+					}
+					
+					const directory = './Backups';
+					const sortedFiles = getFilesSortedByDate(directory);
 					const backupfileslist = [];
-					for (let i = 0; i < 10; i++) {
-						const inputString = backupfiles[i];
+					for (let i = 0; i < Math.min(10, sortedFiles.length); i++) {
+						const inputString = sortedFiles[i];
 						const [datePart, hour, minute] = inputString.split(' ');
 						const [year, month, day] = datePart.split('-');
 						const formattedMonth = month.length === 1 ? '0' + month : month;
