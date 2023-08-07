@@ -1350,12 +1350,32 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					const mode = interaction.options.get('mode').value
 					const userid = interaction.user.id
-					const alluser = fs.readFileSync(`./mentionuser/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
+					const alluser = fs.readFileSync(`./mentionuser/qualfied/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
+					if (alluser.includes(userid)) {
+						interaction.reply("あなたは既にQualfiedチェックチャンネルのメンションを受け取るようになっています。")
+						return
+					}
+					fs.appendFile(`./mentionuser/${mode}/user.txt`, `${userid} `, function (err) {
+						if (err) throw err
+					})
+					interaction.reply(`今度から${mode}でQualfiedが検出されたらこのチャンネルにメンションが飛ぶようになりました。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "rankedmention") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const userid = interaction.user.id
+					const alluser = fs.readFileSync(`./mentionuser/ranked/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
 					if (alluser.includes(userid)) {
 						interaction.reply("あなたは既にQualfied、Rankedチェックチャンネルのメンションを受け取るようになっています。")
 						return
 					}
-					fs.appendFile(`./mentionuser/${mode}/user.txt`, `${userid} `, function (err) {
+					fs.appendFile(`./mentionuser/ranked/${mode}/user.txt`, `${userid} `, function (err) {
 						if (err) throw err
 					})
 					interaction.reply(`今度から${mode}でQualfied、Rankedが検出されたらこのチャンネルにメンションが飛ぶようになりました。`)
@@ -1392,16 +1412,16 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					const mode = interaction.options.get('mode').value
 					const userid = interaction.user.id
-					const alluser = fs.readFileSync(`./mentionuser/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
+					const alluser = fs.readFileSync(`./mentionuser/qualfied/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
 					if (alluser.includes(userid)) {
-						const currentuser = fs.readFileSync(`./mentionuser/${mode}/user.txt`, "utf-8")
+						const currentuser = fs.readFileSync(`./mentionuser/qualfied/${mode}/user.txt`, "utf-8")
 						const newuser = currentuser.replace(`${userid} `, "")
-						fs.writeFileSync(`./mentionuser/${mode}/user.txt`, newuser)
+						fs.writeFileSync(`./mentionuser/qualfied/${mode}/user.txt`, newuser)
 					} else {
-						interaction.reply("あなたは既にQualfied、Rankedチェックチャンネルのメンションを受け取るようになっていません。")
+						interaction.reply("あなたは既にQualfiedチェックチャンネルのメンションを受け取るようになっていません。")
 						return
 					}
-					interaction.reply(`今度から${mode}でQualfied、Rankedが検出されても、このチャンネルにメンションが飛ばないようになりました。`)
+					interaction.reply(`今度から${mode}でQualfied検出されても、このチャンネルにメンションが飛ばないようになりました。`)
 				} catch (e){
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
@@ -1409,6 +1429,26 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				}
 			}
 
+			if (interaction.commandName == "derankedmention") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const userid = interaction.user.id
+					const alluser = fs.readFileSync(`./mentionuser/ranked/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
+					if (alluser.includes(userid)) {
+						const currentuser = fs.readFileSync(`./mentionuser/ranked/${mode}/user.txt`, "utf-8")
+						const newuser = currentuser.replace(`${userid} `, "")
+						fs.writeFileSync(`./mentionuser/ranked/${mode}/user.txt`, newuser)
+					} else {
+						interaction.reply("あなたは既にRankedチェックチャンネルのメンションを受け取るようになっていません。")
+						return
+					}
+					interaction.reply(`今度から${mode}でRankedが検出されても、このチャンネルにメンションが飛ばないようになりました。`)
+				} catch (e){
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
 
 			if (interaction.commandName == "bg") {
 				try {
@@ -4695,7 +4735,7 @@ async function checkqualfiedosu() {
 			client.channels.cache.get(element).send({ embeds: [embed] });
 			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
-			for (const user of fs.readFileSync(`./mentionuser/osu/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+			for (const user of fs.readFileSync(`./mentionuser/qualfied/osu/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
 				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
@@ -4830,7 +4870,7 @@ async function checkqualfiedtaiko() {
 			client.channels.cache.get(element).send({ embeds: [embed] });
 			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
-			for (const user of fs.readFileSync(`./mentionuser/taiko/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+			for (const user of fs.readFileSync(`./mentionuser/qualfied/taiko/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
 				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
@@ -4964,7 +5004,7 @@ async function checkqualfiedcatch() {
 			client.channels.cache.get(element).send({ embeds: [embed] });
 			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
-			for (const user of fs.readFileSync(`./mentionuser/catch/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+			for (const user of fs.readFileSync(`./mentionuser/qualfied/catch/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
 				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
@@ -5097,7 +5137,7 @@ async function checkqualfiedmania() {
 			client.channels.cache.get(element).send({ embeds: [embed] });
 			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
-			for (const user of fs.readFileSync(`./mentionuser/mania/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+			for (const user of fs.readFileSync(`./mentionuser/qualfied/mania/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
 				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
@@ -5222,7 +5262,7 @@ async function checkrankedosu() {
 			client.channels.cache.get(element).send({ embeds: [embed] });
 			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
-			for (const user of fs.readFileSync(`./mentionuser/osu/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+			for (const user of fs.readFileSync(`./mentionuser/ranked/osu/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
 				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
@@ -5345,7 +5385,7 @@ async function checkrankedtaiko() {
 			client.channels.cache.get(element).send({ embeds: [embed] });
 			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
-			for (const user of fs.readFileSync(`./mentionuser/taiko/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+			for (const user of fs.readFileSync(`./mentionuser/ranked/taiko/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
 				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
@@ -5468,7 +5508,7 @@ async function checkrankedcatch() {
 			client.channels.cache.get(element).send({ embeds: [embed] });
 			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
-			for (const user of fs.readFileSync(`./mentionuser/catch/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+			for (const user of fs.readFileSync(`./mentionuser/ranked/catch/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
 				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
@@ -5591,7 +5631,7 @@ async function checkrankedmania() {
 			client.channels.cache.get(element).send({ embeds: [embed] });
 			const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 			let mentionstring = "";
-			for (const user of fs.readFileSync(`./mentionuser/mania/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+			for (const user of fs.readFileSync(`./mentionuser/ranked/mania/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
 				if (membersdata.get(user) == undefined) continue;
 				mentionstring += `<@${user}> `
 			}
