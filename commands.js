@@ -288,7 +288,24 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("qfmention")
-            .setDescription("QF、rankedが検出されたらメンションします。")
+            .setDescription("Qualfiedが検出されたらメンションします。")
+            .addStringOption(option =>
+                option
+                    .setName('mode')
+                    .setDescription('モード')
+                    .addChoices(
+                        { name: 'osu!', value: 'osu' },
+                        { name: 'osu!taiko', value: 'taiko' },
+                        { name: 'osu!catch', value: 'catch' },
+                        { name: 'osu!mania', value: 'mania' }
+                    )
+                    .setRequired(true)
+            )
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("rankedmention")
+            .setDescription("Rankedが検出されたらメンションします。")
             .addStringOption(option =>
                 option
                     .setName('mode')
@@ -322,7 +339,24 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("deqfmention")
-            .setDescription("QF、rankedが検出されたらメンションするのを解除します。")
+            .setDescription("Qualfiedが検出されたらメンションするのを解除します。")
+            .addStringOption(option =>
+                option
+                    .setName('mode')
+                    .setDescription('モード')
+                    .addChoices(
+                        { name: 'osu!', value: 'osu' },
+                        { name: 'osu!taiko', value: 'taiko' },
+                        { name: 'osu!catch', value: 'catch' },
+                        { name: 'osu!mania', value: 'mania' }
+                    )
+                    .setRequired(true)
+            )
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName("derankedmention")
+            .setDescription("Rankedが検出されたらメンションするのを解除します。")
             .addStringOption(option =>
                 option
                     .setName('mode')
