@@ -1314,7 +1314,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const rankingdata = JSON.parse("[]")
 					for (let i = 0; i < Math.min(resulttop5.length, 5); i++) {
 						const acc = tools.accuracy({300: resulttop5[i].count300, 100: resulttop5[i].count100, 50: resulttop5[i].count50, 0: resulttop5[i].countmiss, geki:  resulttop5[i].countgeki, katu: resulttop5[i].countkatu}, modeconvert(Mapinfo.mode));
-						const pp = await calculateSRwithacc(beatmapid, parseModString(mods), modeconvert(Mapinfo.mode), acc, parseInt(resulttop5[0].countmiss), parseInt(resulttop5[i].maxcombo));
+						const pp = await calculateSRwithacc(beatmapid, parseModString(modsnotNC), modeconvert(Mapinfo.mode), acc, parseInt(resulttop5[0].countmiss), parseInt(resulttop5[i].maxcombo));
 						rankingdata.push({ name: `\`#${i + 1}\``, value: `**Rank**: \`${resulttop5[i].rank}\` **Player**: \`${resulttop5[i].username}\` **Score**: ${resulttop5[i].score} \n [\`${resulttop5[i].maxcombo}\`combo] \`${acc}\`% \`${pp.ppwithacc.toFixed(2)}\`pp miss:${resulttop5[i].countmiss}`, inline: false });
 					}
 					embed.addFields(rankingdata)
@@ -3732,7 +3732,7 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				//マップ情報、プレイヤー情報、マッパー情報を取得
-				const Playersinfo = await getplayersdata(apikey, playername, GetMapInfo.mode);
+				const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
 
 				//プレイヤーの情報の取得中にエラーが発生した場合の処理
 				if (Playersinfo == undefined) {
@@ -3740,7 +3740,7 @@ client.on(Events.MessageCreate, async (message) =>
 					return
 				}
 
-				const Mapperinfo = await getplayersdata(apikey, GetMapInfo.mapper);
+				const Mapperinfo = await getplayersdata(apikey, Mapinfo.mapper);
 
 				//マッパーの情報の取得中にエラーが発生した場合の処理
 				if (Mapperinfo == undefined) {
