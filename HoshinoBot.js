@@ -1355,7 +1355,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("あなたは既にQualfiedチェックチャンネルのメンションを受け取るようになっています。")
 						return
 					}
-					fs.appendFile(`./mentionuser/${mode}/user.txt`, `${userid} `, function (err) {
+					fs.appendFile(`./mentionuser/qualfied/${mode}/user.txt`, `${userid} `, function (err) {
 						if (err) throw err
 					})
 					interaction.reply(`今度から${mode}でQualfiedが検出されたらこのチャンネルにメンションが飛ぶようになりました。`)
