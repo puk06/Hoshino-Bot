@@ -1114,9 +1114,14 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 					
 					//マップデータを取得
-					const Mapdata = await getMapInfowithoutmods(interaction.options.get("beatmaplink").value, apikey);
-					await getOsuBeatmapFile(Mapdata.beatmapId);
-					const streamdata = await checkStream(Mapdata.beatmapId, Mapdata.bpm);
+					let beatmapid = "";
+					let bpm = 0;
+					const Mapdata = await getMapInfowithoutmods(interaction.options.get("beatmaplink").value, apikey).then((data) => {
+						beatmapid = data.beatmapId
+						bpm = data.bpm
+						getOsuBeatmapFile(beatmapid);
+					});
+					const streamdata = await checkStream(beatmapid, bpm);
 	
 					//メッセージ送信
 					await interaction.reply(`Streamlength: ${streamdata} `);
