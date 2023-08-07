@@ -1372,13 +1372,13 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const userid = interaction.user.id
 					const alluser = fs.readFileSync(`./mentionuser/ranked/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
 					if (alluser.includes(userid)) {
-						interaction.reply("あなたは既にQualfied、Rankedチェックチャンネルのメンションを受け取るようになっています。")
+						interaction.reply("あなたは既にRankedチェックチャンネルのメンションを受け取るようになっています。")
 						return
 					}
 					fs.appendFile(`./mentionuser/ranked/${mode}/user.txt`, `${userid} `, function (err) {
 						if (err) throw err
 					})
-					interaction.reply(`今度から${mode}でQualfied、Rankedが検出されたらこのチャンネルにメンションが飛ぶようになりました。`)
+					interaction.reply(`今度から${mode}でRankedが検出されたらこのチャンネルにメンションが飛ぶようになりました。`)
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
