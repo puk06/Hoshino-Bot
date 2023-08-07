@@ -1,15 +1,15 @@
 const { default: axios } = require("../../node_modules/axios");
-const fs = require("fs")
 const { Beatmap, Calculator } = require("../../node_modules/rosu-pp");
+const fs = require("fs")
 
 module.exports.srchart = async (beatmapId, mode) => {
     const beatmapdata = await axios(`https://osu.ppy.sh/osu/${beatmapId}`,{responseType: "arrayBuffer",});
-    fs.writeFileSync(`../../BeatmapFolder/${beatmapId}.osu`, beatmapdata.data)
+    fs.writeFileSync(`./BeatmapFolder/${beatmapId}.osu`, beatmapdata.data)
     let hitObjectsFlag = false;
     let mapdata = "";
     let srdata = [];
     let sr = 0;
-    const beatmapdatastream = fs.createReadStream(`../../BeatmapFolder/${beatmapId}.osu`);
+    const beatmapdatastream = fs.createReadStream(`./BeatmapFolder/${beatmapId}.osu`);
     const lineReader = require('readline').createInterface({
         input: beatmapdatastream
     });
@@ -60,7 +60,7 @@ module.exports.srchart = async (beatmapId, mode) => {
                 try {
                     // 画像を取得して保存
                     const response = await axios.get(requestURL, { responseType: 'arraybuffer' });
-                    fs.writeFileSync(`../../BeatmapFolder/${beatmapId}.png`, response.data);
+                    fs.writeFileSync(`./BeatmapFolder/${beatmapId}.png`, response.data);
                 } catch (error) {
                     console.error('Error generating chart image:', error)
                 }

@@ -7,19 +7,20 @@ module.exports.getOsuBeatmapFile = async (beatmapId) => {
     }).then((response) =>
         {
             const buffer = Buffer.from(response.data);
-            fs.writeFileSync(`../../BeatmapFolder/${beatmapId}.txt`, buffer);
+            fs.writeFileSync(`./BeatmapFolder/${beatmapId}.txt`, buffer);
         }
     )
 }
 
-module.exports.checkStream = (beatmapId, bpm) => {
+module.exports.checkStream = (beatmapId, bpm) =>
+    {
         return new Promise((resolve) => {
             let hitObjectsFlag = false;
             let stream = 0;
             let maxStream = 0;
             let prevValue = null;
             const interval =  ((60 / parseFloat((bpm.toFixed(0)))) * 1000 * 1/4) + 1;
-            const streamData = fs.createReadStream(`../../BeatmapFolder/${beatmapId}.txt`);
+            const streamData = fs.createReadStream(`./BeatmapFolder/${beatmapId}.txt`);
             const lineReader = require('readline').createInterface({
                 input: streamData,
             });
@@ -41,7 +42,8 @@ module.exports.checkStream = (beatmapId, bpm) => {
                     }
                 }
             )
-            lineReader.on('close', () => {
+            lineReader.on('close', () =>
+                {
                     if (stream > maxStream) {
                         maxStream = stream
                     }

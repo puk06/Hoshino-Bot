@@ -15,7 +15,6 @@ const ModStrings = {
 	16384: "PF",
 };
 
-
 const ModtoStrings = {
 	"NM": 0,
 	"nm": 0,
