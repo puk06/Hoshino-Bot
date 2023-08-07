@@ -1108,7 +1108,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			if (interaction.commandName == "check") {
 				try {
 					//ビートマップを取得
-					if (interaction.options.get("beatmaplink").value.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+					if (!interaction.options.get("beatmaplink").value.startsWith("https://osu.ppy.sh/beatmapsets/")) {
 						interaction.reply("ビートマップリンクの形式が間違っています。")
 						return
 					}
