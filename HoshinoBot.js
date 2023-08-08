@@ -841,10 +841,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const randomLine = text[randomLineNumber];
 	
 					//画像の送信
-					interaction.channel.send(`**${randomLine}** - ${tag}`);
+					interaction.reply(`**${randomLine}** - ${tag}`);
 				} catch(e) {
 					console.log(e)
-					interaction.reply("エラーが発生しました。")
+					interaction.channel.send("エラーが発生しました。")
 					return
 				}
 			}
