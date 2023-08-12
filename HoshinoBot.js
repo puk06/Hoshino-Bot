@@ -123,7 +123,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//slotを打ったユーザーのslot後の銀行口座残高を更新
 					const newBankBalance = newcurrentBalance + reward;
 					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBankBalance.toString(), 'utf-8');
-				} catch(e) {
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
@@ -191,7 +191,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//slotを打ったユーザーのslot後の銀行口座残高を更新
 					const newBankBalance = newcurrentBalance + reward;
 					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBankBalance.toString(), 'utf-8');
-				} catch(e) {
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
@@ -258,10 +258,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					let currentrank = 0;
 					let nextbalance = 0n;
 					for (let i = 1n ; i <= 300n; i += 1n) {
-						if(messageuserbalance / BigInt(120n ** i) < 1n && currentrank == 0){
+						if (messageuserbalance / BigInt(120n ** i) < 1n && currentrank == 0){
 							interaction.reply("あなたの現在のレベルは**__0lv__**以下です。")
 							return
-						}else if(messageuserbalance / BigInt(120n ** i) >= 1n){
+						}else if (messageuserbalance / BigInt(120n ** i) >= 1n){
 							currentrank += 1
 							nextbalance = BigInt(120n ** (i + 1n))
 						}
@@ -656,7 +656,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	
 					//画像の送信
 					interaction.reply({ files: [{ attachment: picData, name: `${tag}.${lineextension}` }] })
-				} catch(e) {
+				} catch (e) {
 					console.log(e)
 					interaction.reply("エラーが発生しました。")
 					return
@@ -842,7 +842,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	
 					//画像の送信
 					interaction.reply(`**${randomLine}** - ${tag}`);
-				} catch(e) {
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("エラーが発生しました。")
 					return
@@ -1202,9 +1202,9 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//PPによってメッセージを変える処理
 					if (sr.S0 >= 750) {
 						rankplayer = "**High rank player**"
-					} else if(sr.S0 >= 500) {
+					} else if (sr.S0 >= 500) {
 						rankplayer = "**Middle rank player**"
-					} else if(sr.S0 >= 350) {
+					} else if (sr.S0 >= 350) {
 						rankplayer = "**Funny map player**"
 					} else {
 						rankplayer = "**Beginner player**"
@@ -1401,7 +1401,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						return
 					}
 					interaction.reply(`このチャンネルを${mode}のQualfiedチェックチャンネルから削除しました。`)
-				} catch (e){
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
@@ -1422,7 +1422,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						return
 					}
 					interaction.reply(`今度から${mode}でQualfied検出されても、このチャンネルにメンションが飛ばないようになりました。`)
-				} catch (e){
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
@@ -1443,7 +1443,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						return
 					}
 					interaction.reply(`今度から${mode}でRankedが検出されても、このチャンネルにメンションが飛ばないようになりました。`)
-				} catch (e){
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
@@ -1471,7 +1471,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			}
 
 			if (interaction.commandName == "ifmod") {
-				try{
+				try {
 					//ユーザーネームを取得
 					let playername;
 					try {
@@ -1504,7 +1504,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						return
 					}
 	
-					if((modforcalc.includes("NC") && modforcalc.includes("HT")) || (modforcalc.includes("DT") && modforcalc.includes("HT") || (modforcalc.includes("DT") && modforcalc.includes("NC")) || (modforcalc.includes("EZ") && modforcalc.includes("HR")))) {
+					if ((modforcalc.includes("NC") && modforcalc.includes("HT")) || (modforcalc.includes("DT") && modforcalc.includes("HT") || (modforcalc.includes("DT") && modforcalc.includes("NC")) || (modforcalc.includes("EZ") && modforcalc.includes("HR")))) {
 						interaction.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
 						return
 					}
@@ -1661,7 +1661,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) break;
 					}
 	
-					if(!foundflagforranking) {
+					if (!foundflagforranking) {
 						const embed = new EmbedBuilder()
 							.setColor("Blue")
 							.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
@@ -2213,7 +2213,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						const remainxp = 5 - userslayerxp
 						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | このプレイヤーの${showonlyslayername}はLv1に達していません。次のレベルまでに必要なXPは${remainxp}です。`)
 					}
-				} catch(e) {
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 					return
@@ -2277,7 +2277,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						showprofilemessage.push(`**${i}**: ${responce.data.profiles[i].cute_name} | 選択中: ${showonlyselected}`)
 					}
 					interaction.reply(showprofilemessage.join("\n"));
-				} catch(e) {
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 					return
@@ -2304,7 +2304,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						.setFooter({ text: "Hypixel Skyblock News" })
 						.setTimestamp()
 					interaction.reply({ embeds: [embed] })
-				} catch(e) {
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 					return
@@ -2344,7 +2344,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						}
 					}
 					interaction.channel.send(`リポジトリ: **${username}/${reponame}**\nファイル数: **${totalfilecount}**\n総行数: **${totalline}**\n空白行数: **${totalblanks}**\nコメント行数: **${comments}**\n---------------\nコード行数: **${totalLOC}**`)
-				} catch(e) {
+				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。")
 					return
@@ -2743,7 +2743,7 @@ client.on(Events.MessageCreate, async (message) =>
 				if (!message.content.startsWith("!")) serverJSONdata[message.guildId][message.author.id] += 1
 			}
 			fs.writeFileSync(`./talkcount.json`, JSON.stringify(serverJSONdata, null, "\t"))
-		} catch(e) {
+		} catch (e) {
 			console.log(e)
 		}
 		
@@ -2884,7 +2884,7 @@ client.on(Events.MessageCreate, async (message) =>
 						return
 					}
 
-					if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")))) {
+					if ((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")))) {
 						message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
 						return
 					}
@@ -3162,7 +3162,7 @@ client.on(Events.MessageCreate, async (message) =>
 					if (playername == undefined) {
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
 						return
-					} else if(playername == "") {
+					} else if (playername == "") {
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
 						return
 					}
@@ -3905,7 +3905,7 @@ client.on(Events.MessageCreate, async (message) =>
 					message.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
 					return
 				}
-				if((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")))) {
+				if ((Mods.includes("NC") && Mods.includes("HT")) || (Mods.includes("DT") && Mods.includes("HT") || (Mods.includes("DT") && Mods.includes("NC")) || (Mods.includes("EZ") && Mods.includes("HR")))) {
 					message.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
 					return
 				}
@@ -3945,7 +3945,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setImage(`https://assets.ppy.sh/beatmaps/${mapdata.beatmapset_id}/covers/cover.jpg`)
 					.setFooter({ text: `${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}` });
 				message.channel.send({ embeds: [embed] })
-			} catch(e) {
+			} catch (e) {
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				console.log(e)
 				return
@@ -4073,7 +4073,7 @@ client.on(Events.MessageCreate, async (message) =>
 					if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) break;
 				}
 
-				if(!foundflag) {
+				if (!foundflag) {
 					const notfoundembed = new EmbedBuilder()
 						.setColor("Blue")
 						.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
@@ -4548,11 +4548,11 @@ function generateSlotResult() {
 }
 
 function evaluateSlotResult(result) {
-	if(result[0] == result[1] && result[1] == result[2]){
+	if (result[0] == result[1] && result[1] == result[2]){
 		return 30n
-	}else if(result[0] == result[1] || result[1] == result[2]){
+	}else if (result[0] == result[1] || result[1] == result[2]){
 		return 10n
-	}else if(result[0] == result[2]){
+	}else if (result[0] == result[2]){
 		return 5n
 	}else{
 		return 0n
@@ -4571,7 +4571,7 @@ function toJPUnit(num) {
 		for (let i=str.length-1; i>=0; i--) {
 			n = str.charAt(i) + n
 			count++
-			if(((count % 4) == 0) && (i != 0)) n = kName[ptr++]+n
+			if (((count % 4) == 0) && (i != 0)) n = kName[ptr++]+n
 		}
 		return n
 	}
@@ -4754,7 +4754,7 @@ async function checkqualfiedosu() {
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のQualfied譜面が出ました！`);
 		}
-	} catch(e) {
+	} catch (e) {
 		console.log(e)
 		return
 	}
@@ -4889,7 +4889,7 @@ async function checkqualfiedtaiko() {
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのQualfied譜面が出ました！`);
 		}
-	} catch(e) {
+	} catch (e) {
 		console.log(e)
 		return
 	}
@@ -5023,7 +5023,7 @@ async function checkqualfiedcatch() {
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのQualfied譜面が出ました！`);
 		}
-	} catch(e) {
+	} catch (e) {
 		console.log(e)
 		return
 	}
@@ -5156,7 +5156,7 @@ async function checkqualfiedmania() {
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのQualfied譜面が出ました！`);
 		}
-	} catch(e) {
+	} catch (e) {
 		console.log(e)
 		return
 	}
@@ -5281,7 +5281,7 @@ async function checkrankedosu() {
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のRanked譜面が出ました！`);
 		}
-	} catch(e) {
+	} catch (e) {
 		console.log(e)
 		return
 	}
@@ -5404,7 +5404,7 @@ async function checkrankedtaiko() {
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのRanked譜面が出ました！`);
 		}
-	} catch(e) {
+	} catch (e) {
 		console.log(e)
 		return
 	}
@@ -5527,7 +5527,7 @@ async function checkrankedcatch() {
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのRanked譜面が出ました！`);
 		}
-	} catch(e) {
+	} catch (e) {
 		console.log(e)
 		return
 	}
@@ -5650,7 +5650,7 @@ async function checkrankedmania() {
 			}
 			if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのRanked譜面が出ました！`);
 		}
-	} catch(e) {
+	} catch (e) {
 		console.log(e)
 		return
 	}
