@@ -258,10 +258,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					let currentrank = 0;
 					let nextbalance = 0n;
 					for (let i = 1n ; i <= 300n; i += 1n) {
-						if (messageuserbalance / BigInt(120n ** i) < 1n && currentrank == 0){
+						if (messageuserbalance / BigInt(120n ** i) < 1n && currentrank == 0) {
 							interaction.reply("あなたの現在のレベルは**__0lv__**以下です。")
 							return
-						} else if (messageuserbalance / BigInt(120n ** i) >= 1n){
+						} else if (messageuserbalance / BigInt(120n ** i) >= 1n) {
 							currentrank += 1
 							nextbalance = BigInt(120n ** (i + 1n))
 						}
@@ -3481,7 +3481,7 @@ client.on(Events.MessageCreate, async (message) =>
 					if (playername == undefined) {
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
 						return
-					} else if (playername == ""){
+					} else if (playername == "") {
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
 						return
 					}
@@ -4468,7 +4468,7 @@ client.on(Events.MessageCreate, async (message) =>
 				//randomarray文字目だけ表示して、ほかは伏せ字になるようにする
 				let hint = "";
 				for (let i = 0; i < currenttitle.length; i++) {
-					if (currenttitle[i] == " "){
+					if (currenttitle[i] == " ") {
 						hint += " "
 						continue
 					}
@@ -4512,7 +4512,7 @@ client.on(Events.MessageCreate, async (message) =>
 				right = message.content.split("/")[1]
 				if (isNaN(left) || isNaN(right)) return;
 				message.reply(`${left} * ${right} = ${Number(left) * Number(right)}`)
-			} else if (message.content.includes("^")){
+			} else if (message.content.includes("^")) {
 				left = message.content.split("^")[0]
 				right = message.content.split("^")[1]
 				if (isNaN(left) || isNaN(right)) return;
@@ -4548,11 +4548,11 @@ function generateSlotResult() {
 }
 
 function evaluateSlotResult(result) {
-	if (result[0] == result[1] && result[1] == result[2]){
+	if (result[0] == result[1] && result[1] == result[2]) {
 		return 30n
-	} else if (result[0] == result[1] || result[1] == result[2]){
+	} else if (result[0] == result[1] || result[1] == result[2]) {
 		return 10n
-	} else if (result[0] == result[2]){
+	} else if (result[0] == result[2]) {
 		return 5n
 	} else{
 		return 0n
