@@ -2215,7 +2215,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 				} catch(e) {
 					console.log(e)
-					interaction.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 					return
 				}
 			}
@@ -2279,7 +2279,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					interaction.reply(showprofilemessage.join("\n"));
 				} catch(e) {
 					console.log(e)
-					interaction.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 					return
 				}
 			}
@@ -2306,7 +2306,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					interaction.reply({ embeds: [embed] })
 				} catch(e) {
 					console.log(e)
-					interaction.reply("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。Hypixelのサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 					return
 				}
 			}
@@ -4523,11 +4523,13 @@ client.on(Events.MessageCreate, async (message) =>
 		}
 
 		//時間計算機
-		if (/^[0-9.]+時間?$/.test(message.content)) {
+		if (/^[0-9.]+時間?$/.test(message.content) && message.content.includes(".")) {
 			const totalHours = parseFloat(message.content.split("時間")[0])
+			if (!message.content.split("時間")[0].includes(".")) return
 			message.reply(`${Math.floor(totalHours)}時間 ${Math.floor((totalHours - Math.floor(totalHours)) * 60)}分 ${Math.round(((totalHours - Math.floor(totalHours)) * 60 - Math.floor((totalHours - Math.floor(totalHours)) * 60)) * 60)}秒`);
-		} else if (/^[0-9.]+分?$/.test(message.content)) {
+		} else if (/^[0-9.]+分?$/.test(message.content) && message.content.includes(".")) {
 			const totalminutes = parseFloat(message.content.split("分")[0])
+			if (!message.content.split("分")[0].includes(".")) return
 			message.reply(`${Math.floor(totalminutes)}分 ${Math.round((totalminutes - Math.floor(totalminutes)) * 60)}秒`);
 		} else {
 			return
