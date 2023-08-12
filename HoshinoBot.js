@@ -261,7 +261,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						if (messageuserbalance / BigInt(120n ** i) < 1n && currentrank == 0){
 							interaction.reply("あなたの現在のレベルは**__0lv__**以下です。")
 							return
-						}else if (messageuserbalance / BigInt(120n ** i) >= 1n){
+						} else if (messageuserbalance / BigInt(120n ** i) >= 1n){
 							currentrank += 1
 							nextbalance = BigInt(120n ** (i + 1n))
 						}
@@ -1670,7 +1670,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 							.setURL(Mapinfo.maplink)
 							.setAuthor({ name: `Mapped by ${Mapinfo.mapper}`, iconURL: `https://a.ppy.sh/${mapperdata.user_id}`, url: `https://osu.ppy.sh/users/${Mapinfo.mapper}` })
 							.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
-							interaction.channel.send({ embeds: [embed] })
+						interaction.channel.send({ embeds: [embed] })
 						return
 					}
 	
@@ -1683,7 +1683,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						.setURL(Mapinfo.maplink)
 						.setAuthor({ name: `Mapped by ${Mapinfo.mapper}`, iconURL: `https://a.ppy.sh/${mapperdata.user_id}`, url: `https://osu.ppy.sh/users/${Mapinfo.mapper}` })
 						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
-						interaction.channel.send({ embeds: [embed] })
+					interaction.channel.send({ embeds: [embed] })
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンドの処理中になんらかのエラーが発生しました。")
@@ -2075,13 +2075,13 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			if (interaction.commandName == "slayer") {
 				try {
 					//メッセージからユーザー名を取得
-					const username = interaction.options.get('username').value
+					const username = interaction.options.get('username').value;
 	
 					//メッセージからスレイヤーのIDを取得
-					const slayerid = interaction.options.get('slayername').value
+					const slayerid = interaction.options.get('slayername').value;
 	
 					//メッセージからプロファイル番号を取得
-					const i = interaction.options.get('profileid').value
+					const i = interaction.options.get('profileid').value;
 	
 					//プロファイル番号が数字かどうかの処理
 					if (!/^[\d.]+$/g.test(i)) {
@@ -2090,7 +2090,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 	
 					//ユーザー名からUUIDを取得
-					let useruuidresponce
+					let useruuidresponce;
 					useruuidresponce = await axios.get(
 						`https://api.mojang.com/users/profiles/minecraft/${username}`
 					).catch(()=> {
@@ -2112,7 +2112,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					if (!responce.data.success) {
 						interaction.reply("データを取得するのに失敗しました。")
 						return
-					}else if (responce.data.profiles == null) {
+					} else if (responce.data.profiles == null) {
 						interaction.reply("このユーザーはSkyblockをしていないようです。")
 						return
 					}
@@ -2199,7 +2199,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 250 * 100).toFixed(1))}${(userslayerxp / 250 * 100).toFixed(1)}%`)
 					} else if ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 5) {
 						let remainxp = 0
-						if (slayername == "zombi") {
+						if (slayername == "zombie") {
 							remainxp = 15 - userslayerxp
 							interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv1**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 15 * 100).toFixed(1))}${(userslayerxp / 15 * 100).toFixed(1)}%`)
 						} else if (slayername == "spider") {
@@ -2260,7 +2260,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					if (!responce.data.success) {
 						interaction.reply("データを取得するのに失敗しました。")
 						return
-					}else if (responce.data.profiles == null) {
+					} else if (responce.data.profiles == null) {
 						interaction.reply("このユーザーはSkyblockをしていないようです。")
 						return
 					}
@@ -4550,11 +4550,11 @@ function generateSlotResult() {
 function evaluateSlotResult(result) {
 	if (result[0] == result[1] && result[1] == result[2]){
 		return 30n
-	}else if (result[0] == result[1] || result[1] == result[2]){
+	} else if (result[0] == result[1] || result[1] == result[2]){
 		return 10n
-	}else if (result[0] == result[2]){
+	} else if (result[0] == result[2]){
 		return 5n
-	}else{
+	} else{
 		return 0n
 	}
 }
