@@ -4660,6 +4660,33 @@ async function checkqualfiedosu() {
 		//違う物がなかった場合(Null)の処理
 		if (differentQF == null) return;
 
+		//jsonファイルにマップのid、QFされた日付を追加もしくは更新
+		const rawjson = fs.readFileSync(`./QualfiedBeatmaps/osu.json`, "utf-8")
+		const parsedjson = JSON.parse(rawjson)
+		let foundflag = false;
+		for (const element of parsedjson) {
+			if (element.id == differentQF && !foundflag) {
+				foundflag = true
+				element.qfdate = new Date()
+				element.rankeddate = "-"
+				const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+				fs.writeFileSync(`./QualfiedBeatmaps/osu.json`, updatedJsonData, 'utf8')
+			}
+			if (foundflag) break;
+		}
+		if (!foundflag) {
+			const newjson = {
+				id: differentQF,
+				qfdate: new Date(),
+				rankeddate: "-"
+			}
+
+			//jsonファイルに追加
+			parsedjson.push(newjson)
+			const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+			fs.writeFileSync(`./QualfiedBeatmaps/osu.json`, updatedJsonData, 'utf8')
+		}
+
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let QFbeatmapsmaxsrId;
 		let QFbeatmapsminsrId;
@@ -4707,9 +4734,29 @@ async function checkqualfiedosu() {
 		const minutes = now.getMinutes();
 		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
 
-		//Ranked時(予測)の日時(７日後)を取得
+		//平均を計算
+		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/osu.json`, "utf-8")
+		const qfparsedjson = JSON.parse(qfrawjson)
+		const averagearray = [];
+		for (const element of qfparsedjson) {
+			element.qfdate = new Date(element.qfdate)
+			if (element.rankeddate == "-") continue;
+			element.rankeddate = new Date(element.rankeddate)
+			averagearray.push(element.rankeddate - element.qfdate)
+		}
+		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
+		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
+		if (isNaN(averagedays)) averagedays = 0;
+		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+		if (isNaN(averagehours)) averagehours = 0;
+		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
+		if (isNaN(averageminutes)) averageminutes = 0;
+
+		//Ranked時(予測)を取得
 		const sevenDaysLater = new Date(now);
-		sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+		sevenDaysLater.setDate(sevenDaysLater.getDate() + averagedays);
+		sevenDaysLater.setHours(sevenDaysLater.getHours() + averagehours);
+		sevenDaysLater.setMinutes(sevenDaysLater.getMinutes() + averageminutes);
 		const rankedmonth = sevenDaysLater.getMonth() + 1;
 		const rankedday = sevenDaysLater.getDate();
 		const rankedhours = sevenDaysLater.getHours();
@@ -4794,6 +4841,38 @@ async function checkqualfiedtaiko() {
 		//違う物がなかった場合(Null)の処理
 		if (differentQF == null) return;
 
+		//jsonファイルにマップのid、QFされた日付を追加もしくは更新
+		const rawjson = fs.readFileSync(`./QualfiedBeatmaps/taiko.json`, "utf-8")
+		const parsedjson = JSON.parse(rawjson)
+		let foundflag = false;
+		for (const element of parsedjson) {
+			if (element.id == differentQF && !foundflag) {
+				foundflag = true
+				element.qfdate = new Date()
+				element.rankeddate = "-"
+				const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+				fs.writeFileSync(`./QualfiedBeatmaps/taiko.json`, updatedJsonData, 'utf8')
+			}
+			if (foundflag) break;
+		}
+		if (!foundflag) {
+			const newjson = {
+				id: differentQF,
+				qfdate: new Date(),
+				rankeddate: "-"
+			}
+
+			//jsonファイルに追加
+			parsedjson.push(newjson)
+			const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+			fs.writeFileSync(`./QualfiedBeatmaps/taiko.json`, updatedJsonData, 'utf8')
+		}
+
+		//jsonファイルに追加
+		parsedjson.push(newjson)
+		const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+		fs.writeFileSync(`./QualfiedBeatmaps/taiko.json`, updatedJsonData, 'utf8')
+
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let QFbeatmapsmaxsrId;
 		let QFbeatmapsminsrId;
@@ -4833,7 +4912,6 @@ async function checkqualfiedtaiko() {
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
 
-
 		//QF時の日時を取得
 		const now = new Date();
 		const month = now.getMonth() + 1;
@@ -4842,9 +4920,29 @@ async function checkqualfiedtaiko() {
 		const minutes = now.getMinutes();
 		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
 
-		//Ranked時(予測)の日時(７日後)を取得
+		//平均を計算
+		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/taiko.json`, "utf-8")
+		const qfparsedjson = JSON.parse(qfrawjson)
+		const averagearray = [];
+		for (const element of qfparsedjson) {
+			element.qfdate = new Date(element.qfdate)
+			if (element.rankeddate == "-") continue;
+			element.rankeddate = new Date(element.rankeddate)
+			averagearray.push(element.rankeddate - element.qfdate)
+		}
+		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
+		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
+		if (isNaN(averagedays)) averagedays = 0;
+		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+		if (isNaN(averagehours)) averagehours = 0;
+		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
+		if (isNaN(averageminutes)) averageminutes = 0;
+
+		//Ranked時(予測)を取得
 		const sevenDaysLater = new Date(now);
-		sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+		sevenDaysLater.setDate(sevenDaysLater.getDate() + averagedays);
+		sevenDaysLater.setHours(sevenDaysLater.getHours() + averagehours);
+		sevenDaysLater.setMinutes(sevenDaysLater.getMinutes() + averageminutes);
 		const rankedmonth = sevenDaysLater.getMonth() + 1;
 		const rankedday = sevenDaysLater.getDate();
 		const rankedhours = sevenDaysLater.getHours();
@@ -4929,6 +5027,38 @@ async function checkqualfiedcatch() {
 		//違う物がなかった場合(Null)の処理
 		if (differentQF == null) return;
 
+		//jsonファイルにマップのid、QFされた日付を追加もしくは更新
+		const rawjson = fs.readFileSync(`./QualfiedBeatmaps/catch.json`, "utf-8")
+		const parsedjson = JSON.parse(rawjson)
+		let foundflag = false;
+		for (const element of parsedjson) {
+			if (element.id == differentQF && !foundflag) {
+				foundflag = true
+				element.qfdate = new Date()
+				element.rankeddate = "-"
+				const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+				fs.writeFileSync(`./QualfiedBeatmaps/catch.json`, updatedJsonData, 'utf8')
+			}
+			if (foundflag) break;
+		}
+		if (!foundflag) {
+			const newjson = {
+				id: differentQF,
+				qfdate: new Date(),
+				rankeddate: "-"
+			}
+
+			//jsonファイルに追加
+			parsedjson.push(newjson)
+			const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+			fs.writeFileSync(`./QualfiedBeatmaps/catch.json`, updatedJsonData, 'utf8')
+		}
+
+		//jsonファイルに追加
+		parsedjson.push(newjson)
+		const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+		fs.writeFileSync(`./QualfiedBeatmaps/catch.json`, updatedJsonData, 'utf8')
+
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let QFbeatmapsmaxsrId;
 		let QFbeatmapsminsrId;
@@ -4968,7 +5098,6 @@ async function checkqualfiedcatch() {
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
 
-
 		//QF時の日時を取得
 		const now = new Date();
 		const month = now.getMonth() + 1;
@@ -4977,9 +5106,29 @@ async function checkqualfiedcatch() {
 		const minutes = now.getMinutes();
 		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
 
-		//Ranked時(予測)の日時(７日後)を取得
+		//平均を計算
+		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/catch.json`, "utf-8")
+		const qfparsedjson = JSON.parse(qfrawjson)
+		const averagearray = [];
+		for (const element of qfparsedjson) {
+			element.qfdate = new Date(element.qfdate)
+			if (element.rankeddate == "-") continue;
+			element.rankeddate = new Date(element.rankeddate)
+			averagearray.push(element.rankeddate - element.qfdate)
+		}
+		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
+		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
+		if (isNaN(averagedays)) averagedays = 0;
+		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+		if (isNaN(averagehours)) averagehours = 0;
+		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
+		if (isNaN(averageminutes)) averageminutes = 0;
+
+		//Ranked時(予測)を取得
 		const sevenDaysLater = new Date(now);
-		sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+		sevenDaysLater.setDate(sevenDaysLater.getDate() + averagedays);
+		sevenDaysLater.setHours(sevenDaysLater.getHours() + averagehours);
+		sevenDaysLater.setMinutes(sevenDaysLater.getMinutes() + averageminutes);
 		const rankedmonth = sevenDaysLater.getMonth() + 1;
 		const rankedday = sevenDaysLater.getDate();
 		const rankedhours = sevenDaysLater.getHours();
@@ -5063,6 +5212,38 @@ async function checkqualfiedmania() {
 		//違う物がなかった場合(Null)の処理
 		if (differentQF == null) return;
 
+		//jsonファイルにマップのid、QFされた日付を追加もしくは更新
+		const rawjson = fs.readFileSync(`./QualfiedBeatmaps/mania.json`, "utf-8")
+		const parsedjson = JSON.parse(rawjson)
+		let foundflag = false;
+		for (const element of parsedjson) {
+			if (element.id == differentQF && !foundflag) {
+				foundflag = true
+				element.qfdate = new Date()
+				element.rankeddate = "-"
+				const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+				fs.writeFileSync(`./QualfiedBeatmaps/mania.json`, updatedJsonData, 'utf8')
+			}
+			if (foundflag) break;
+		}
+		if (!foundflag) {
+			const newjson = {
+				id: differentQF,
+				qfdate: new Date(),
+				rankeddate: "-"
+			}
+
+			//jsonファイルに追加
+			parsedjson.push(newjson)
+			const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+			fs.writeFileSync(`./QualfiedBeatmaps/mania.json`, updatedJsonData, 'utf8')
+		}
+
+		//jsonファイルに追加
+		parsedjson.push(newjson)
+		const updatedJsonData = JSON.stringify(parsedjson, null, 4);
+		fs.writeFileSync(`./QualfiedBeatmaps/mania.json`, updatedJsonData, 'utf8')
+
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let QFbeatmapsmaxsrId;
 		let QFbeatmapsminsrId;
@@ -5110,9 +5291,29 @@ async function checkqualfiedmania() {
 		const minutes = now.getMinutes();
 		const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
 
-		//Ranked時(予測)の日時(７日後)を取得
+		//平均を計算
+		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/mania.json`, "utf-8")
+		const qfparsedjson = JSON.parse(qfrawjson)
+		const averagearray = [];
+		for (const element of qfparsedjson) {
+			element.qfdate = new Date(element.qfdate)
+			if (element.rankeddate == "-") continue;
+			element.rankeddate = new Date(element.rankeddate)
+			averagearray.push(element.rankeddate - element.qfdate)
+		}
+		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
+		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
+		if (isNaN(averagedays)) averagedays = 0;
+		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+		if (isNaN(averagehours)) averagehours = 0;
+		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
+		if (isNaN(averageminutes)) averageminutes = 0;
+
+		//Ranked時(予測)を取得
 		const sevenDaysLater = new Date(now);
-		sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+		sevenDaysLater.setDate(sevenDaysLater.getDate() + averagedays);
+		sevenDaysLater.setHours(sevenDaysLater.getHours() + averagehours);
+		sevenDaysLater.setMinutes(sevenDaysLater.getMinutes() + averageminutes);
 		const rankedmonth = sevenDaysLater.getMonth() + 1;
 		const rankedday = sevenDaysLater.getDate();
 		const rankedhours = sevenDaysLater.getHours();
@@ -5197,6 +5398,34 @@ async function checkrankedosu() {
 		//違う物がなかった場合(Null)の処理
 		if (differentranked == null) return;
 
+		//JSONファイルにranked時間を追加する
+		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/osu.json`, "utf-8")
+		const qfparsedjson = JSON.parse(qfrawjson)
+		let rankederrorstring = "取得できませんでした";
+		let foundflag = false;
+		for (const element of qfparsedjson) {
+			if (element.id == differentQF && !foundflag) {
+				foundflag = true;
+				element.rankeddate = new Date();
+				fs.writeFileSync(`./QualfiedBeatmaps/osu.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
+				const qfdate = new Date(element.qfdate)
+				const rankeddate = new Date(element.rankeddate)
+				const timeDifference = rankeddate - qfdate;
+
+				if (timeDifference < 0) {
+					const minustimeDifference = qfdate - rankeddate;
+					const rankedhours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					rankederrorstring = `- ${rankedhours}時間 ${rankedminutes}分`
+				} else {
+					const rankedhours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+				}
+			}
+			if (foundflag) break;
+		}
+
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let rankedbeatmapsmaxsrId;
 		let rankedbeatmapsminsrId;
@@ -5236,7 +5465,6 @@ async function checkrankedosu() {
 		const maptimeDT = timeconvert(lengthsecDT);
 		const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
 
-
 		//ranked時の日時を取得
 		const now = new Date();
 		const month = now.getMonth() + 1;
@@ -5269,7 +5497,7 @@ async function checkrankedosu() {
 			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
-			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: ${rankederrorstring})`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
@@ -5320,6 +5548,34 @@ async function checkrankedtaiko() {
 
 		//違う物がなかった場合(Null)の処理
 		if (differentranked == null) return;
+
+		//JSONファイルにranked時間を追加する
+		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/taiko.json`, "utf-8")
+		const qfparsedjson = JSON.parse(qfrawjson)
+		let rankederrorstring = "取得できませんでした";
+		let foundflag = false;
+		for (const element of qfparsedjson) {
+			if (element.id == differentQF && !foundflag) {
+				foundflag = true;
+				element.rankeddate = new Date();
+				fs.writeFileSync(`./QualfiedBeatmaps/taiko.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
+				const qfdate = new Date(element.qfdate)
+				const rankeddate = new Date(element.rankeddate)
+				const timeDifference = rankeddate - qfdate;
+
+				if (timeDifference < 0) {
+					const minustimeDifference = qfdate - rankeddate;
+					const rankedhours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					rankederrorstring = `- ${rankedhours}時間 ${rankedminutes}分`
+				} else {
+					const rankedhours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+				}
+			}
+			if (foundflag) break;
+		}
 
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let rankedbeatmapsmaxsrId;
@@ -5392,7 +5648,7 @@ async function checkrankedtaiko() {
 			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
-			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: ${rankederrorstring})`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
@@ -5443,6 +5699,34 @@ async function checkrankedcatch() {
 
 		//違う物がなかった場合(Null)の処理
 		if (differentranked == null) return;
+
+		//JSONファイルにranked時間を追加する
+		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/catch.json`, "utf-8")
+		const qfparsedjson = JSON.parse(qfrawjson)
+		let rankederrorstring = "取得できませんでした";
+		let foundflag = false;
+		for (const element of qfparsedjson) {
+			if (element.id == differentQF && !foundflag) {
+				foundflag = true;
+				element.rankeddate = new Date();
+				fs.writeFileSync(`./QualfiedBeatmaps/catch.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
+				const qfdate = new Date(element.qfdate)
+				const rankeddate = new Date(element.rankeddate)
+				const timeDifference = rankeddate - qfdate;
+
+				if (timeDifference < 0) {
+					const minustimeDifference = qfdate - rankeddate;
+					const rankedhours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					rankederrorstring = `- ${rankedhours}時間 ${rankedminutes}分`
+				} else {
+					const rankedhours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+				}
+			}
+			if (foundflag) break;
+		}
 
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let rankedbeatmapsmaxsrId;
@@ -5515,7 +5799,7 @@ async function checkrankedcatch() {
 			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
-			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: ${rankederrorstring})`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
@@ -5566,6 +5850,34 @@ async function checkrankedmania() {
 
 		//違う物がなかった場合(Null)の処理
 		if (differentranked == null) return;
+		
+		//JSONファイルにranked時間を追加する
+		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/mania.json`, "utf-8")
+		const qfparsedjson = JSON.parse(qfrawjson)
+		let rankederrorstring = "取得できませんでした";
+		let foundflag = false;
+		for (const element of qfparsedjson) {
+			if (element.id == differentQF && !foundflag) {
+				foundflag = true;
+				element.rankeddate = new Date();
+				fs.writeFileSync(`./QualfiedBeatmaps/mania.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
+				const qfdate = new Date(element.qfdate)
+				const rankeddate = new Date(element.rankeddate)
+				const timeDifference = rankeddate - qfdate;
+
+				if (timeDifference < 0) {
+					const minustimeDifference = qfdate - rankeddate;
+					const rankedhours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					rankederrorstring = `- ${rankedhours}時間 ${rankedminutes}分`
+				} else {
+					const rankedhours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+				}
+			}
+			if (foundflag) break;
+		}
 
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let rankedbeatmapsmaxsrId;
@@ -5638,7 +5950,7 @@ async function checkrankedmania() {
 			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
-			.addFields({ name: "`Ranked 日時`", value: `**${dateString}**`, inline: true })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: ${rankederrorstring})`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
