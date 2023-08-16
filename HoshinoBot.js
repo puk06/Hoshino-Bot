@@ -4868,11 +4868,6 @@ async function checkqualfiedtaiko() {
 			fs.writeFileSync(`./QualfiedBeatmaps/taiko.json`, updatedJsonData, 'utf8')
 		}
 
-		//jsonファイルに追加
-		parsedjson.push(newjson)
-		const updatedJsonData = JSON.stringify(parsedjson, null, 4);
-		fs.writeFileSync(`./QualfiedBeatmaps/taiko.json`, updatedJsonData, 'utf8')
-
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let QFbeatmapsmaxsrId;
 		let QFbeatmapsminsrId;
@@ -5054,11 +5049,6 @@ async function checkqualfiedcatch() {
 			fs.writeFileSync(`./QualfiedBeatmaps/catch.json`, updatedJsonData, 'utf8')
 		}
 
-		//jsonファイルに追加
-		parsedjson.push(newjson)
-		const updatedJsonData = JSON.stringify(parsedjson, null, 4);
-		fs.writeFileSync(`./QualfiedBeatmaps/catch.json`, updatedJsonData, 'utf8')
-
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let QFbeatmapsmaxsrId;
 		let QFbeatmapsminsrId;
@@ -5239,11 +5229,6 @@ async function checkqualfiedmania() {
 			fs.writeFileSync(`./QualfiedBeatmaps/mania.json`, updatedJsonData, 'utf8')
 		}
 
-		//jsonファイルに追加
-		parsedjson.push(newjson)
-		const updatedJsonData = JSON.stringify(parsedjson, null, 4);
-		fs.writeFileSync(`./QualfiedBeatmaps/mania.json`, updatedJsonData, 'utf8')
-
 		//違う物があった場合の処理(SRやPPの計算過程)
 		let QFbeatmapsmaxsrId;
 		let QFbeatmapsminsrId;
@@ -5404,7 +5389,7 @@ async function checkrankedosu() {
 		let rankederrorstring = "取得できませんでした";
 		let foundflag = false;
 		for (const element of qfparsedjson) {
-			if (element.id == differentQF && !foundflag) {
+			if (element.id == differentranked && !foundflag) {
 				foundflag = true;
 				element.rankeddate = new Date();
 				fs.writeFileSync(`./QualfiedBeatmaps/osu.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
@@ -5555,7 +5540,7 @@ async function checkrankedtaiko() {
 		let rankederrorstring = "取得できませんでした";
 		let foundflag = false;
 		for (const element of qfparsedjson) {
-			if (element.id == differentQF && !foundflag) {
+			if (element.id == differentranked && !foundflag) {
 				foundflag = true;
 				element.rankeddate = new Date();
 				fs.writeFileSync(`./QualfiedBeatmaps/taiko.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
@@ -5706,7 +5691,7 @@ async function checkrankedcatch() {
 		let rankederrorstring = "取得できませんでした";
 		let foundflag = false;
 		for (const element of qfparsedjson) {
-			if (element.id == differentQF && !foundflag) {
+			if (element.id == differentranked && !foundflag) {
 				foundflag = true;
 				element.rankeddate = new Date();
 				fs.writeFileSync(`./QualfiedBeatmaps/catch.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
@@ -5857,7 +5842,7 @@ async function checkrankedmania() {
 		let rankederrorstring = "取得できませんでした";
 		let foundflag = false;
 		for (const element of qfparsedjson) {
-			if (element.id == differentQF && !foundflag) {
+			if (element.id == differentranked && !foundflag) {
 				foundflag = true;
 				element.rankeddate = new Date();
 				fs.writeFileSync(`./QualfiedBeatmaps/mania.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
