@@ -4746,7 +4746,7 @@ async function checkqualfiedosu() {
 		}
 		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
 		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
-		if (isNaN(averagedays)) averagedays = 0;
+		if (isNaN(averagedays)) averagedays = 7;
 		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 		if (isNaN(averagehours)) averagehours = 0;
 		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
@@ -4927,7 +4927,7 @@ async function checkqualfiedtaiko() {
 		}
 		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
 		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
-		if (isNaN(averagedays)) averagedays = 0;
+		if (isNaN(averagedays)) averagedays = 7;
 		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 		if (isNaN(averagehours)) averagehours = 0;
 		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
@@ -5108,7 +5108,7 @@ async function checkqualfiedcatch() {
 		}
 		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
 		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
-		if (isNaN(averagedays)) averagedays = 0;
+		if (isNaN(averagedays)) averagedays = 7;
 		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 		if (isNaN(averagehours)) averagehours = 0;
 		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
@@ -5288,7 +5288,7 @@ async function checkqualfiedmania() {
 		}
 		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
 		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
-		if (isNaN(averagedays)) averagedays = 0;
+		if (isNaN(averagedays)) averagedays = 7;
 		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 		if (isNaN(averagehours)) averagehours = 0;
 		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
