@@ -3960,15 +3960,19 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//ユーザーネームを取得
 				let playername;
-				try {
-					let username = message.author.id
-					let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
-					playername = osuid
-				} catch (e) {
-					if (message.content.split(" ").slice(2).join(" ") == undefined) {
-						playername = message.content.split(" ").slice(2).join(" ");
-					} else {
+				if (message.content.split(" ").slice(2).join(" ") == undefined) {
+					try {
+						let username = message.author.id
+						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
+						playername = osuid
+					} catch (e) {
 						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
+						return
+					}
+				} else {
+					playername = message.content.split(" ").slice(2).join(" ");
+					if (playername == undefined) {
+						message.reply("メッセージからユーザー名を取得できませんでした。")
 						return
 					}
 				}
