@@ -1456,13 +1456,15 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const maplink = interaction.options.get("beatmaplink").value
 	
 					//osuのbeatmapリンクか判断する
-					if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
-						interaction.reply(`${maplink}、これはマップリンクではない可能性があります。`)
-						return
+					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+					if (!regex.test(maplink)) {
+						interaction.reply(`${maplink}、これはマップリンクではない可能性があります。`);
+						return;
 					}
+
 					const BeatmapsetId = await getMapInfowithoutmods(maplink, apikey);
 					const BeatmapId = BeatmapsetId.beatmapset_id;
-					interaction.channel.send(`https://assets.ppy.sh/beatmaps/${BeatmapId}/covers/raw.jpg`)
+					interaction.reply(`https://assets.ppy.sh/beatmaps/${BeatmapId}/covers/raw.jpg`)
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
@@ -1696,9 +1698,11 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//マップリンクを取得
 					const maplink = interaction.options.get("beatmaplink").value;
 	
-					if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
-						interaction.reply("マップリンク形式が間違っているようです。")
-						return
+					//osuのbeatmapリンクか判断する
+					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+					if (!regex.test(maplink)) {
+						interaction.reply(`${maplink}、これはマップリンクではない可能性があります。`);
+						return;
 					}
 	
 					//マップ情報を取得
@@ -1732,10 +1736,11 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//メッセージからマップリンクを取得
 					const maplink = interaction.options.get("beatmaplink").value;
 	
-					//マップリンクではなかった時の処理
-					if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
-						interaction.reply("マップリンク形式が間違っているようです。https://osu.ppy.sh/beatmapsets/で始まるマップリンクを入力してください。")
-						return
+					//osuのbeatmapリンクか判断する
+					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+					if (!regex.test(maplink)) {
+						interaction.reply(`${maplink}、これはマップリンクではない可能性があります。`);
+						return;
 					}
 	
 					//マップ情報を取得
@@ -3113,10 +3118,10 @@ client.on(Events.MessageCreate, async (message) =>
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
 					.addFields({ name: "`Combo`", value: `${recentplay.maxcombo}x / ${GetMapInfo.combo}x`, inline: true })
 					.addFields({ name: "`Hits`", value: `{${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
-					.addFields({ name: "`If FC`",  value: `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
-					.addFields({ name: "`Acc`",  value: `${ifFCacc}%`, inline: true })
-					.addFields({ name: "`Hits`",  value: `{${ifFC300}/${ifFC100}/0}`, inline: true })
-					.addFields({ name: "`Map Info`",  value: `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, inline: true })
+					.addFields({ name: "`If FC`", value: `**${iffcpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
+					.addFields({ name: "`Acc`", value: `${ifFCacc}%`, inline: true })
+					.addFields({ name: "`Hits`", value: `{${ifFC300}/${ifFC100}/0}`, inline: true })
+					.addFields({ name: "`Map Info`", value: `Length:\`${GetMapInfo.lengthmin}:${lengthsec}\` BPM:\`${BPM}\` Objects:\`${GetMapInfo.combo}\` \n  CS:\`${GetMapInfo.cs}\` AR:\`${GetMapInfo.ar}\` OD:\`${odscaled.toFixed(1)}\` HP:\`${GetMapInfo.hp}\` Stars:\`${sr.sr}\``, inline: true })
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
 					.setFooter({ text: `${Mapstatus} mapset of ${GetMapInfo.mapper}`, iconURL: mappersdata.iconurl });
@@ -3817,7 +3822,7 @@ client.on(Events.MessageCreate, async (message) =>
 		}
 		
 		//Beatmapリンクが入力されたときの処理(osu!BOT)
-		if (message.content.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+		if (/^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content)) {
 			try {
 				//チャンネルidを取得
 				const channelid = message.channel.id;
@@ -3878,7 +3883,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//チャンネルから直近の50件のメッセージを取得する
 				const messagedata = await message.channel.messages.fetch();
-				const maplinks = messagedata.filter(function(message) {return message.content.startsWith("https://osu.ppy.sh/beatmapsets/")}).array();
+				const maplinks = messagedata.filter(function(message) {return /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content)}).array();
 				if (maplinks[0] == undefined) {
 					message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。")
 					return
@@ -4742,6 +4747,8 @@ async function checkqualfiedosu() {
 			element.qfdate = new Date(element.qfdate)
 			if (element.rankeddate == "-") continue;
 			element.rankeddate = new Date(element.rankeddate)
+			const rankeddays = Math.floor((element.rankeddate - element.qfdate) / (1000 * 60 * 60 * 24))
+			if (rankeddays <= 5 || rankeddays >= 8) continue;
 			averagearray.push(element.rankeddate - element.qfdate)
 		}
 		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
@@ -4923,6 +4930,8 @@ async function checkqualfiedtaiko() {
 			element.qfdate = new Date(element.qfdate)
 			if (element.rankeddate == "-") continue;
 			element.rankeddate = new Date(element.rankeddate)
+			const rankeddays = Math.floor((element.rankeddate - element.qfdate) / (1000 * 60 * 60 * 24))
+			if (rankeddays <= 5 || rankeddays >= 8) continue;
 			averagearray.push(element.rankeddate - element.qfdate)
 		}
 		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
@@ -5104,6 +5113,8 @@ async function checkqualfiedcatch() {
 			element.qfdate = new Date(element.qfdate)
 			if (element.rankeddate == "-") continue;
 			element.rankeddate = new Date(element.rankeddate)
+			const rankeddays = Math.floor((element.rankeddate - element.qfdate) / (1000 * 60 * 60 * 24))
+			if (rankeddays <= 5 || rankeddays >= 8) continue;
 			averagearray.push(element.rankeddate - element.qfdate)
 		}
 		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
@@ -5284,6 +5295,8 @@ async function checkqualfiedmania() {
 			element.qfdate = new Date(element.qfdate)
 			if (element.rankeddate == "-") continue;
 			element.rankeddate = new Date(element.rankeddate)
+			const rankeddays = Math.floor((element.rankeddate - element.qfdate) / (1000 * 60 * 60 * 24))
+			if (rankeddays <= 5 || rankeddays >= 8) continue;
 			averagearray.push(element.rankeddate - element.qfdate)
 		}
 		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
@@ -5396,16 +5409,26 @@ async function checkrankedosu() {
 				const qfdate = new Date(element.qfdate)
 				const rankeddate = new Date(element.rankeddate)
 				const timeDifference = rankeddate - qfdate;
-
-				if (timeDifference < 0) {
-					const minustimeDifference = qfdate - rankeddate;
-					const rankedhours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-					const rankedminutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
-					rankederrorstring = `- ${rankedhours}時間 ${rankedminutes}分`
+				const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+				if (timeDifferenceInDays < 7) {
+					const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+					const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					if (timeDifferenceInDays == 6) {
+						rankederrorstring = `- ${hours}時間 ${minutes}分`
+					} else {
+						const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
+						rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
+					}
 				} else {
-					const rankedhours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-					const rankedminutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-					rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+					const plustimeDifference = 604800000 - timeDifference;
+					const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					if (timeDifferenceInDays == 7) {
+						rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+					} else {
+						rankederrorstring = `+ ${timeDifferenceInDays - 7}日 ${rankedhours}時間 ${rankedminutes}分`
+					}
 				}
 			}
 			if (foundflag) break;
@@ -5547,16 +5570,26 @@ async function checkrankedtaiko() {
 				const qfdate = new Date(element.qfdate)
 				const rankeddate = new Date(element.rankeddate)
 				const timeDifference = rankeddate - qfdate;
-
-				if (timeDifference < 0) {
-					const minustimeDifference = qfdate - rankeddate;
-					const rankedhours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-					const rankedminutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
-					rankederrorstring = `- ${rankedhours}時間 ${rankedminutes}分`
+				const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+				if (timeDifferenceInDays < 7) {
+					const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+					const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					if (timeDifferenceInDays == 6) {
+						rankederrorstring = `- ${hours}時間 ${minutes}分`
+					} else {
+						const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
+						rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
+					}
 				} else {
-					const rankedhours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-					const rankedminutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-					rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+					const plustimeDifference = 604800000 - timeDifference;
+					const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					if (timeDifferenceInDays == 7) {
+						rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+					} else {
+						rankederrorstring = `+ ${timeDifferenceInDays - 7}日 ${rankedhours}時間 ${rankedminutes}分`
+					}
 				}
 			}
 			if (foundflag) break;
@@ -5698,16 +5731,26 @@ async function checkrankedcatch() {
 				const qfdate = new Date(element.qfdate)
 				const rankeddate = new Date(element.rankeddate)
 				const timeDifference = rankeddate - qfdate;
-
-				if (timeDifference < 0) {
-					const minustimeDifference = qfdate - rankeddate;
-					const rankedhours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-					const rankedminutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
-					rankederrorstring = `- ${rankedhours}時間 ${rankedminutes}分`
+				const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+				if (timeDifferenceInDays < 7) {
+					const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+					const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					if (timeDifferenceInDays == 6) {
+						rankederrorstring = `- ${hours}時間 ${minutes}分`
+					} else {
+						const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
+						rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
+					}
 				} else {
-					const rankedhours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-					const rankedminutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-					rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+					const plustimeDifference = 604800000 - timeDifference;
+					const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					if (timeDifferenceInDays == 7) {
+						rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+					} else {
+						rankederrorstring = `+ ${timeDifferenceInDays - 7}日 ${rankedhours}時間 ${rankedminutes}分`
+					}
 				}
 			}
 			if (foundflag) break;
@@ -5849,16 +5892,26 @@ async function checkrankedmania() {
 				const qfdate = new Date(element.qfdate)
 				const rankeddate = new Date(element.rankeddate)
 				const timeDifference = rankeddate - qfdate;
-
-				if (timeDifference < 0) {
-					const minustimeDifference = qfdate - rankeddate;
-					const rankedhours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-					const rankedminutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
-					rankederrorstring = `- ${rankedhours}時間 ${rankedminutes}分`
+				const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+				if (timeDifferenceInDays < 7) {
+					const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+					const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					if (timeDifferenceInDays == 6) {
+						rankederrorstring = `- ${hours}時間 ${minutes}分`
+					} else {
+						const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
+						rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
+					}
 				} else {
-					const rankedhours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-					const rankedminutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-					rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+					const plustimeDifference = 604800000 - timeDifference;
+					const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					if (timeDifferenceInDays == 7) {
+						rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
+					} else {
+						rankederrorstring = `+ ${timeDifferenceInDays - 7}日 ${rankedhours}時間 ${rankedminutes}分`
+					}
 				}
 			}
 			if (foundflag) break;
