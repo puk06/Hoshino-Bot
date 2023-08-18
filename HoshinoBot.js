@@ -4489,9 +4489,9 @@ client.on(Events.MessageCreate, async (message) =>
 		}
 
 		//計算機
-		if (/^(\d+|\(.+\)|π|e)([-+*/^√](\d+|\(.+\)|π|e|\(.+\)))+$/.test(message.content)) {
+		if (/^(\d+|\(.+\)|π|e)([-+*/^√](\d+|\(.+\)|π|e|\(.+\)))+$/.test(message.content.replace(" ", ""))) {
 			try {
-				const result = eval(message.content.replace(/\^/g, "**").replace(/√/g, "Math.sqrt"));
+				const result = eval(message.content.replace(" ", "").replace(/\^/g, "**").replace(/√/g, "Math.sqrt"));
 				message.reply(`${message.content} = ${result}`);
 			} catch (e) {
 				message.reply("計算中にエラーが発生しました。");
