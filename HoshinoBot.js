@@ -2775,7 +2775,7 @@ client.on(Events.MessageCreate, async (message) =>
 				if (message.author.bot) return;
 
 				//画像のURLを取得
-				for (const attachment of message.attachments) {
+				for (const attachment of message.attachments.values()) {
 					const imageURL = attachment.url
 
 					//画像のURLをテキストファイルに保存
@@ -2807,8 +2807,8 @@ client.on(Events.MessageCreate, async (message) =>
 				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) return;
 
 				//画像のURLを取得
-				for (const attachment of message.attachments) {
-					const imageURL = attachment.url
+				for (const attachment of message.attachments.values()) {
+					const imageURL = attachment.url;
 
 					//画像のURLをテキストファイルに保存
 					fs.appendFile(`./tag/${message.channel.name}/picture.txt`, `${imageURL} `, function (err) {
