@@ -1481,9 +1481,11 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
-						console.log(e)
-						interaction.channel.send("ユーザーが登録されていません。!regコマンドで登録してください。")
-						return
+						playername = interaction.options?.get('username')?.value
+						if (playername == undefined) {
+							interaction.channel.send("ユーザーが登録されていません。/osuregコマンドで登録してください。")
+							return
+						}
 					}
 	
 					//メッセージからマップリンクを取得
@@ -2073,6 +2075,20 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "osureg") {
+				const username = interaction.user.id
+				const osuid = interaction.options.get('query').value
+				try {
+					fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
+					const globalusername = await client.users.fetch(username)
+					interaction.reply(`${globalusername.globalName} さんは ${osuid} として保存されました!`)
+				} catch (e) {
+					console.log(e)
+					interaction.reply("ユーザーを登録する際にエラーが発生しました。")
 					return
 				}
 			}
@@ -2759,16 +2775,21 @@ client.on(Events.MessageCreate, async (message) =>
 				if (message.author.bot) return;
 
 				//画像のURLを取得
-				const attachment = message.attachments.first();
-				const imageURL = attachment.url;
+				for (const attachment of message.attachments) {
+					const imageURL = attachment.url
 
-				//画像のURLをテキストファイルに保存
-				fs.appendFile(`./Furry/Furry.txt`, `${imageURL} `, function (err) {
-					if (err) throw err
-				})
+					//画像のURLをテキストファイルに保存
+					fs.appendFile(`./Furry/Furry.txt`, `${imageURL} `, function (err) {
+						if (err) throw err
+					})
+				}
 
 				//画像の保存が完了したことを知らせるメッセージを送信
-				message.reply(`Furryが保存されました`);
+				if (message.attachments.size == 1) {
+					message.reply("Furryが保存されました")
+				} else {
+					message.reply(`${message.attachments.size}個のFurryが保存されました`);
+				}
 			} catch (e) {
 				console.log(e)
 				message.reply("ファイルの保存中にエラーが発生しました。")
@@ -2786,16 +2807,21 @@ client.on(Events.MessageCreate, async (message) =>
 				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) return;
 
 				//画像のURLを取得
-				const attachment = message.attachments.first();
-				const imageURL = attachment.url;
+				for (const attachment of message.attachments) {
+					const imageURL = attachment.url
 
-				//画像のURLをテキストファイルに保存
-				fs.appendFile(`./tag/${message.channel.name}/picture.txt`, `${imageURL} `, function (err) {
-					if (err) throw err
-				})
-
+					//画像のURLをテキストファイルに保存
+					fs.appendFile(`./tag/${message.channel.name}/picture.txt`, `${imageURL} `, function (err) {
+						if (err) throw err
+					})
+				}
+				
 				//画像の保存が完了したことを知らせるメッセージを送信
-				message.reply(`ファイルが保存されました`);
+				if (message.attachments.size == 1) {
+					message.reply("ファイルが保存されました")
+				} else {
+					message.reply(`${message.attachments.size}個のファイルが保存されました`);
+				}
 			} catch (e) {
 				console.log(e)
 				message.reply("ファイルの保存中にエラーが発生しました。")
@@ -2994,18 +3020,18 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
-				if (message.content.split(" ")[1] == undefined) {
+				if (message.content.split(" ").slice(1).join(" ") == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
 						console.log(e)
-						message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
+						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
 				} else {
-					playername = message.content.split(" ")[1]
+					playername = message.content.split(" ").slice(1).join(" ")
 					if (playername == undefined) {
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
 						return
@@ -3152,18 +3178,18 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
-				if (message.content.split(" ")[1] == undefined) {
+				if (message.content.split(" ").slice(1).join(" ") == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
 						console.log(e)
-						message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
+						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
 				} else {
-					playername = message.content.split(" ")[1]
+					playername = message.content.split(" ").slice(1).join(" ")
 					if (playername == undefined) {
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
 						return
@@ -3309,18 +3335,18 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
-				if (message.content.split(" ")[1] == undefined) {
+				if (message.content.split(" ").slice(1).join(" ") == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
 						console.log(e)
-						message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
+						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
 				} else {
-					playername = message.content.split(" ")[1]
+					playername = message.content.split(" ").slice(1).join(" ")
 					if (playername == undefined) {
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
 						return
@@ -3471,18 +3497,18 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
-				if (message.content.split(" ")[1] == undefined) {
+				if (message.content.split(" ").slice(1).join(" ") == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
 						console.log(e)
-						message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
+						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
 				} else {
-					playername = message.content.split(" ")[1]
+					playername = message.content.split(" ").slice(1).join(" ")
 					if (playername == undefined) {
 						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
 						return
@@ -3638,40 +3664,6 @@ client.on(Events.MessageCreate, async (message) =>
 			return
 		}
 
-		//!regコマンドの処理(osu!BOT)
-		if (message.content.split(" ")[0] == "!reg") {
-			//ユーザー名が入力されなかったときの処理、されたときの処理
-			if (message.content == "!reg") {
-				message.reply("使い方: !reg <osu!ユーザーネーム>")
-				return
-			}
-
-			const username = message.author.id
-			const osuid = message.content.split(" ")[1]
-
-			//ユーザー名が入力されなかったときの処理
-			if (osuid == undefined) {
-				message.reply("ユーザー名を入力してください。")
-				return
-			}
-
-			//ユーザー名の前に空白1つ多く入っていた時の処理
-			if (osuid == "") {
-				message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-				return
-			}
-
-			try {
-				fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
-				const globalusername = await client.users.fetch(username)
-				message.reply(`${globalusername.globalName} さんは ${osuid} として保存されました!`)
-			} catch (e) {
-				console.log(e)
-				message.reply("ユーザーを登録する際にエラーが発生しました。")
-				return
-			}
-		}
-
 		//ユーザーの最高記録を表示するコマンド(osu!BOT)
 		if (message.content.split(" ")[0] == "!s") {
 			try {
@@ -3683,18 +3675,18 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//プレイヤー名が入力された時、されてない時の処理
 				let playername;
-				if (message.content.split(" ")[2] == undefined) {
+				if (message.content.split(" ").slice(3).join(" ") == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
 						console.log(e)
-						message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
+						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
 				} else {
-					playername = message.content.split(" ")[2]
+					playername = message.content.split(" ").slice(3).join(" ")
 					if (playername == undefined) {
 						message.reply("メッセージからユーザー名を取得できませんでした。")
 						return
@@ -3962,7 +3954,7 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//!wiのみ入力された時の処理
 				if (message.content == "!wi") {
-					message.reply("使い方: !wi◯<モード(o, t, c, m)>")
+					message.reply("使い方: !wi◯<モード(o, t, c, m)> <osu!ユーザーネーム(省略可)>")
 					return
 				}
 
@@ -3973,9 +3965,12 @@ client.on(Events.MessageCreate, async (message) =>
 					let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 					playername = osuid
 				} catch (e) {
-					console.log(e)
-					message.reply("ユーザーが登録されていません。!regコマンドで登録してください。")
-					return
+					if (message.content.split(" ").slice(1).join(" ") == undefined) {
+						playername = message.content.split(" ").slice(1).join(" ");
+					} else {
+						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
+						return
+					}
 				}
 
 				//ppが入力されなかったときの処理、されたときの処理
