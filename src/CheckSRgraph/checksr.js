@@ -37,7 +37,6 @@ module.exports.srchart = async (beatmapId, mode) => {
             generateChartImage();
             async function generateChartImage() {
                 const dividedsrdata = divideInto100Parts(srdata);
-                console.log(dividedsrdata)
                 const srdatalengtharray = labelarray(dividedsrdata.length);
                 const chartConfig = {
                     type: "line",
