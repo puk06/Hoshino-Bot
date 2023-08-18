@@ -2081,7 +2081,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 			if (interaction.commandName == "osureg") {
 				const username = interaction.user.id
-				const osuid = interaction.options.get('query').value
+				const osuid = interaction.options.get('username').value
 				try {
 					fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
 					const globalusername = await client.users.fetch(username)
@@ -3965,8 +3965,8 @@ client.on(Events.MessageCreate, async (message) =>
 					let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 					playername = osuid
 				} catch (e) {
-					if (message.content.split(" ").slice(1).join(" ") == undefined) {
-						playername = message.content.split(" ").slice(1).join(" ");
+					if (message.content.split(" ").slice(2).join(" ") == undefined) {
+						playername = message.content.split(" ").slice(2).join(" ");
 					} else {
 						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
@@ -3996,16 +3996,16 @@ client.on(Events.MessageCreate, async (message) =>
 				//モードが入力されなかったときの処理、されたときの処理
 				let mode = "";
 				let modeforranking = "";
-				if (message.content.startsWith("!wio")) {
+				if (message.content.split(" ")[0] == "!wio") {
 					mode = "0"
 					modeforranking = "osu"
-				} else if (message.content.startsWith("!wit")) {
+				} else if (message.content.split(" ")[0] == "!wit") {
 					mode = "1"
 					modeforranking = "taiko"
-				} else if (message.content.startsWith("!wic")) {
+				} else if (message.content.split(" ")[0] == "!wic") {
 					mode = "2"
 					modeforranking = "fruits"
-				} else if (message.content.startsWith("!wim")) {
+				} else if (message.content.split(" ")[0] == "!wim") {
 					mode = "3"
 					modeforranking = "mania"
 				} else {
@@ -4489,36 +4489,12 @@ client.on(Events.MessageCreate, async (message) =>
 		}
 
 		//計算機
-		if (RegExp(/^\d+([-+*/^])\d+$/).exec(message.content)) {
-			let left;
-			let right;
-			if (message.content.includes("+")) {
-				left = message.content.split("+")[0]
-				right = message.content.split("+")[1]
-				if (isNaN(left) || isNaN(right)) return;
-				message.reply(`${left} + ${right} = ${Number(left) + Number(right)}`)
-			} else if (message.content.includes("-")) {
-				left = message.content.split("-")[0]
-				right = message.content.split("-")[1]
-				if (isNaN(left) || isNaN(right)) return;
-				message.reply(`${left} - ${right} = ${Number(left) - Number(right)}`)
-			} else if (message.content.includes("*")) {
-				left = message.content.split("*")[0]
-				right = message.content.split("*")[1]
-				if (isNaN(left) || isNaN(right)) return;
-				message.reply(`${left} * ${right} = ${Number(left) * Number(right)}`)
-			} else if (message.content.includes("/")) {
-				left = message.content.split("/")[0]
-				right = message.content.split("/")[1]
-				if (isNaN(left) || isNaN(right)) return;
-				message.reply(`${left} * ${right} = ${Number(left) * Number(right)}`)
-			} else if (message.content.includes("^")) {
-				left = message.content.split("^")[0]
-				right = message.content.split("^")[1]
-				if (isNaN(left) || isNaN(right)) return;
-				message.reply(`${left} ^ ${right} = ${Number(left) ** Number(right)}`)
-			} else {
-				return
+		if (RegExp(/^(\d+|\(.+\)|π|e)(([-+*/^√])((\d+|\(.+\)|π|e)|\(.+\)))+$/).exec(message.content)) {
+			try {
+				const result = eval(message.content.replace(/\^/g, "**").replace(/√/g, "Math.sqrt"));
+				message.reply(`${message.content} = ${result}`);
+			} catch (e) {
+				message.reply("計算中にエラーが発生しました。");
 			}
 		}
 
