@@ -4489,7 +4489,7 @@ client.on(Events.MessageCreate, async (message) =>
 		}
 
 		//計算機
-		if (RegExp(/^(\d+|\(.+\)|π|e)(([-+*/^√])((\d+|\(.+\)|π|e)|\(.+\)))+$/).exec(message.content)) {
+		if (/^(\d+|\(.+\)|π|e)([-+*/^√](\d+|\(.+\)|π|e|\(.+\)))+$/.test(message.content)) {
 			try {
 				const result = eval(message.content.replace(/\^/g, "**").replace(/√/g, "Math.sqrt"));
 				message.reply(`${message.content} = ${result}`);
