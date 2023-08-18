@@ -4489,12 +4489,36 @@ client.on(Events.MessageCreate, async (message) =>
 		}
 
 		//計算機
-		if (/^(\d+|\(.+\)|π|e)([-+*/^√](\d+|\(.+\)|π|e|\(.+\)))+$/.test(message.content.replace(" ", ""))) {
-			try {
-				const result = eval(message.content.replace(" ", "").replace(/\^/g, "**").replace(/√/g, "Math.sqrt"));
-				message.reply(`${message.content} = ${result}`);
-			} catch (e) {
-				message.reply("計算中にエラーが発生しました。");
+		if (RegExp(/^\d+([-+*/^])\d+$/).exec(message.content)) {
+			let left;
+			let right;
+			if (message.content.includes("+")) {
+				left = message.content.split("+")[0]
+				right = message.content.split("+")[1]
+				if (isNaN(left) || isNaN(right)) return;
+				message.reply(`${left} + ${right} = ${Number(left) + Number(right)}`)
+			} else if (message.content.includes("-")) {
+				left = message.content.split("-")[0]
+				right = message.content.split("-")[1]
+				if (isNaN(left) || isNaN(right)) return;
+				message.reply(`${left} - ${right} = ${Number(left) - Number(right)}`)
+			} else if (message.content.includes("*")) {
+				left = message.content.split("*")[0]
+				right = message.content.split("*")[1]
+				if (isNaN(left) || isNaN(right)) return;
+				message.reply(`${left} * ${right} = ${Number(left) * Number(right)}`)
+			} else if (message.content.includes("/")) {
+				left = message.content.split("/")[0]
+				right = message.content.split("/")[1]
+				if (isNaN(left) || isNaN(right)) return;
+				message.reply(`${left} * ${right} = ${Number(left) * Number(right)}`)
+			} else if (message.content.includes("^")) {
+				left = message.content.split("^")[0]
+				right = message.content.split("^")[1]
+				if (isNaN(left) || isNaN(right)) return;
+				message.reply(`${left} ^ ${right} = ${Number(left) ** Number(right)}`)
+			} else {
+				return
 			}
 		}
 
