@@ -3020,7 +3020,7 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
-				if (message.content.split(" ").slice(1).join(" ") == undefined) {
+				if (message.content.split(" ")[1] == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
@@ -3032,10 +3032,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 				} else {
 					playername = message.content.split(" ").slice(1).join(" ")
-					if (playername == undefined) {
-						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
-						return
-					} else if (playername == "") {
+					if (playername == "") {
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
 						return
 					}
@@ -3178,7 +3175,7 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
-				if (message.content.split(" ").slice(1).join(" ") == undefined) {
+				if (message.content.split(" ")[1] == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
@@ -3190,10 +3187,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 				} else {
 					playername = message.content.split(" ").slice(1).join(" ")
-					if (playername == undefined) {
-						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
-						return
-					} else if (playername == "") {
+					if (playername == "") {
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
 						return
 					}
@@ -3335,7 +3329,7 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
-				if (message.content.split(" ").slice(1).join(" ") == undefined) {
+				if (message.content.split(" ")[1] == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
@@ -3347,10 +3341,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 				} else {
 					playername = message.content.split(" ").slice(1).join(" ")
-					if (playername == undefined) {
-						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
-						return
-					} else if (playername == "") {
+					if (playername == "") {
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
 						return
 					}
@@ -3497,7 +3488,7 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
-				if (message.content.split(" ").slice(1).join(" ") == undefined) {
+				if (message.content.split(" ")[1] == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
@@ -3509,10 +3500,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 				} else {
 					playername = message.content.split(" ").slice(1).join(" ")
-					if (playername == undefined) {
-						message.reply("メッセージからユーザー名を取得するのに失敗しました。")
-						return
-					} else if (playername == "") {
+					if (playername == "") {
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
 						return
 					}
@@ -3675,7 +3663,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//プレイヤー名が入力された時、されてない時の処理
 				let playername;
-				if (message.content.split(" ").slice(3).join(" ") == undefined) {
+				if (message.content.split(" ")[2] == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
@@ -3686,11 +3674,7 @@ client.on(Events.MessageCreate, async (message) =>
 						return
 					}
 				} else {
-					playername = message.content.split(" ").slice(3).join(" ")
-					if (playername == undefined) {
-						message.reply("メッセージからユーザー名を取得できませんでした。")
-						return
-					}
+					playername = message.content.split(" ").slice(2).join(" ")
 					if (playername == "") {
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
 						return
@@ -3960,19 +3944,20 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//ユーザーネームを取得
 				let playername;
-				if (message.content.split(" ").slice(2).join(" ") == undefined) {
+				if (message.content.split(" ")[1] == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
+						console.log(e)
 						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
 				} else {
-					playername = message.content.split(" ").slice(2).join(" ");
-					if (playername == undefined) {
-						message.reply("メッセージからユーザー名を取得できませんでした。")
+					playername = message.content.split(" ").slice(1).join(" ")
+					if (playername == "") {
+						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
 						return
 					}
 				}
