@@ -3859,7 +3859,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//チャンネルから直近の50件のメッセージを取得する
 				const messagedata = await message.channel.messages.fetch();
-				const maplinks = messagedata.filter(function(message) {return /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content)}).array();
+				const maplinks = messagedata.filter(function(message) {return /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content)});
 				if (maplinks[0] == undefined) {
 					message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。")
 					return
