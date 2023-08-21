@@ -7,6 +7,7 @@ const axios = require("./node_modules/axios");
 const path = require('path');
 const util = require('util');
 const git = require('git-clone');
+const Tesseract = require('./tesseract_modules/tesseract.js');
 
 //必要なファイルの読み込み
 const { calculateSR, calculateSRwithacc } = require("./src/CalculateSR/CalculateSRPP");
@@ -2729,6 +2730,32 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						talkrankingmessage.push(`**${i + 1}位**: ${username.globalName} | Lv. **${level}** | 次のレベル: **${talkcount} / ${nextlevelcount}** (**${(talkcount / nextlevelcount * 100).toFixed(2)}**%)`)
 					}
 					interaction.reply(talkrankingmessage.join("\n"))
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("エラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "ocr") {
+				try {
+					const language = interaction.options.get('language').value;
+					const picture = interaction.options.get('image').attachment.attachment;
+					if (['.jpg', '.jpeg', '.png', '.gif', '.bmp'].some(ext => picture.endsWith(ext))) {
+						const message = await interaction.reply("OCRを実行中です...")
+						await Tesseract.recognize(picture, language,
+							{
+								logger: m => {
+									if (m.status == "recognizing text") message.edit(`OCRを実行中です...${(m.progress * 100).toFixed(0)}%`)
+								}
+							}
+						).then(({ data: { text } }) => {
+							message.edit(`OCRを実行しました。\n結果: \`\`\`${text}\`\`\``)
+						})
+					} else {
+						interaction.reply("対応していないファイル形式です。")
+						return
+					}
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("エラーが発生しました。")
