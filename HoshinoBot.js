@@ -78,7 +78,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					
 					//slotを打ったユーザーが登録されていない場合の処理
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
 						return
 					}
 
@@ -141,7 +141,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					
 					//slotを打ったユーザーが登録されていない場合の処理
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
 						return
 					}
 
@@ -247,7 +247,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//レベルを取得するユーザーが登録されていない場合の処理
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
 						return
 					}
 
@@ -281,7 +281,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//recoshotを打ったユーザーが登録されていない場合の処理
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
 						return
 					}
 
@@ -296,7 +296,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 					//recoshotを打ったユーザーの銀行口座残高が0の場合の処理
 					if (userbank <= 0n) {
-						interaction.reply("賭け金額を計算できるほどのお金を持っていないようです。他人からもらうか、稼ぐかしてください。")
+						interaction.reply("賭け金額を計算できるほどのお金を持っていないようです。")
 						return
 					}
 
@@ -352,14 +352,14 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//recoを打ったユーザーが登録されているかどうかの確認
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
 						return
 					}
 
 					//recoを打ったユーザーの銀行口座残高が0の場合の処理
 					const userbank = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
 					if (userbank <= 0) {
-						interaction.reply("賭け金額を計算できるほどのお金を持っていないようです。他人からもらうか、稼ぐかしてください。")
+						interaction.reply("賭け金額を計算できるほどのお金を持っていないようです。")
 						return
 					}
 
@@ -379,7 +379,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//bankを打ったユーザーが登録されていない場合の処理
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
 						return
 					}
 
@@ -423,7 +423,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	
 					//regを打ったユーザーの銀行口座残高を作成
 					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, "1000000", "utf-8");
-					interaction.reply(`カジノへようこそ！ ${interaction.user.username}! 初回なので1000000コインを差し上げます。`);
+					interaction.reply(`カジノへようこそ ${interaction.user.username}! 初回なので1000000コインを差し上げます。`);
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("ユーザー登録中にエラーが発生しました。")
@@ -444,13 +444,13 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	
 					//送り先のユーザー名が存在するかの確認
 					if (!fs.existsSync(`./Player Bank/${sentusername}.txt`)) {
-						interaction.reply(`${sentusername} というユーザーはこのカジノに登録されていません。\`/regcasino\`で登録してもらってください。`)
+						interaction.reply(`${sentusername} というユーザーはこのカジノに登録されていません。`)
 						return
 					}
 	
 					//送る本人が存在するかの確認
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
-						interaction.reply("このカジノにユーザー登録されていないようです。`/regcasino`と入力して登録してください。")
+						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
 						return
 					}
 	
@@ -1072,7 +1072,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					})
 	
 					//メッセージ送信
-					interaction.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されるようになりました。解除したい場合は!unlinkコマンドを使用してください。`)
+					interaction.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されるようになりました。解除したい場合は/unlinkコマンドを使用してください。`)
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
@@ -1097,7 +1097,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 	
 					//メッセージ送信
-					interaction.reply(`このチャンネルにマップリンクが送信されてもマップ情報が表示されないようになりました。再度表示したい場合は!linkコマンドを使用してください。`)
+					interaction.reply(`このチャンネルにマップリンクが送信されてもマップ情報が表示されないようになりました。再度表示したい場合は/linkコマンドを使用してください。`)
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
@@ -1108,7 +1108,8 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			if (interaction.commandName == "check") {
 				try {
 					//ビートマップを取得
-					if (!interaction.options.get("beatmaplink").value.startsWith("https://osu.ppy.sh/beatmapsets/")) {
+					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+					if (!regex.test(interaction.options.get("beatmaplink").value)) {
 						interaction.reply("ビートマップリンクの形式が間違っています。")
 						return
 					}
@@ -1143,6 +1144,14 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					let modsforcalc;
 
 					const maplink = interaction.options.get("beatmaplink").value;
+
+					//osuのbeatmapリンクか判断する
+					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+					if (!regex.test(maplink)) {
+						interaction.reply(`ビートマップリンクの形式が間違っています。`);
+						return;
+					}
+
 					const Mods = interaction.options?.get("mods")?.value;
 	
 					//Modsが入力されなかったときの処理、されたときの処理
@@ -1227,6 +1236,13 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//マップリンクを取得
 					const maplink = interaction.options.get("beatmaplink").value;
+
+					//osuのbeatmapリンクか判断する
+					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+					if (!regex.test(maplink)) {
+						interaction.reply(`ビートマップリンクの形式が間違っています。`);
+						return;
+					}
 	
 					//BeatmapIdをメッセージから取得
 					const beatmapid = maplink.split("/")[maplink.split("/").length - 1]
@@ -1458,7 +1474,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//osuのbeatmapリンクか判断する
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
-						interaction.reply(`${maplink}、これはマップリンクではない可能性があります。`);
+						interaction.reply(`ビートマップリンクの形式が間違っています。`);
 						return;
 					}
 
@@ -1474,26 +1490,27 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 			if (interaction.commandName == "ifmod") {
 				try {
-					//ユーザーネームを取得
-					let playername;
-					try {
-						let username = interaction.user.id
-						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
-						playername = osuid
-					} catch (e) {
-						playername = interaction.options?.get('username')?.value
-						if (playername == undefined) {
-							interaction.channel.send("ユーザーが登録されていません。/osuregコマンドで登録してください。")
+					//ユーザーネームを取得(interactionのユーザー名を優先する)
+					let playername = interaction.options?.get('username')?.value;
+					if (playername == undefined) {
+						try {
+							let username = interaction.user.id
+							let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
+							playername = osuid
+						} catch (e) {
+							interaction.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 							return
 						}
 					}
-	
+
 					//メッセージからマップリンクを取得
 					const maplink = interaction.options.get("beatmaplink").value;
 
-					if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
-						interaction.reply(`マップリンクの形式が間違っています。`)
-						return
+					//osuのbeatmapリンクか判断する
+					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+					if (!regex.test(maplink)) {
+						interaction.reply(`ビートマップリンクの形式が間違っています。`);
+						return;
 					}
 	
 					//メッセージからMODを取得
@@ -1703,10 +1720,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//osuのbeatmapリンクか判断する
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
-						interaction.reply(`${maplink}、これはマップリンクではない可能性があります。`);
+						interaction.reply(`ビートマップリンクの形式が間違っています。`);
 						return;
 					}
-	
+
 					//マップ情報を取得
 					const mapdata = await getMapInfowithoutmods(maplink, apikey);
 					const beatmapid = mapdata.beatmapId;
@@ -1741,7 +1758,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//osuのbeatmapリンクか判断する
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
-						interaction.reply(`${maplink}、これはマップリンクではない可能性があります。`);
+						interaction.reply(`ビートマップリンクの形式が間違っています。`);
 						return;
 					}
 	
@@ -1782,7 +1799,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//クイズが既に開始しているかをファイルの存在から確認する
 					if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
-						interaction.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+						interaction.reply("既にクイズが開始されています。/quizendで終了するか回答してください。")
 						return
 					}
 
@@ -1837,7 +1854,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//クイズが既に開始しているかをファイルの存在から確認する
 					if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
-						interaction.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+						interaction.reply("既にクイズが開始されています。/quizendで終了するか回答してください。")
 						return
 					}
 
@@ -1892,7 +1909,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//クイズが既に開始しているかをファイルの存在から確認する
 					if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
-						interaction.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+						interaction.reply("既にクイズが開始されています。/quizendで終了するか回答してください。")
 						return
 					}
 
@@ -1947,7 +1964,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//クイズが既に開始しているかをファイルの存在から確認する
 					if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
-						interaction.reply("既にクイズが開始されています。!quizendで終了するか回答してください。")
+						interaction.reply("既にクイズが開始されています。/quizendで終了するか回答してください。")
 						return
 					}
 
@@ -2085,7 +2102,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					fs.writeFileSync(`./Player infomation/${username}.txt`, osuid, "utf-8")
 					const globalusername = await client.users.fetch(username)
-					interaction.reply(`${globalusername.globalName} さんは ${osuid} として保存されました!`)
+					interaction.reply(`${globalusername.globalName}さんは${osuid}として保存されました!`)
 				} catch (e) {
 					console.log(e)
 					interaction.reply("ユーザーを登録する際にエラーが発生しました。")
@@ -2246,18 +2263,6 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//メッセージからユーザー名を取得
 					const username = interaction.options.get('username').value
 	
-					//ユーザー名が入力されてなかった時、の処理
-					if (username == undefined) {
-						interaction.reply("ユーザー名を入力してください。")
-						return
-					}
-	
-					//ユーザー名の前の空白が1つ多かった時の処理
-					if (username == "") {
-						interaction.reply("ユーザー名の前の空白が1つ多い可能性があります。")
-						return
-					}
-	
 					//ユーザー名からUUIDを取得
 					let useruuidresponce
 					useruuidresponce = await axios.get(
@@ -2383,20 +2388,8 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const backuptime = interaction.options.get('backuptime').value;
 					const directory = './Backups';
 					const sortedFiles = getFilesSortedByDate(directory).reverse();
-					const backupfileslist = [];
-					for (let i = 0; i < Math.min(10, sortedFiles.length); i++) {
-						const inputString = sortedFiles[i];
-						const [datePart, hour, minute] = inputString.split(' ');
-						const [year, month, day] = datePart.split('-');
-						const formattedMonth = month.length === 1 ? '0' + month : month;
-						const formattedDay = day.length === 1 ? '0' + day : day;
-						const formattedHour = hour.length === 1 ? '0' + hour : hour;
-						const formattedMinute = minute.length === 1 ? '0' + minute : minute;
-						const formattedString = `${year}年${formattedMonth}月${formattedDay}日 ${formattedHour}時${formattedMinute}分`;
-						backupfileslist.push(`${i + 1} | ${formattedString}`)
-					}
 					const wannabackuptime = backuptime - 1
-					const wannabackup = backupfileslist[wannabackuptime]
+					const wannabackup = sortedFiles[wannabackuptime]
 	
 					//バックアップファイルが存在しなかった時の処理
 					if (wannabackup == undefined) {
@@ -2466,9 +2459,9 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("このコマンドはBOT管理者のみ実行できます。")
 						return
 					}
-					interaction.reply("バックアップを作成します。")
+					const message = interaction.reply("バックアップの作成中です。")
 					await makeBackup()
-					interaction.channel.send("バックアップの作成が完了しました。")
+					message.edit("バックアップの作成が完了しました。")
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("バックアップの作成中にエラーが発生しました。")
@@ -2492,7 +2485,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const savePath = botfilepath;
 	
 					//ファイルのダウンロード
-					interaction.channel.send("ファイルのダウンロード中です。")
+					const message = await interaction.channel.send("ファイルのダウンロード中です。")
 					downloadHoshinobotFile(fileUrl, savePath, (error) => {
 						if (error) {
 							interaction.channel.send("ファイルのダウンロードに失敗しました。");
@@ -2500,9 +2493,9 @@ client.on(Events.InteractionCreate, async(interaction) =>
 							getCommitDiffofHoshinobot(owner, repo, file, (error, diff) => {
 								if (error) {
 									console.log(error);
-									interaction.channel.send("ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
+									message.edit("ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
 								} else {
-									interaction.channel.send(`ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
+									message.edit(`ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
 								}
 							});
 						}
@@ -2546,7 +2539,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 							interaction.channel.send("ディリクトリを読み込んでいます。")
 							if (err) {
 								console.log(err);
-								interaction.channel.send("ディレクトリの読み込み中にエラーが発生しました");
+								message.edit("ディレクトリの読み込み中にエラーが発生しました");
 								return;
 							}
 							interaction.channel.send("ディリクトリの読み込みが完了しました。")
@@ -2861,6 +2854,13 @@ client.on(Events.MessageCreate, async (message) =>
 				//メッセージからマップリンクを取得
 				const MessageMaplink = message.content.split(" ")[1];
 
+				//osuのbeatmapリンクか判断する
+				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+				if (!regex.test(MessageMaplink)) {
+					message.reply(`ビートマップリンクの形式が間違っています。`);
+					return;
+				}
+
 				//マップリンクの前の空白が1つ多い場合の処理
 				if (MessageMaplink == "") {
 					message.reply("マップリンクの前の空白が1つ多い可能性があります。")
@@ -3026,7 +3026,6 @@ client.on(Events.MessageCreate, async (message) =>
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
-						console.log(e)
 						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
@@ -3053,7 +3052,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//プレイヤーの情報の取得中にエラーが発生した場合の処理
 				if (playersdata == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3061,7 +3060,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//マッパーの情報の取得中にエラーが発生した場合の処理
 				if (mappersdata == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					message.reply("マッパーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3181,7 +3180,6 @@ client.on(Events.MessageCreate, async (message) =>
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
-						console.log(e)
 						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
@@ -3208,7 +3206,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//プレイヤーの情報の取得中にエラーが発生した場合の処理
 				if (playersdata == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3216,7 +3214,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//マッパーの情報の取得中にエラーが発生した場合の処理
 				if (mappersdata == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					message.reply("マッパーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3335,7 +3333,6 @@ client.on(Events.MessageCreate, async (message) =>
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
-						console.log(e)
 						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
@@ -3362,7 +3359,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//プレイヤーの情報の取得中にエラーが発生した場合の処理
 				if (playersdata == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3370,7 +3367,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//マッパーの情報の取得中にエラーが発生した場合の処理
 				if (mappersdata == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					message.reply("マッパーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3494,7 +3491,6 @@ client.on(Events.MessageCreate, async (message) =>
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
-						console.log(e)
 						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
@@ -3521,7 +3517,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//プレイヤーの情報の取得中にエラーが発生した場合の処理
 				if (playersdata == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3529,7 +3525,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//マッパーの情報の取得中にエラーが発生した場合の処理
 				if (mappersdata == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					message.reply("マッパーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3669,7 +3665,6 @@ client.on(Events.MessageCreate, async (message) =>
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
-						console.log(e)
 						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
@@ -3683,7 +3678,6 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//メッセージからマップリンクを取得
 				const maplink = message.content.split(" ")[1];
-				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
 
 				//マップリンクが入力されてなかったときの処理
 				if (maplink == undefined) {
@@ -3697,10 +3691,14 @@ client.on(Events.MessageCreate, async (message) =>
 					return
 				}
 
-				if (!maplink.startsWith("https://osu.ppy.sh/beatmapsets/")) {
-					message.reply("マップリンクの形式が間違っています。")
-					return
+				//osuのbeatmapリンクか判断する
+				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+				if (!regex.test(maplink)) {
+					message.reply(`ビートマップリンクの形式が間違っています。`);
+					return;
 				}
+				
+				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
 
 				//マップ情報、スコア情報を取得
 				const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
@@ -3717,7 +3715,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//プレイヤーの情報の取得中にエラーが発生した場合の処理
 				if (Playersinfo == undefined) {
-					message.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
+					message.reply("プレイヤーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3725,7 +3723,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//マッパーの情報の取得中にエラーが発生した場合の処理
 				if (Mapperinfo == undefined) {
-					message.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
+					message.reply("マッパーの情報の取得中にエラーが発生しました。")
 					return
 				}
 
@@ -3835,8 +3833,8 @@ client.on(Events.MessageCreate, async (message) =>
 					.setFooter({ text: `${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}` });
 				message.channel.send({ embeds: [embed] })
 			} catch (e) {
-				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				console.log(e)
+				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
 			}
 		}
@@ -3860,12 +3858,14 @@ client.on(Events.MessageCreate, async (message) =>
 				//チャンネルから直近の50件のメッセージを取得する
 				const messagedata = await message.channel.messages.fetch();
 				const contents = Array.from(messagedata.values()).map(message => message.content);
-				const maplinks = contents.filter(function(message) {return /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message)})
+				const maplinks = contents.filter(function(message) {
+					return /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message)
+				})
 				if (maplinks[0] == undefined) {
 					message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。")
 					return
 				}
-				const recentmaplink = maplinks[0].toString();
+				const recentmaplink = maplinks[0];
 
 				//Modsが入力されてなかったときの処理
 				if (message.content.split(" ")[1] == undefined) {
@@ -3951,7 +3951,6 @@ client.on(Events.MessageCreate, async (message) =>
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
 						playername = osuid
 					} catch (e) {
-						console.log(e)
 						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
 						return
 					}
