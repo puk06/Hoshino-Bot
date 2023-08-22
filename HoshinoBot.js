@@ -3159,13 +3159,13 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking >= 50 && recentplay.rank != "F") {
+				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking >= 50 && recentplay.rank != "F") {
+				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
@@ -3374,13 +3374,13 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking >= 50 && recentplay.rank != "F") {
+				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking >= 50 && recentplay.rank != "F") {
+				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
@@ -3541,8 +3541,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//IfFCの精度(300や100)からAccを計算
 				const ifFCacc = tools.accuracy({300: ifFC300.toString(), 100: ifFC100.toString(), 50: ifFC50.toString(), 0: "0", geki: "0", katu: "0"}, "fruits");
-				const percentage = parseFloat(((recentplay.count300 + recentplay.count100 + recentplay.count50 + recentplay.countmiss + recentplay.countkatu + recentplay.countgeki) / GetMapInfo.combo) * 100).toFixed(0);
-				
+
 				//Mapstatusを取得(Ranked, Loved, Qualified, Pending, WIP, Graveyard)
 				const Mapstatus = mapstatus(GetMapInfo.approved);
 				
@@ -3594,13 +3593,13 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking >= 50 && recentplay.rank != "F") {
+				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking >= 50 && recentplay.rank != "F") {
+				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
@@ -3641,7 +3640,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, inline: true })
+					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** + ${modforresult.join("")}`, inline: true })
 					.addFields({ name: "`Score`", value: `${recentplay.score}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
@@ -3816,13 +3815,13 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking >= 50 && recentplay.rank != "F") {
+				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking >= 50 && recentplay.rank != "F") {
+				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
