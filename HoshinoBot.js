@@ -3159,19 +3159,19 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking != 0) {
+				if (mapranking != 0 && BPranking >= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking != 0) {
+				} else if (mapranking == 0 && BPranking >= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`
 					}
-				} else if (mapranking != 0 && BPranking == 0) {
+				} else if (mapranking != 0 && BPranking == 0 && recentplay.rank != "F") {
 					rankingString = `**__Global Top #${mapranking}__**`
 				} else {
 					rankingString = "`Result`"
@@ -3374,19 +3374,19 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking != 0) {
+				if (mapranking != 0 && BPranking >= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking != 0) {
+				} else if (mapranking == 0 && BPranking >= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`
 					}
-				} else if (mapranking != 0 && BPranking == 0) {
+				} else if (mapranking != 0 && BPranking == 0 && recentplay.rank != "F") {
 					rankingString = `**__Global Top #${mapranking}__**`
 				} else {
 					rankingString = "`Result`"
@@ -3594,19 +3594,19 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking != 0) {
+				if (mapranking != 0 && BPranking >= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking != 0) {
+				} else if (mapranking == 0 && BPranking >= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`
 					}
-				} else if (mapranking != 0 && BPranking == 0) {
+				} else if (mapranking != 0 && BPranking == 0 && recentplay.rank != "F") {
 					rankingString = `**__Global Top #${mapranking}__**`
 				} else {
 					rankingString = "`Result`"
@@ -3816,19 +3816,19 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking != 0) {
+				if (mapranking != 0 && BPranking >= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking != 0) {
+				} else if (mapranking == 0 && BPranking >= 50 && recentplay.rank != "F") {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`
 					}
-				} else if (mapranking != 0 && BPranking == 0) {
+				} else if (mapranking != 0 && BPranking == 0 && recentplay.rank != "F") {
 					rankingString = `**__Global Top #${mapranking}__**`
 				} else {
 					rankingString = "`Result`"
