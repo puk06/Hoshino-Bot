@@ -3115,6 +3115,68 @@ client.on(Events.MessageCreate, async (message) =>
 				const recentpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), acc, parseInt(recentplay.countmiss), parseInt(recentplay.maxcombo));
 				const iffcpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), ifFCacc, 0, parseInt(GetMapInfo.combo));
 				
+				//BPランキングを計算
+				let BPranking;
+				const response = await axios.get(
+					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${GetMapInfo.mode}&u=${playername}&limit=100`
+				);
+				const userplays = response.data;
+				let pp = [];
+				for (const element of userplays) {
+					pp.push(parseFloat(parseFloat(element.pp).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+				}
+				if (pp.includes(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2)))) {
+					BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+				} else {
+					pp.push(parseFloat((recentpp.ppwithacc).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+					if (pp[pp.length - 1] == parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) {
+						BPranking = 0
+					} else {
+						BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+					}
+				}
+
+				//マップランキングを取得
+				let mapranking;
+				const maprankingdata = await axios.get(`https://osu.ppy.sh/api/get_scores?k=${apikey}&b=${recentplay.beatmap_id}&m=${GetMapInfo.mode}&limit=50`).then((responce) => {
+					return responce.data
+				})
+				let maprankinguser = [];
+				for (const element of maprankingdata) {
+					maprankinguser.push(element.username)
+				}
+
+				if (maprankinguser.includes(playername)) {
+					mapranking = maprankinguser.indexOf(playername) + 1
+				} else {
+					mapranking = 0
+				}
+
+				let rankingString = "";
+				if (mapranking != 0 && BPranking != 0) {
+					if (Mapstatus == "Ranked") {
+						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
+					}
+				} else if (mapranking == 0 && BPranking != 0) {
+					if (Mapstatus == "Ranked") {
+						rankingString = `**__Personal Best #${BPranking}__**`
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`
+					}
+				} else if (mapranking != 0 && BPranking == 0) {
+					rankingString = `**__Global Top #${mapranking}__**`
+				} else {
+					rankingString = "`Result`"
+				}
+
 				//MapInfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec;
 				if (GetMapInfo.lengthsec.toFixed(0).length == 1) {
@@ -3165,7 +3227,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: "`Result`", value: `**${recentplay.rank}** + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+								.addFields({ name: rankingString, value: `**${recentplay.rank}** + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
 								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
@@ -3268,6 +3330,68 @@ client.on(Events.MessageCreate, async (message) =>
 				const recentpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), acc, recentplay.countmiss, recentplay.maxcombo);
 				const iffcpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), ifFCacc, 0, GetMapInfo.combo);
 
+				//BPランキングを計算
+				let BPranking;
+				const response = await axios.get(
+					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${GetMapInfo.mode}&u=${playername}&limit=100`
+				);
+				const userplays = response.data;
+				let pp = [];
+				for (const element of userplays) {
+					pp.push(parseFloat(parseFloat(element.pp).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+				}
+				if (pp.includes(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2)))) {
+					BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+				} else {
+					pp.push(parseFloat((recentpp.ppwithacc).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+					if (pp[pp.length - 1] == parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) {
+						BPranking = 0
+					} else {
+						BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+					}
+				}
+
+				//マップランキングを取得
+				let mapranking;
+				const maprankingdata = await axios.get(`https://osu.ppy.sh/api/get_scores?k=${apikey}&b=${recentplay.beatmap_id}&m=${GetMapInfo.mode}&limit=50`).then((responce) => {
+					return responce.data
+				})
+				let maprankinguser = [];
+				for (const element of maprankingdata) {
+					maprankinguser.push(element.username)
+				}
+
+				if (maprankinguser.includes(playername)) {
+					mapranking = maprankinguser.indexOf(playername) + 1
+				} else {
+					mapranking = 0
+				}
+
+				let rankingString = "";
+				if (mapranking != 0 && BPranking != 0) {
+					if (Mapstatus == "Ranked") {
+						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
+					}
+				} else if (mapranking == 0 && BPranking != 0) {
+					if (Mapstatus == "Ranked") {
+						rankingString = `**__Personal Best #${BPranking}__**`
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`
+					}
+				} else if (mapranking != 0 && BPranking == 0) {
+					rankingString = `**__Global Top #${mapranking}__**`
+				} else {
+					rankingString = "`Result`"
+				}
+
 				//MapInfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec;
 				if (GetMapInfo.lengthsec.toFixed(0).length == 1) {
@@ -3318,7 +3442,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: "`Result`", value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${parseFloat(recentpp.ppwithacc).toFixed(2)}** / ${iffcpp.SSPP} [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]  {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+								.addFields({ name: rankingString, value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${parseFloat(recentpp.ppwithacc).toFixed(2)}** / ${iffcpp.SSPP} [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]  {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
 								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
@@ -3425,6 +3549,69 @@ client.on(Events.MessageCreate, async (message) =>
 				//RecentplayのPP、IfFCのPPを計算
 				const recentpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), acc, recentplay.countmiss, recentplay.maxcombo);
 				const iffcpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), ifFCacc, 0, GetMapInfo.combo);
+
+				//BPランキングを計算
+				let BPranking;
+				const response = await axios.get(
+					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${GetMapInfo.mode}&u=${playername}&limit=100`
+				);
+				const userplays = response.data;
+				let pp = [];
+				for (const element of userplays) {
+					pp.push(parseFloat(parseFloat(element.pp).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+				}
+				if (pp.includes(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2)))) {
+					BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+				} else {
+					pp.push(parseFloat((recentpp.ppwithacc).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+					if (pp[pp.length - 1] == parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) {
+						BPranking = 0
+					} else {
+						BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+					}
+				}
+
+				//マップランキングを取得
+				let mapranking;
+				const maprankingdata = await axios.get(`https://osu.ppy.sh/api/get_scores?k=${apikey}&b=${recentplay.beatmap_id}&m=${GetMapInfo.mode}&limit=50`).then((responce) => {
+					return responce.data
+				})
+				let maprankinguser = [];
+				for (const element of maprankingdata) {
+					maprankinguser.push(element.username)
+				}
+
+				if (maprankinguser.includes(playername)) {
+					mapranking = maprankinguser.indexOf(playername) + 1
+				} else {
+					mapranking = 0
+				}
+
+				let rankingString = "";
+				if (mapranking != 0 && BPranking != 0) {
+					if (Mapstatus == "Ranked") {
+						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
+					}
+				} else if (mapranking == 0 && BPranking != 0) {
+					if (Mapstatus == "Ranked") {
+						rankingString = `**__Personal Best #${BPranking}__**`
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`
+					}
+				} else if (mapranking != 0 && BPranking == 0) {
+					rankingString = `**__Global Top #${mapranking}__**`
+				} else {
+					rankingString = "`Result`"
+				}
+
 				
 				//MapInfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec;
@@ -3476,7 +3663,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: "`Result`", value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
+								.addFields({ name: rankingString, value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
 								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
@@ -3584,6 +3771,69 @@ client.on(Events.MessageCreate, async (message) =>
 				//RecentplayのPP、IfFCのPPを計算
 				const recentpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), acc, recentplay.countmiss, recentplay.maxcombo);
 				const iffcpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), ifFCacc, 0, GetMapInfo.combo);
+
+				//BPランキングを計算
+				let BPranking;
+				const response = await axios.get(
+					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${GetMapInfo.mode}&u=${playername}&limit=100`
+				);
+				const userplays = response.data;
+				let pp = [];
+				for (const element of userplays) {
+					pp.push(parseFloat(parseFloat(element.pp).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+				}
+				if (pp.includes(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2)))) {
+					BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+				} else {
+					pp.push(parseFloat((recentpp.ppwithacc).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+					if (pp[pp.length - 1] == parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) {
+						BPranking = 0
+					} else {
+						BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+					}
+				}
+
+				//マップランキングを取得
+				let mapranking;
+				const maprankingdata = await axios.get(`https://osu.ppy.sh/api/get_scores?k=${apikey}&b=${recentplay.beatmap_id}&m=${GetMapInfo.mode}&limit=50`).then((responce) => {
+					return responce.data
+				})
+				let maprankinguser = [];
+				for (const element of maprankingdata) {
+					maprankinguser.push(element.username)
+				}
+
+				if (maprankinguser.includes(playername)) {
+					mapranking = maprankinguser.indexOf(playername) + 1
+				} else {
+					mapranking = 0
+				}
+
+				let rankingString = "";
+				if (mapranking != 0 && BPranking != 0) {
+					if (Mapstatus == "Ranked") {
+						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
+					}
+				} else if (mapranking == 0 && BPranking != 0) {
+					if (Mapstatus == "Ranked") {
+						rankingString = `**__Personal Best #${BPranking}__**`
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`
+					}
+				} else if (mapranking != 0 && BPranking == 0) {
+					rankingString = `**__Global Top #${mapranking}__**`
+				} else {
+					rankingString = "`Result`"
+				}
+
 				
 				//MapInfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 				let lengthsec
@@ -3638,7 +3888,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: "`Result`", value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult}**  **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
+								.addFields({ name: rankingString, value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult}**  **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
 								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
