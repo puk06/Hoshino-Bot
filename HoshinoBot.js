@@ -6321,6 +6321,7 @@ async function rankedintheday() {
 		const sevenDayAgoDate = new Date(sevenDayAgo);
 		const sevenDayAgoDateString = `${sevenDayAgoDate.getFullYear()}-${sevenDayAgoDate.getMonth() + 1}-${sevenDayAgoDate.getDate()}`
 		const sevenDayAgoDateNumber = Number(sevenDayAgoDateString.replace(/-/g, ""))
+		let sevenDayAgoQf = [];
 		for (const element of qfparsedjson) {
 			const qfdate = new Date(element.qfdate)
 			const qfdateString = `${qfdate.getFullYear()}-${qfdate.getMonth() + 1}-${qfdate.getDate()}`
@@ -6336,6 +6337,9 @@ async function rankedintheday() {
 				const minutes = date.getMinutes();
 				sevenDayAgoQf.push([{ name : `**${mapdata.beatmapset.title}** by ${mapdata.beatmapset.creator}`, value : `**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}\n**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})`, inline : true }])
 			}
+		}
+		if (sevenDayAgoQf.length == 0) {
+			sevenDayAgoQf.push([{ name : `**今日ranked予定の${channels}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDay()}日 ${now.getHours()}:${now.getMinutes()}`, inline : true }])
 		}
 
 		//メッセージの送信
