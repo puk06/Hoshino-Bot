@@ -4993,19 +4993,11 @@ async function checkqualfiedosu() {
 			if (rankeddays <= 5 || rankeddays >= 8) continue;
 			averagearray.push(element.rankeddate - element.qfdate)
 		}
-		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
-		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
-		if (isNaN(averagedays)) averagedays = 7;
-		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-		if (isNaN(averagehours)) averagehours = 0;
-		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
-		if (isNaN(averageminutes)) averageminutes = 0;
+		let average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
+		if (isNaN(average)) average = 604800000;
 
 		//Ranked時(予測)を取得
-		const sevenDaysLater = new Date(now);
-		sevenDaysLater.setDate(sevenDaysLater.getDate() + averagedays);
-		sevenDaysLater.setHours(sevenDaysLater.getHours() + averagehours);
-		sevenDaysLater.setMinutes(sevenDaysLater.getMinutes() + averageminutes);
+		const sevenDaysLater = new Date(now.getTime() + average);
 		const rankedmonth = sevenDaysLater.getMonth() + 1;
 		const rankedday = sevenDaysLater.getDate();
 		const rankedhours = sevenDaysLater.getHours();
@@ -5176,19 +5168,11 @@ async function checkqualfiedtaiko() {
 			if (rankeddays <= 5 || rankeddays >= 8) continue;
 			averagearray.push(element.rankeddate - element.qfdate)
 		}
-		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
-		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
-		if (isNaN(averagedays)) averagedays = 7;
-		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-		if (isNaN(averagehours)) averagehours = 0;
-		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
-		if (isNaN(averageminutes)) averageminutes = 0;
+		let average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
+		if (isNaN(average)) average = 604800000;
 
 		//Ranked時(予測)を取得
-		const sevenDaysLater = new Date(now);
-		sevenDaysLater.setDate(sevenDaysLater.getDate() + averagedays);
-		sevenDaysLater.setHours(sevenDaysLater.getHours() + averagehours);
-		sevenDaysLater.setMinutes(sevenDaysLater.getMinutes() + averageminutes);
+		const sevenDaysLater = new Date(now.getTime() + average);
 		const rankedmonth = sevenDaysLater.getMonth() + 1;
 		const rankedday = sevenDaysLater.getDate();
 		const rankedhours = sevenDaysLater.getHours();
@@ -5359,19 +5343,11 @@ async function checkqualfiedcatch() {
 			if (rankeddays <= 5 || rankeddays >= 8) continue;
 			averagearray.push(element.rankeddate - element.qfdate)
 		}
-		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
-		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
-		if (isNaN(averagedays)) averagedays = 7;
-		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-		if (isNaN(averagehours)) averagehours = 0;
-		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
-		if (isNaN(averageminutes)) averageminutes = 0;
+		let average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
+		if (isNaN(average)) average = 604800000;
 
 		//Ranked時(予測)を取得
-		const sevenDaysLater = new Date(now);
-		sevenDaysLater.setDate(sevenDaysLater.getDate() + averagedays);
-		sevenDaysLater.setHours(sevenDaysLater.getHours() + averagehours);
-		sevenDaysLater.setMinutes(sevenDaysLater.getMinutes() + averageminutes);
+		const sevenDaysLater = new Date(now.getTime() + average);
 		const rankedmonth = sevenDaysLater.getMonth() + 1;
 		const rankedday = sevenDaysLater.getDate();
 		const rankedhours = sevenDaysLater.getHours();
@@ -5541,19 +5517,11 @@ async function checkqualfiedmania() {
 			if (rankeddays <= 5 || rankeddays >= 8) continue;
 			averagearray.push(element.rankeddate - element.qfdate)
 		}
-		const average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
-		let averagedays = Math.floor(average / (1000 * 60 * 60 * 24));
-		if (isNaN(averagedays)) averagedays = 7;
-		let averagehours = Math.floor((average % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-		if (isNaN(averagehours)) averagehours = 0;
-		let averageminutes = Math.floor((average % (1000 * 60 * 60)) / (1000 * 60));
-		if (isNaN(averageminutes)) averageminutes = 0;
+		let average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
+		if (isNaN(average)) average = 604800000;
 
 		//Ranked時(予測)を取得
-		const sevenDaysLater = new Date(now);
-		sevenDaysLater.setDate(sevenDaysLater.getDate() + averagedays);
-		sevenDaysLater.setHours(sevenDaysLater.getHours() + averagehours);
-		sevenDaysLater.setMinutes(sevenDaysLater.getMinutes() + averageminutes);
+		const sevenDaysLater = new Date(now.getTime() + average);
 		const rankedmonth = sevenDaysLater.getMonth() + 1;
 		const rankedday = sevenDaysLater.getDate();
 		const rankedhours = sevenDaysLater.getHours();
