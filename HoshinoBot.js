@@ -5663,7 +5663,7 @@ async function checkrankedosu() {
 						rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
 					}
 				} else {
-					const plustimeDifference = 604800000 - timeDifference;
+					const plustimeDifference = timeDifference - 604800000;
 					const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 					const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
 					if (timeDifferenceInDays == 7) {
@@ -5747,7 +5747,7 @@ async function checkrankedosu() {
 			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
-			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: ${rankederrorstring})`, inline: true })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: **${rankederrorstring}**)`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
@@ -5824,7 +5824,7 @@ async function checkrankedtaiko() {
 						rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
 					}
 				} else {
-					const plustimeDifference = 604800000 - timeDifference;
+					const plustimeDifference = timeDifference - 604800000;
 					const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 					const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
 					if (timeDifferenceInDays == 7) {
@@ -5908,7 +5908,7 @@ async function checkrankedtaiko() {
 			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
-			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: ${rankederrorstring})`, inline: true })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: **${rankederrorstring}**)`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
@@ -5985,7 +5985,7 @@ async function checkrankedcatch() {
 						rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
 					}
 				} else {
-					const plustimeDifference = 604800000 - timeDifference;
+					const plustimeDifference = timeDifference - 604800000;
 					const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 					const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
 					if (timeDifferenceInDays == 7) {
@@ -6069,7 +6069,7 @@ async function checkrankedcatch() {
 			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
-			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: ${rankederrorstring})`, inline: true })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: **${rankederrorstring}**)`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
@@ -6146,7 +6146,7 @@ async function checkrankedmania() {
 						rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
 					}
 				} else {
-					const plustimeDifference = 604800000 - timeDifference;
+					const plustimeDifference = timeDifference - 604800000;
 					const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 					const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
 					if (timeDifferenceInDays == 7) {
@@ -6230,7 +6230,7 @@ async function checkrankedmania() {
 			.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 			.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 			.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
-			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: ${rankederrorstring})`, inline: true })
+			.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: **${rankederrorstring}**)`, inline: true })
 		for (const element of fs.readFileSync(`./MapcheckChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
