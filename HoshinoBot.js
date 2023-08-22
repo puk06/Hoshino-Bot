@@ -4864,6 +4864,7 @@ function findDifferentElements(array1, array2) {
 	}
 	return differentElements
 }
+
 //バックアップファイルの中身を取得
 function getFilesSortedByDate(directory) {
 	const files = fs.readdirSync(directory);
@@ -4990,12 +4991,12 @@ async function checkqualfiedosu() {
 			const qfparsedjson = JSON.parse(qfrawjson)
 			const averagearray = [];
 			for (const element of qfparsedjson) {
-				element.qfdate = new Date(element.qfdate)
+				const qfdate = new Date(element.qfdate).getTime();
 				if (element.rankeddate == "-") continue;
-				element.rankeddate = new Date(element.rankeddate)
-				const rankeddays = Math.floor((element.rankeddate - element.qfdate) / (1000 * 60 * 60 * 24))
+				const rankeddate = new Date(element.rankeddate).getTime()
+				const rankeddays = Math.floor((rankeddate - qfdate) / (1000 * 60 * 60 * 24))
 				if (rankeddays <= 5 || rankeddays >= 8) continue;
-				averagearray.push(element.rankeddate - element.qfdate)
+				averagearray.push(rankeddate - qfdate)
 			}
 			let average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
 			if (isNaN(average)) average = 604800000;
@@ -5167,12 +5168,12 @@ async function checkqualfiedtaiko() {
 			const qfparsedjson = JSON.parse(qfrawjson)
 			const averagearray = [];
 			for (const element of qfparsedjson) {
-				element.qfdate = new Date(element.qfdate)
+				const qfdate = new Date(element.qfdate).getTime();
 				if (element.rankeddate == "-") continue;
-				element.rankeddate = new Date(element.rankeddate)
-				const rankeddays = Math.floor((element.rankeddate - element.qfdate) / (1000 * 60 * 60 * 24))
+				const rankeddate = new Date(element.rankeddate).getTime()
+				const rankeddays = Math.floor((rankeddate - qfdate) / (1000 * 60 * 60 * 24))
 				if (rankeddays <= 5 || rankeddays >= 8) continue;
-				averagearray.push(element.rankeddate - element.qfdate)
+				averagearray.push(rankeddate - qfdate)
 			}
 			let average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
 			if (isNaN(average)) average = 604800000;
@@ -5345,12 +5346,12 @@ async function checkqualfiedcatch() {
 			const qfparsedjson = JSON.parse(qfrawjson)
 			const averagearray = [];
 			for (const element of qfparsedjson) {
-				element.qfdate = new Date(element.qfdate)
+				const qfdate = new Date(element.qfdate).getTime();
 				if (element.rankeddate == "-") continue;
-				element.rankeddate = new Date(element.rankeddate)
-				const rankeddays = Math.floor((element.rankeddate - element.qfdate) / (1000 * 60 * 60 * 24))
+				const rankeddate = new Date(element.rankeddate).getTime()
+				const rankeddays = Math.floor((rankeddate - qfdate) / (1000 * 60 * 60 * 24))
 				if (rankeddays <= 5 || rankeddays >= 8) continue;
-				averagearray.push(element.rankeddate - element.qfdate)
+				averagearray.push(rankeddate - qfdate)
 			}
 			let average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
 			if (isNaN(average)) average = 604800000;
@@ -5521,12 +5522,12 @@ async function checkqualfiedmania() {
 			const qfparsedjson = JSON.parse(qfrawjson)
 			const averagearray = [];
 			for (const element of qfparsedjson) {
-				element.qfdate = new Date(element.qfdate)
+				const qfdate = new Date(element.qfdate).getTime();
 				if (element.rankeddate == "-") continue;
-				element.rankeddate = new Date(element.rankeddate)
-				const rankeddays = Math.floor((element.rankeddate - element.qfdate) / (1000 * 60 * 60 * 24))
+				const rankeddate = new Date(element.rankeddate).getTime()
+				const rankeddays = Math.floor((rankeddate - qfdate) / (1000 * 60 * 60 * 24))
 				if (rankeddays <= 5 || rankeddays >= 8) continue;
-				averagearray.push(element.rankeddate - element.qfdate)
+				averagearray.push(rankeddate - qfdate)
 			}
 			let average = averagearray.reduce((sum, element) => sum + element, 0) / averagearray.length;
 			if (isNaN(average)) average = 604800000;
