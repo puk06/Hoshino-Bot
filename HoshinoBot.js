@@ -4991,9 +4991,9 @@ async function checkqualfiedosu() {
 			const qfparsedjson = JSON.parse(qfrawjson)
 			const averagearray = [];
 			for (const element of qfparsedjson) {
-				const qfdate = new Date(element.qfdate).getTime();
+				const qfdate = new Date(element.qfdate)
 				if (element.rankeddate == "-") continue;
-				const rankeddate = new Date(element.rankeddate).getTime()
+				const rankeddate = new Date(element.rankeddate)
 				const rankeddays = Math.floor((rankeddate - qfdate) / (1000 * 60 * 60 * 24))
 				if (rankeddays <= 5 || rankeddays >= 8) continue;
 				averagearray.push(rankeddate - qfdate)
@@ -5168,9 +5168,9 @@ async function checkqualfiedtaiko() {
 			const qfparsedjson = JSON.parse(qfrawjson)
 			const averagearray = [];
 			for (const element of qfparsedjson) {
-				const qfdate = new Date(element.qfdate).getTime();
+				const qfdate = new Date(element.qfdate)
 				if (element.rankeddate == "-") continue;
-				const rankeddate = new Date(element.rankeddate).getTime()
+				const rankeddate = new Date(element.rankeddate)
 				const rankeddays = Math.floor((rankeddate - qfdate) / (1000 * 60 * 60 * 24))
 				if (rankeddays <= 5 || rankeddays >= 8) continue;
 				averagearray.push(rankeddate - qfdate)
@@ -5346,9 +5346,9 @@ async function checkqualfiedcatch() {
 			const qfparsedjson = JSON.parse(qfrawjson)
 			const averagearray = [];
 			for (const element of qfparsedjson) {
-				const qfdate = new Date(element.qfdate).getTime();
+				const qfdate = new Date(element.qfdate)
 				if (element.rankeddate == "-") continue;
-				const rankeddate = new Date(element.rankeddate).getTime()
+				const rankeddate = new Date(element.rankeddate)
 				const rankeddays = Math.floor((rankeddate - qfdate) / (1000 * 60 * 60 * 24))
 				if (rankeddays <= 5 || rankeddays >= 8) continue;
 				averagearray.push(rankeddate - qfdate)
@@ -5522,9 +5522,9 @@ async function checkqualfiedmania() {
 			const qfparsedjson = JSON.parse(qfrawjson)
 			const averagearray = [];
 			for (const element of qfparsedjson) {
-				const qfdate = new Date(element.qfdate).getTime();
+				const qfdate = new Date(element.qfdate)
 				if (element.rankeddate == "-") continue;
-				const rankeddate = new Date(element.rankeddate).getTime()
+				const rankeddate = new Date(element.rankeddate)
 				const rankeddays = Math.floor((rankeddate - qfdate) / (1000 * 60 * 60 * 24))
 				if (rankeddays <= 5 || rankeddays >= 8) continue;
 				averagearray.push(rankeddate - qfdate)
@@ -5630,8 +5630,8 @@ async function checkrankedosu() {
 					foundflag = true;
 					element.rankeddate = new Date();
 					fs.writeFileSync(`./QualfiedBeatmaps/osu.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
-					const qfdate = new Date(element.qfdate)
-					const rankeddate = new Date(element.rankeddate)
+					const qfdate = new Date(element.qfdate);
+					const rankeddate = new Date(element.rankeddate);
 					const timeDifference = rankeddate - qfdate;
 					const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 					if (timeDifferenceInDays < 7) {
@@ -5793,8 +5793,8 @@ async function checkrankedtaiko() {
 					foundflag = true;
 					element.rankeddate = new Date();
 					fs.writeFileSync(`./QualfiedBeatmaps/taiko.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
-					const qfdate = new Date(element.qfdate)
-					const rankeddate = new Date(element.rankeddate)
+					const qfdate = new Date(element.qfdate);
+					const rankeddate = new Date(element.rankeddate);
 					const timeDifference = rankeddate - qfdate;
 					const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 					if (timeDifferenceInDays < 7) {
@@ -5956,8 +5956,8 @@ async function checkrankedcatch() {
 					foundflag = true;
 					element.rankeddate = new Date();
 					fs.writeFileSync(`./QualfiedBeatmaps/catch.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
-					const qfdate = new Date(element.qfdate)
-					const rankeddate = new Date(element.rankeddate)
+					const qfdate = new Date(element.qfdate);
+					const rankeddate = new Date(element.rankeddate);
 					const timeDifference = rankeddate - qfdate;
 					const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 					if (timeDifferenceInDays < 7) {
@@ -6119,8 +6119,8 @@ async function checkrankedmania() {
 					foundflag = true;
 					element.rankeddate = new Date();
 					fs.writeFileSync(`./QualfiedBeatmaps/mania.json`, JSON.stringify(qfparsedjson, null, 4), 'utf8')
-					const qfdate = new Date(element.qfdate)
-					const rankeddate = new Date(element.rankeddate)
+					const qfdate = new Date(element.qfdate);
+					const rankeddate = new Date(element.rankeddate);
 					const timeDifference = rankeddate - qfdate;
 					const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 					if (timeDifferenceInDays < 7) {
