@@ -65,7 +65,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	{
 		try {
 			//コマンドじゃない場合の処理
-			if (!interaction.isCommand()) return;
+			if (!interaction.isCommand()) return
 
 			//コマンドの処理
 			if (interaction.commandName == "slot") {
@@ -559,7 +559,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					})
 	
 					//axiosがアクセスできなかった時の処理
-					if (error) return;
+					if (error) return
 					
 					//画像のデータを取得
 					const picData = response.data;
@@ -650,7 +650,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					})
 	
 					//axiosがアクセスできなかった時の処理
-					if (error) return;
+					if (error) return
 					
 					//画像のデータを取得
 					const picData = response.data;
@@ -708,7 +708,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//タグ(チャンネル)が登録されていなかった場合の処理
 					if (!fs.existsSync(`./tag/${interaction.channel.name}/picture.txt`)) {
 						interaction.reply("このタグは登録されていません。")
-						return;
+						return
 					}
 
 					//削除したいリンクを取得
@@ -742,7 +742,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//タグ(チャンネル)が登録されていなかった場合の処理
 					if (!fs.existsSync(`./tag/${interaction.channel.name}/picture.txt`)) {
 						interaction.reply("このタグは登録されていません。")
-						return;
+						return
 					}
 
 					//テキストファイルから一覧を取得
@@ -773,7 +773,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//タグ(チャンネル)が登録されていなかった場合の処理
 					if (!fs.existsSync(`./tag/${interaction.channel.name}/picture.txt`)) {
 						interaction.reply("このタグは登録されていません。")
-						return;
+						return
 					}
 					
 					const link = "https://github.com/puk06/PictureDownloader/releases/download/V1.1/PictureDownloader.zip"
@@ -928,7 +928,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//タグ(チャンネル)が登録されていなかった場合の処理
 					if (!fs.existsSync(`./quotetag/${interaction.channel.name}/quote.txt`)) {
 						interaction.reply("このタグは登録されていません。")
-						return;
+						return
 					}
 	
 					//テキストファイルから一覧を取得
@@ -1020,7 +1020,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					})
 
 					//axiosがアクセスできなかった時の処理
-					if (error) return;
+					if (error) return
 	
 					//形態素解析の結果から文章を生成
 					if (data[0].length == undefined || data[0].length == 0 || data[0].length == 1 || data[0].length > 4) {
@@ -1150,7 +1150,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
 						interaction.reply(`ビートマップリンクの形式が間違っています。`);
-						return;
+						return
 					}
 
 					const Mods = interaction.options?.get("mods")?.value;
@@ -1242,7 +1242,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
 						interaction.reply(`ビートマップリンクの形式が間違っています。`);
-						return;
+						return
 					}
 	
 					//BeatmapIdをメッセージから取得
@@ -1476,7 +1476,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
 						interaction.reply(`ビートマップリンクの形式が間違っています。`);
-						return;
+						return
 					}
 
 					const BeatmapsetId = await getMapInfowithoutmods(maplink, apikey);
@@ -1511,7 +1511,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
 						interaction.reply(`ビートマップリンクの形式が間違っています。`);
-						return;
+						return
 					}
 	
 					//メッセージからMODを取得
@@ -1722,7 +1722,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
 						interaction.reply(`ビートマップリンクの形式が間違っています。`);
-						return;
+						return
 					}
 
 					//マップ情報を取得
@@ -1760,7 +1760,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
 						interaction.reply(`ビートマップリンクの形式が間違っています。`);
-						return;
+						return
 					}
 	
 					//マップ情報を取得
@@ -2321,7 +2321,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					})
 
 					//データ取得に失敗した時の処理
-					if (error) return;
+					if (error) return
 					const patchdata = data.data.items[0]
 					const embed = new EmbedBuilder()
 						.setColor("Blue")
@@ -2527,7 +2527,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						if (error) {
 							console.log(error);
 							interaction.channel.send("リポジトリのクローン時に失敗しました");
-							return;
+							return
 						}
 	
 						interaction.channel.send("リポジトリのクローンが完了しました。");
@@ -2541,7 +2541,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 							if (err) {
 								console.log(err);
 								message.edit("ディレクトリの読み込み中にエラーが発生しました");
-								return;
+								return
 							}
 							interaction.channel.send("ディリクトリの読み込みが完了しました。")
 	
@@ -2581,7 +2581,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 								} catch (err) {
 									console.log(err);
 									interaction.channel.send("ファイルのコピー中にエラーが発生しました。")
-									return;
+									return
 								}
 							});
 	
@@ -2773,7 +2773,7 @@ client.on(Events.MessageCreate, async (message) =>
 	{
 		try {
 			//ユーザーの喋った数をサーバーごとに記録する処理
-			if (message.author.bot) return;
+			if (message.author.bot) return
 			let serverJSONdata = JSON.parse(fs.readFileSync(`./talkcount.json`, 'utf-8'))
 			if (serverJSONdata[message.guildId] == undefined) {
 				serverJSONdata[message.guildId] = {}
@@ -2792,7 +2792,7 @@ client.on(Events.MessageCreate, async (message) =>
 		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.endsWith('.avi') || attachment.url.endsWith('.mov') || attachment.url.endsWith('.mp4') || attachment.url.endsWith('.png') || attachment.url.endsWith('.jpg') || attachment.url.endsWith('.gif')) && message.channel.id == Furrychannel) {
 			try {
 				//Botが送った画像に対しての処理をブロック
-				if (message.author.bot) return;
+				if (message.author.bot) return
 
 				//画像のURLを取得
 				for (const attachment of message.attachments.values()) {
@@ -2821,10 +2821,10 @@ client.on(Events.MessageCreate, async (message) =>
 		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.endsWith('.avi') || attachment.url.endsWith('.mov') || attachment.url.endsWith('.mp4') || attachment.url.endsWith('.png') || attachment.url.endsWith('.jpg') || attachment.url.endsWith('.gif'))) {
 			try {
 				//Botが送った画像に対しての処理をブロック
-				if (message.author.bot) return;
+				if (message.author.bot) return
 
 				//写真が送信されたチャンネルがタグとして登録されてなかった場合の処理
-				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) return;
+				if (!fs.existsSync(`./tag/${message.channel.name}/picture.txt`)) return
 
 				//画像のURLを取得
 				for (const attachment of message.attachments.values()) {
@@ -2853,7 +2853,7 @@ client.on(Events.MessageCreate, async (message) =>
 		if (fs.existsSync(`./quotetag/${message.channel.name}/quote.txt`) && !message.content.startsWith("!")) {
 			try {
 				//Botが送ったメッセージに対しての処理をブロック
-				if (message.author.bot) return;
+				if (message.author.bot) return
 
 				//画像のURLをテキストファイルに保存
 				fs.appendFile(`./quotetag/${message.channel.name}/quote.txt`, `${message.content.replace(" ", "")} `, function (err) {
@@ -2885,7 +2885,7 @@ client.on(Events.MessageCreate, async (message) =>
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				if (!regex.test(MessageMaplink)) {
 					message.reply(`ビートマップリンクの形式が間違っています。`);
-					return;
+					return
 				}
 
 				//マップリンクの前の空白が1つ多い場合の処理
@@ -3722,7 +3722,7 @@ client.on(Events.MessageCreate, async (message) =>
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				if (!regex.test(maplink)) {
 					message.reply(`ビートマップリンクの形式が間違っています。`);
-					return;
+					return
 				}
 				
 				const beatmapId = message.content.split("#")[1].split("/")[1].split(" ")[0];
@@ -3830,7 +3830,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//全ての登録済みのチャンネルを取得、チャンネルidがにChannels.txtになかった場合の処理
 				const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
-				if (!allchannels.includes(channelid)) return;
+				if (!allchannels.includes(channelid)) return
 
 				//マップ情報を取得
 				const mapdata = await getMapInfowithoutmods(message.content, apikey);
@@ -3880,7 +3880,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//全ての登録済みのチャンネルを取得、チャンネルidがChannels.txtになかった場合の処理
 				const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
-				if (!allchannels.includes(channelid)) return;
+				if (!allchannels.includes(channelid)) return
 
 				//チャンネルから直近の50件のメッセージを取得する
 				const messagedata = await message.channel.messages.fetch();
@@ -4118,7 +4118,7 @@ client.on(Events.MessageCreate, async (message) =>
 		if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`) && message.content.endsWith("?")) {
 			try {
 				//Botの発言には反応しないようにする
-				if (message.author.bot) return;
+				if (message.author.bot) return
 
 				//答えを取得
 				const answer = message.content.replace("?", "").toLowerCase().replace(/ /g, "");
@@ -4511,27 +4511,27 @@ client.on(Events.MessageCreate, async (message) =>
 			if (message.content.includes("+")) {
 				left = message.content.split("+")[0]
 				right = message.content.split("+")[1]
-				if (isNaN(left) || isNaN(right)) return;
+				if (isNaN(left) || isNaN(right)) return
 				message.reply(`${left} + ${right} = ${Number(left) + Number(right)}`)
 			} else if (message.content.includes("-")) {
 				left = message.content.split("-")[0]
 				right = message.content.split("-")[1]
-				if (isNaN(left) || isNaN(right)) return;
+				if (isNaN(left) || isNaN(right)) return
 				message.reply(`${left} - ${right} = ${Number(left) - Number(right)}`)
 			} else if (message.content.includes("*")) {
 				left = message.content.split("*")[0]
 				right = message.content.split("*")[1]
-				if (isNaN(left) || isNaN(right)) return;
+				if (isNaN(left) || isNaN(right)) return
 				message.reply(`${left} * ${right} = ${Number(left) * Number(right)}`)
 			} else if (message.content.includes("/")) {
 				left = message.content.split("/")[0]
 				right = message.content.split("/")[1]
-				if (isNaN(left) || isNaN(right)) return;
+				if (isNaN(left) || isNaN(right)) return
 				message.reply(`${left} * ${right} = ${Number(left) * Number(right)}`)
 			} else if (message.content.includes("^")) {
 				left = message.content.split("^")[0]
 				right = message.content.split("^")[1]
-				if (isNaN(left) || isNaN(right)) return;
+				if (isNaN(left) || isNaN(right)) return
 				message.reply(`${left} ^ ${right} = ${Number(left) ** Number(right)}`)
 			} else {
 				return
@@ -4674,7 +4674,7 @@ async function checkqualfiedosu() {
 		fs.writeFileSync(`./QualfiedBeatmaps/osu.txt`, qfarray.join(","), 'utf-8');
 
 		//違う物がなかった場合(Null)の処理
-		if (differentQF == null) return;
+		if (differentQF == null) return
 
 		//jsonファイルにマップのid、QFされた日付を追加もしくは更新
 		const rawjson = fs.readFileSync(`./QualfiedBeatmaps/osu.json`, "utf-8")
@@ -4718,7 +4718,7 @@ async function checkqualfiedosu() {
 		});
 
 		//なんらかのエラーでundefinedだった場合の処理
-		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return;
+		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
@@ -4857,7 +4857,7 @@ async function checkqualfiedtaiko() {
 		fs.writeFileSync(`./QualfiedBeatmaps/taiko.txt`, qfarray.join(","), 'utf-8');
 
 		//違う物がなかった場合(Null)の処理
-		if (differentQF == null) return;
+		if (differentQF == null) return
 
 		//jsonファイルにマップのid、QFされた日付を追加もしくは更新
 		const rawjson = fs.readFileSync(`./QualfiedBeatmaps/taiko.json`, "utf-8")
@@ -4901,7 +4901,7 @@ async function checkqualfiedtaiko() {
 		});
 
 		//なんらかのエラーでundefinedだった場合の処理
-		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return;
+		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
@@ -5040,7 +5040,7 @@ async function checkqualfiedcatch() {
 		fs.writeFileSync(`./QualfiedBeatmaps/catch.txt`, qfarray.join(","), 'utf-8');
 
 		//違う物がなかった場合(Null)の処理
-		if (differentQF == null) return;
+		if (differentQF == null) return
 
 		//jsonファイルにマップのid、QFされた日付を追加もしくは更新
 		const rawjson = fs.readFileSync(`./QualfiedBeatmaps/catch.json`, "utf-8")
@@ -5084,7 +5084,7 @@ async function checkqualfiedcatch() {
 		});
 
 		//なんらかのエラーでundefinedだった場合の処理
-		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return;
+		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
@@ -5222,7 +5222,7 @@ async function checkqualfiedmania() {
 		fs.writeFileSync(`./QualfiedBeatmaps/mania.txt`, qfarray.join(","), 'utf-8');
 
 		//違う物がなかった場合(Null)の処理
-		if (differentQF == null) return;
+		if (differentQF == null) return
 
 		//jsonファイルにマップのid、QFされた日付を追加もしくは更新
 		const rawjson = fs.readFileSync(`./QualfiedBeatmaps/mania.json`, "utf-8")
@@ -5266,7 +5266,7 @@ async function checkqualfiedmania() {
 		});
 
 		//なんらかのエラーでundefinedだった場合の処理
-		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return;
+		if (QFbeatmapsmaxsrId == undefined || QFbeatmapsminsrId == undefined) return
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(QFbeatmapsmaxsrId, apikey, "0");
@@ -5405,7 +5405,7 @@ async function checkrankedosu() {
 		fs.writeFileSync(`./RankedBeatmaps/osu.txt`, rankedarray.join(","), 'utf-8');
 
 		//違う物がなかった場合(Null)の処理
-		if (differentranked == null) return;
+		if (differentranked == null) return
 
 		//JSONファイルにranked時間を追加する
 		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/osu.json`, "utf-8")
@@ -5460,7 +5460,7 @@ async function checkrankedosu() {
 		});
 
 		//なんらかのエラーでundefinedだった場合の処理
-		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return;
+		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
@@ -5566,7 +5566,7 @@ async function checkrankedtaiko() {
 		fs.writeFileSync(`./RankedBeatmaps/taiko.txt`, rankedarray.join(","), 'utf-8');
 
 		//違う物がなかった場合(Null)の処理
-		if (differentranked == null) return;
+		if (differentranked == null) return
 
 		//JSONファイルにranked時間を追加する
 		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/taiko.json`, "utf-8")
@@ -5621,7 +5621,7 @@ async function checkrankedtaiko() {
 		});
 
 		//なんらかのエラーでundefinedだった場合の処理
-		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return;
+		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
@@ -5727,7 +5727,7 @@ async function checkrankedcatch() {
 		fs.writeFileSync(`./RankedBeatmaps/catch.txt`, rankedarray.join(","), 'utf-8');
 
 		//違う物がなかった場合(Null)の処理
-		if (differentranked == null) return;
+		if (differentranked == null) return
 
 		//JSONファイルにranked時間を追加する
 		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/catch.json`, "utf-8")
@@ -5782,7 +5782,7 @@ async function checkrankedcatch() {
 		});
 
 		//なんらかのエラーでundefinedだった場合の処理
-		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return;
+		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
@@ -5888,7 +5888,7 @@ async function checkrankedmania() {
 		fs.writeFileSync(`./RankedBeatmaps/mania.txt`, rankedarray.join(","), 'utf-8');
 
 		//違う物がなかった場合(Null)の処理
-		if (differentranked == null) return;
+		if (differentranked == null) return
 		
 		//JSONファイルにranked時間を追加する
 		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/mania.json`, "utf-8")
@@ -5943,7 +5943,7 @@ async function checkrankedmania() {
 		});
 
 		//なんらかのエラーでundefinedだった場合の処理
-		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return;
+		if (rankedbeatmapsmaxsrId == undefined || rankedbeatmapsminsrId == undefined) return
 
 		//マップ情報を取得(タイトルなど)
 		const GetMapInfo = await getMapforRecent(rankedbeatmapsmaxsrId, apikey, "0");
