@@ -21,6 +21,7 @@ const { getOsuBeatmapFile, checkStream } = require("./src/Streamcheck/Streamchec
 const { calculateScorePP } = require("./src/CalcGlobalPP/calculateglobalPP");
 const { downloadHoshinobotFile, getCommitDiffofHoshinobot } = require("./HoshinoBot updater");
 const { srchart } = require("./src/CheckSRgraph/checksr");
+const { channel } = require("diagnostics_channel");
 
 //APIキーやTOKENなど
 const apikey = process.env.APIKEY;
@@ -43,6 +44,14 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 //BOTが準備完了したら実行
 client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
+	let lastDate = new Date().getDate();
+	setInterval(() => {
+		const currentDate = new Date().getDate();
+		if (currentDate !== lastDate) {
+			rankedintheday();
+			lastDate = currentDate;
+		}
+	}, 1000);
 	setInterval(() => {
 		client.user.setPresence({ activities: [{ name: `ほしのBot Ver1.0.0 ping: ${client.ws.ping}`, type: ActivityType.Playing }]})
 	}, 5000)
@@ -6051,6 +6060,47 @@ function matchPercentage(current, total) {
 		}
 	}
 	return matchPercentage
+}
+
+async function rankedintheday() {
+	for (const channels of fs.readdirSync(`./MapcheckChannels/`)) {
+		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/${channels}.json`, "utf-8")
+		const qfparsedjson = JSON.parse(qfrawjson)
+		const now = new Date();
+		const nowtime = now.getTime();
+		const sevenDayAgo = nowtime - 604800000;
+		const sevenDayAgoDate = new Date(sevenDayAgo);
+		const sevenDayAgoDateString = `${sevenDayAgoDate.getFullYear()}-${sevenDayAgoDate.getMonth() + 1}-${sevenDayAgoDate.getDate()}`
+		const sevenDayAgoDateNumber = Number(sevenDayAgoDateString.replace(/-/g, ""))
+		for (const element of qfparsedjson) {
+			const qfdate = new Date(element.qfdate)
+			const qfdateString = `${qfdate.getFullYear()}-${qfdate.getMonth() + 1}-${qfdate.getDate()}`
+			const qfdateNumber = Number(qfdateString.replace(/-/g, ""))
+			if (qfdateNumber == sevenDayAgoDateNumber) {
+				if (element.rankeddate == "-") continue;
+				const mapdata = await v2.beatmap.set(element.id)
+				const date = new Date(element.qfdate);
+				const year = date.getFullYear();
+				const month = date.getMonth() + 1;
+				const day = date.getDate();
+				const hours = date.getHours();
+				const minutes = date.getMinutes();
+				sevenDayAgoQf.push([{ name : `**${mapdata.beatmapset.title}** by ${mapdata.beatmapset.creator}`, value : `**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}\n**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})`, inline : true }])
+			}
+		}
+
+		//メッセージの送信
+		const embed = new EmbedBuilder()
+			.setColor("Yellow")
+			.setAuthor({ name: `🎉Daily Ranked check🎉` })
+			.setTitle(`日付が変わりました！今日ranked予定の${channels}マップのリストです！`)
+			.addFields(sevenDayAgoQf)
+			.addFooter({ text: `このメッセージは毎日0時に送信されます。既にrankedされた譜面は表示されません。` })
+		for (const element of fs.readFileSync(`./MapcheckChannels/${channels}/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+			if (client.channels.cache?.get(element) == undefined) continue;
+			client.channels.cache.get(element).send({ embeds: [embed] });
+		}
+	}
 }
 
 //discord bot login
