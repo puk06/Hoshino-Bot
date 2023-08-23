@@ -45,6 +45,10 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
 	let lastDate = new Date().getDate();
+	
+	//test
+	rankedintheday();
+
 	setInterval(() => {
 		const currentDate = new Date().getDate();
 		if (currentDate !== lastDate) {
@@ -6300,6 +6304,7 @@ function matchPercentage(current, total) {
 	return matchPercentage
 }
 
+//日付が変わった際にその日のranked予定のものを送信するコード
 async function rankedintheday() {
 	for (const channels of fs.readdirSync(`./MapcheckChannels/`)) {
 		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/${channels}.json`, "utf-8")
@@ -6324,11 +6329,13 @@ async function rankedintheday() {
 				const day = date.getDate();
 				const hours = date.getHours();
 				const minutes = date.getMinutes();
-				sevenDayAgoQf.push([{ name : `**${mapdata.beatmapset.title}** by ${mapdata.beatmapset.creator}`, value : `**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}\n**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})`, inline : true }])
+				sevenDayAgoQf.push({ name : `**${mapdata.beatmapset.title}** by ${mapdata.beatmapset.creator}`, value : `**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}\n**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})`, inline : true })
 			}
 		}
+
+		//ranked予定の物が無い時の処理
 		if (sevenDayAgoQf.length == 0) {
-			sevenDayAgoQf.push([{ name : `**今日ranked予定の${channels}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDay()}日 ${now.getHours()}:${now.getMinutes()}`, inline : true }])
+			sevenDayAgoQf.push({ name : `**今日ranked予定の${channels}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDay()}日 ${now.getHours()}:${now.getMinutes()}`, inline : true })
 		}
 
 		//メッセージの送信
@@ -6337,7 +6344,7 @@ async function rankedintheday() {
 			.setAuthor({ name: `🎉Daily Ranked check🎉` })
 			.setTitle(`日付が変わりました！今日ranked予定の${channels}マップのリストです！`)
 			.addFields(sevenDayAgoQf)
-			.addFooter({ text: `このメッセージは毎日0時に送信されます。既にrankedされた譜面は表示されません。` })
+			.setFooter({ text: `このメッセージは毎日0時に送信されます。既にrankedされた譜面は表示されません。` })
 		for (const element of fs.readFileSync(`./MapcheckChannels/${channels}/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
 			if (client.channels.cache?.get(element) == undefined) continue;
 			client.channels.cache.get(element).send({ embeds: [embed] });
