@@ -44,7 +44,6 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
 	let lastDate = new Date().getDate();
-	rankedintheday();
 	setInterval(() => {
 		const currentDate = new Date().getDate();
 		if (currentDate !== lastDate) {
