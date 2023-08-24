@@ -1773,7 +1773,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//マップ情報を取得
 					const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
 					const beatmapid = Mapinfo.beatmapId;
-					const previewlink = `https://osu-preview.jmir.ml/preview#${beatmapid}`
+					const previewlink = `https://osu-preview.jmir.xyz/preview#${beatmapid}`
 					const SR = await calculateSR(beatmapid, 0, modeconvert(Mapinfo.mode));
 	
 					//Mapinfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
@@ -1795,7 +1795,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						.setAuthor({ name: `Mapped by ${Mapinfo.mapper}`, iconURL: `https://a.ppy.sh/${mapperdata.user_id}`, url: `https://osu.ppy.sh/users/${Mapinfo.mapper}` })
 						.addFields({ name: "Preview link", value: `[Preview this map!](${previewlink})`, inline: true })
 						.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
-					interaction.channel.send({ embeds: [embed] })
+					interaction.reply({ embeds: [embed] })
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
