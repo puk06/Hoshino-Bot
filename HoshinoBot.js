@@ -3158,13 +3158,13 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F") {
+				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F" && BPranking != 0) {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F") {
+				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F" && BPranking != 0) {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
@@ -3373,13 +3373,13 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F") {
+				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F" && BPranking != 0) {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F") {
+				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F" && BPranking != 0) {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
@@ -3592,13 +3592,13 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F") {
+				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F" && BPranking != 0) {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F") {
+				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F" && BPranking != 0) {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
@@ -3814,13 +3814,13 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F") {
+				if (mapranking != 0 && BPranking <= 50 && recentplay.rank != "F" && BPranking != 0) {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapranking}__**`
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapranking}__**`
 					}
-				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F") {
+				} else if (mapranking == 0 && BPranking <= 50 && recentplay.rank != "F" && BPranking != 0) {
 					if (Mapstatus == "Ranked") {
 						rankingString = `**__Personal Best #${BPranking}__**`
 					} else {
