@@ -5635,23 +5635,24 @@ async function checkrankedosu() {
 					const timeDifference = rankeddate - qfdate;
 					const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 					if (timeDifferenceInDays < 7) {
-						const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-						const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-						const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-						if (timeDifferenceInDays == 6) {
+						const minustimeDifference = 604800000 - timeDifference;
+						const days = Math.floor(minustimeDifference / (1000 * 60 * 60 * 24));
+						const hours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+						const minutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+						if (days == 0) {
 							rankederrorstring = `- ${hours}時間 ${minutes}分`
 						} else {
-							const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
-							rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
+							rankederrorstring = `- ${days}日 ${hours}時間 ${minutes % 60}分`
 						}
 					} else {
 						const plustimeDifference = timeDifference - 604800000;
+						const rankeddays = Math.floor(plustimeDifference / (1000 * 60 * 60 * 24));
 						const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 						const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
-						if (timeDifferenceInDays == 7) {
+						if (rankeddays == 0) {
 							rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
 						} else {
-							rankederrorstring = `+ ${timeDifferenceInDays - 7}日 ${rankedhours}時間 ${rankedminutes}分`
+							rankederrorstring = `+ ${rankeddays}日 ${rankedhours}時間 ${rankedminutes}分`
 						}
 					}
 				}
@@ -5798,23 +5799,24 @@ async function checkrankedtaiko() {
 					const timeDifference = rankeddate - qfdate;
 					const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 					if (timeDifferenceInDays < 7) {
-						const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-						const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-						const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-						if (timeDifferenceInDays == 6) {
+						const minustimeDifference = 604800000 - timeDifference;
+						const days = Math.floor(minustimeDifference / (1000 * 60 * 60 * 24));
+						const hours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+						const minutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+						if (days == 0) {
 							rankederrorstring = `- ${hours}時間 ${minutes}分`
 						} else {
-							const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
-							rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
+							rankederrorstring = `- ${days}日 ${hours}時間 ${minutes % 60}分`
 						}
 					} else {
 						const plustimeDifference = timeDifference - 604800000;
+						const rankeddays = Math.floor(plustimeDifference / (1000 * 60 * 60 * 24));
 						const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 						const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
-						if (timeDifferenceInDays == 7) {
+						if (rankeddays == 0) {
 							rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
 						} else {
-							rankederrorstring = `+ ${timeDifferenceInDays - 7}日 ${rankedhours}時間 ${rankedminutes}分`
+							rankederrorstring = `+ ${rankeddays}日 ${rankedhours}時間 ${rankedminutes}分`
 						}
 					}
 				}
@@ -5961,23 +5963,24 @@ async function checkrankedcatch() {
 					const timeDifference = rankeddate - qfdate;
 					const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 					if (timeDifferenceInDays < 7) {
-						const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-						const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-						const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-						if (timeDifferenceInDays == 6) {
+						const minustimeDifference = 604800000 - timeDifference;
+						const days = Math.floor(minustimeDifference / (1000 * 60 * 60 * 24));
+						const hours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+						const minutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+						if (days == 0) {
 							rankederrorstring = `- ${hours}時間 ${minutes}分`
 						} else {
-							const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
-							rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
+							rankederrorstring = `- ${days}日 ${hours}時間 ${minutes % 60}分`
 						}
 					} else {
 						const plustimeDifference = timeDifference - 604800000;
+						const rankeddays = Math.floor(plustimeDifference / (1000 * 60 * 60 * 24));
 						const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 						const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
-						if (timeDifferenceInDays == 7) {
+						if (rankeddays == 0) {
 							rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
 						} else {
-							rankederrorstring = `+ ${timeDifferenceInDays - 7}日 ${rankedhours}時間 ${rankedminutes}分`
+							rankederrorstring = `+ ${rankeddays}日 ${rankedhours}時間 ${rankedminutes}分`
 						}
 					}
 				}
@@ -6124,23 +6127,24 @@ async function checkrankedmania() {
 					const timeDifference = rankeddate - qfdate;
 					const timeDifferenceInDays = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 					if (timeDifferenceInDays < 7) {
-						const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-						const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-						const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-						if (timeDifferenceInDays == 6) {
+						const minustimeDifference = 604800000 - timeDifference;
+						const days = Math.floor(minustimeDifference / (1000 * 60 * 60 * 24));
+						const hours = Math.floor((minustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+						const minutes = Math.floor((minustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
+						if (days == 0) {
 							rankederrorstring = `- ${hours}時間 ${minutes}分`
 						} else {
-							const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
-							rankederrorstring = `- ${7 - timeDifferenceInDays}日 ${Math.floor(totalMinutes / 60)}時間 ${totalMinutes % 60}分`
+							rankederrorstring = `- ${days}日 ${hours}時間 ${minutes % 60}分`
 						}
 					} else {
 						const plustimeDifference = timeDifference - 604800000;
+						const rankeddays = Math.floor(plustimeDifference / (1000 * 60 * 60 * 24));
 						const rankedhours = Math.floor((plustimeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 						const rankedminutes = Math.floor((plustimeDifference % (1000 * 60 * 60)) / (1000 * 60));
-						if (timeDifferenceInDays == 7) {
+						if (rankeddays == 0) {
 							rankederrorstring = `+ ${rankedhours}時間 ${rankedminutes}分`
 						} else {
-							rankederrorstring = `+ ${timeDifferenceInDays - 7}日 ${rankedhours}時間 ${rankedminutes}分`
+							rankederrorstring = `+ ${rankeddays}日 ${rankedhours}時間 ${rankedminutes}分`
 						}
 					}
 				}
