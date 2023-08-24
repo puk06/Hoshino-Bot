@@ -21,7 +21,6 @@ const { getOsuBeatmapFile, checkStream } = require("./src/Streamcheck/Streamchec
 const { calculateScorePP } = require("./src/CalcGlobalPP/calculateglobalPP");
 const { downloadHoshinobotFile, getCommitDiffofHoshinobot } = require("./HoshinoBot updater");
 const { srchart } = require("./src/CheckSRgraph/checksr");
-const { channel } = require("diagnostics_channel");
 
 //APIキーやTOKENなど
 const apikey = process.env.APIKEY;
@@ -45,6 +44,7 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
 	let lastDate = new Date().getDate();
+	rankedintheday();
 	setInterval(() => {
 		const currentDate = new Date().getDate();
 		if (currentDate !== lastDate) {
@@ -5028,6 +5028,7 @@ async function checkqualfiedosu() {
 				.setColor("Blue")
 				.setAuthor({ name: `🎉New Qualfied Osu Map🎉` })
 				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
 				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 				.setURL(GetMapInfo.maplink)
 				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -5205,6 +5206,7 @@ async function checkqualfiedtaiko() {
 				.setColor("Blue")
 				.setAuthor({ name: `🎉New Qualfied Taiko Map🎉` })
 				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
 				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 				.setURL(GetMapInfo.maplink)
 				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -5383,6 +5385,7 @@ async function checkqualfiedcatch() {
 				.setColor("Blue")
 				.setAuthor({ name: `🎉New Qualfied Catch Map🎉` })
 				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
 				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 				.setURL(GetMapInfo.maplink)
 				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -5559,6 +5562,7 @@ async function checkqualfiedmania() {
 				.setColor("Blue")
 				.setAuthor({ name: `🎉New Qualfied Mania Map🎉` })
 				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
 				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 				.setURL(GetMapInfo.maplink)
 				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -5725,6 +5729,7 @@ async function checkrankedosu() {
 				.setColor("Yellow")
 				.setAuthor({ name: `🎉New Ranked Osu Map🎉` })
 				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
 				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 				.setURL(GetMapInfo.maplink)
 				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -5889,6 +5894,7 @@ async function checkrankedtaiko() {
 				.setColor("Yellow")
 				.setAuthor({ name: `🎉New Ranked Taiko Map🎉` })
 				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
 				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 				.setURL(GetMapInfo.maplink)
 				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -6053,6 +6059,7 @@ async function checkrankedcatch() {
 				.setColor("Yellow")
 				.setAuthor({ name: `🎉New Ranked Catch Map🎉` })
 				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
 				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 				.setURL(GetMapInfo.maplink)
 				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -6217,6 +6224,7 @@ async function checkrankedmania() {
 				.setColor("Yellow")
 				.setAuthor({ name: `🎉New Ranked Mania Map🎉` })
 				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
 				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 				.setURL(GetMapInfo.maplink)
 				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -6306,36 +6314,70 @@ function matchPercentage(current, total) {
 
 //日付が変わった際にその日のranked予定のものを送信するコード
 async function rankedintheday() {
+	await auth.login(osuclientid, osuclientsecret);
 	for (const channels of fs.readdirSync(`./MapcheckChannels/`)) {
 		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/${channels}.json`, "utf-8")
 		const qfparsedjson = JSON.parse(qfrawjson)
 		const now = new Date();
-		const nowtime = now.getTime();
-		const sevenDayAgo = nowtime - 604800000;
-		const sevenDayAgoDate = new Date(sevenDayAgo);
+		const sevenDayAgoDate = new Date();
+		sevenDayAgoDate.setDate(sevenDayAgoDate.getDate() - 7);
 		const sevenDayAgoDateString = `${sevenDayAgoDate.getFullYear()}-${sevenDayAgoDate.getMonth() + 1}-${sevenDayAgoDate.getDate()}`
-		const sevenDayAgoDateNumber = Number(sevenDayAgoDateString.replace(/-/g, ""))
 		let sevenDayAgoQf = [];
+		let count = 0;
 		for (const element of qfparsedjson) {
 			const qfdate = new Date(element.qfdate)
 			const qfdateString = `${qfdate.getFullYear()}-${qfdate.getMonth() + 1}-${qfdate.getDate()}`
-			const qfdateNumber = Number(qfdateString.replace(/-/g, ""))
-			if (qfdateNumber == sevenDayAgoDateNumber) {
+			if (qfdateString == sevenDayAgoDateString) {
 				if (element.rankeddate == "-") continue;
-				const mapdata = await v2.beatmap.set(element.id)
+				count++;
 				const date = new Date(element.qfdate);
 				const year = date.getFullYear();
 				const month = date.getMonth() + 1;
 				const day = date.getDate();
 				const hours = date.getHours();
 				const minutes = date.getMinutes();
-				sevenDayAgoQf.push({ name : `**${mapdata.beatmapset.title}** by ${mapdata.beatmapset.creator}`, value : `**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}\n**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})`, inline : true })
+
+				//SRやPPの計算過程
+				let qfbeatmapsmaxsrId;
+				let qfbeatmapsminsrId;
+
+				await v2.beatmap.set(element.id).then(async (res) => {
+					const array = res.beatmaps;
+					array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+					const maxRatingObj = array[array.length - 1];
+					const minRatingObj = array[0];
+					qfbeatmapsmaxsrId = maxRatingObj.id;
+					qfbeatmapsminsrId = minRatingObj.id;
+				});
+
+				//マップ情報を取得(タイトルなど)
+				const GetMapInfo = await getMapforRecent(qfbeatmapsminsrId, apikey, "0");
+				const maxsr = await calculateSR(qfbeatmapsmaxsrId, 0, channels);
+				const minsr = await calculateSR(qfbeatmapsminsrId, 0, channels);
+				const maxppDT = await calculateSR(qfbeatmapsmaxsrId, 64, channels);
+				const minppDT = await calculateSR(qfbeatmapsminsrId, 64, channels);
+
+				//表示用の文字列を作成
+				let srstring;
+				let ppstring;
+				if (maxsr.sr == minsr.sr) {
+					srstring = `★**${maxsr.sr}** (DT ★**${maxppDT.sr}**)`
+				} else {
+					srstring = `★**${minsr.sr} ~ ${maxsr.sr}** (DT ★**${minppDT.sr} ~ ${maxppDT.sr}**)`
+				}
+				if (maxsr.S0 == minsr.S0) {
+					ppstring = `**${maxsr.S0}**pp (DT **${maxppDT.S0}**pp)`
+				} else {
+					ppstring = `**${minsr.S0} ~ ${maxsr.S0}**pp (DT **${minppDT.S0} ~ ${maxppDT.S0}**pp)`
+				}
+
+				sevenDayAgoQf.push({ name : `${count}. **${GetMapInfo.title} - ${GetMapInfo.artist}**`, value : `Mapped by **${GetMapInfo.mapper}**\nSR: ${srstring}\nPP: ${ppstring}\n**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}`, inline : true })
 			}
 		}
 
 		//ranked予定の物が無い時の処理
 		if (sevenDayAgoQf.length == 0) {
-			sevenDayAgoQf.push({ name : `**今日ranked予定の${channels}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDay()}日 ${now.getHours()}:${now.getMinutes()}`, inline : true })
+			sevenDayAgoQf.push({ name : `**今日ranked予定の${channels}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDate()}日 ${now.getHours()}:${now.getMinutes()}`, inline : true })
 		}
 
 		//メッセージの送信
