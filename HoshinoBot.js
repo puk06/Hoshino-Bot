@@ -6370,13 +6370,13 @@ async function rankedintheday() {
 					ppstring = `**${minsr.S0} ~ ${maxsr.S0}**pp (DT **${minppDT.S0} ~ ${maxppDT.S0}**pp)`
 				}
 
-				sevenDayAgoQf.push({ name : `${count}. **${GetMapInfo.title} - ${GetMapInfo.artist}**`, value : `Mapped by **${GetMapInfo.mapper}**\nSR: ${srstring}\nPP: ${ppstring}\n**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}`, inline : true })
+				sevenDayAgoQf.push({ name : `${count}. **${GetMapInfo.title} - ${GetMapInfo.artist}**`, value : `Mapped by **${GetMapInfo.mapper}**\nSR: ${srstring}\nPP: ${ppstring}\n**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}` })
 			}
 		}
 
 		//ranked予定の物が無い時の処理
 		if (sevenDayAgoQf.length == 0) {
-			sevenDayAgoQf.push({ name : `**今日ranked予定の${channels}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDate()}日 ${now.getHours()}:${now.getMinutes()}`, inline : true })
+			sevenDayAgoQf.push({ name : `**今日ranked予定の${channels}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDate()}日 ${now.getHours()}:${now.getMinutes()}` })
 		}
 
 		//メッセージの送信
