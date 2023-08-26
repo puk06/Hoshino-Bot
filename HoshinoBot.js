@@ -2093,7 +2093,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						} else {
 							ppstring = `PP: **${minsr.S0.toFixed(2)} ~ ${maxsr.S0.toFixed(2)}**pp (DT **${minppDT.S0.toFixed(2)} ~ ${maxppDT.S0.toFixed(2)}**pp)`
 						}
-						data.push({ name: `${i + 1}. ${seracheddata.beatmapsets[i].title} - ${seracheddata.beatmapsets[i].artist}`, value: `▸ Mapped by **${seracheddata.beatmapsets[i].creator}**\n▸ ${srstring}\n▸ ${ppstring}\n▸ **Download**: [map](https://osu.ppy.sh/beatmapsets/${seracheddata.beatmapsets[i].id}) | [osu!direct](https://osu.ppy.sh/d/${seracheddata.beatmapsets[i].id}) | [Nerinyan](https://api.nerinyan.moe/d/${seracheddata.beatmapsets[i].id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${seracheddata.beatmapsets[i].id})` })
+						data.push({ name: `${i + 1}. ${seracheddata.beatmapsets[i].title} - ${seracheddata.beatmapsets[i].artist}`, value: `▸Mapped by **${seracheddata.beatmapsets[i].creator}**\n▸${srstring}\n▸${ppstring}\n▸**Download**: [map](https://osu.ppy.sh/beatmapsets/${seracheddata.beatmapsets[i].id}) | [osu!direct](https://osu.ppy.sh/d/${seracheddata.beatmapsets[i].id}) | [Nerinyan](https://api.nerinyan.moe/d/${seracheddata.beatmapsets[i].id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${seracheddata.beatmapsets[i].id})` })
 					}
 					embed.addFields(data)
 					interaction.channel.send({ embeds: [embed] })
@@ -6343,7 +6343,7 @@ async function rankedintheday() {
 			const qfdate = new Date(element.qfdate)
 			const qfdateString = `${qfdate.getFullYear()}-${qfdate.getMonth() + 1}-${qfdate.getDate()}`
 			if (qfdateString == sevenDayAgoDateString) {
-				if (element.rankeddate == "-") continue;
+				if (element.rankeddate != "-") continue;
 				count++;
 				const date = new Date(element.qfdate);
 				const year = date.getFullYear();
@@ -6386,7 +6386,7 @@ async function rankedintheday() {
 					ppstring = `**${minsr.S0} ~ ${maxsr.S0}**pp (DT **${minppDT.S0} ~ ${maxppDT.S0}**pp)`
 				}
 
-				sevenDayAgoQf.push({ name : `${count}. **${GetMapInfo.title} - ${GetMapInfo.artist}**`, value : `▸ Mapped by **${GetMapInfo.mapper}**\n▸ SR: ${srstring}\n▸ PP: ${ppstring}\n▸ **Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}` })
+				sevenDayAgoQf.push({ name : `${count}. **${GetMapInfo.title} - ${GetMapInfo.artist}**`, value : `▸Mapped by **${GetMapInfo.mapper}**\n▸SR: ${srstring}\n▸PP: ${ppstring}\n▸**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}\n` })
 			}
 		}
 
