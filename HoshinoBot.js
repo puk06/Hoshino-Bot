@@ -43,7 +43,6 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 //BOTが準備完了したら実行
 client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
-	await auth.login(osuclientid, osuclientsecret);
 	let lastDate = new Date().getDate();
 	setInterval(() => {
 		const currentDate = new Date().getDate();
@@ -1673,6 +1672,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 	
 					//ランキングを取得
 					let ranking = 0;
+					await auth.login(osuclientid, osuclientsecret);
 					let foundflagforranking = false;
 					for (let page = 0; page <= 120; page++) {
 						const object = { "cursor[page]": page + 1 };
@@ -2052,6 +2052,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 			if (interaction.commandName == "osusearch") {
 				try {
 					interaction.reply("検索中です...")
+					await auth.login(osuclientid, osuclientsecret);
 					const searchdata = {
 						query: interaction.options.get('query').value,
 						mode: interaction.options.get('mode').value,
@@ -4300,6 +4301,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//ランキングを取得
 				let ranking = 0;
+				await auth.login(osuclientid, osuclientsecret);
 				let foundflag = false;
 				for (let page = 0; page <= 120; page++) {
 					const object = { "cursor[page]": page + 1 };
@@ -4876,6 +4878,9 @@ function getFilesSortedByDate(directory) {
 //Qualfiedチェックをする関数(全mode対応)
 async function checkqualfiedosu() {
 	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
 		//検索でmodeなどの条件を決める
 		const objectosu = {
 			mode: "osu",
@@ -5051,6 +5056,9 @@ async function checkqualfiedosu() {
 
 async function checkqualfiedtaiko() {
 	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
 		//検索でmodeなどの条件を決める
 		const objecttaiko = {
 			mode: "taiko",
@@ -5226,6 +5234,9 @@ async function checkqualfiedtaiko() {
 
 async function checkqualfiedcatch() {
 	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
 		//検索でmodeなどの条件を決める
 		const objectfruits = {
 			mode: "fruits",
@@ -5401,6 +5412,9 @@ async function checkqualfiedcatch() {
 
 async function checkqualfiedmania() {
 	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
 		//検索でmodeなどの条件を決める
 		const objectmania = {
 			mode: "mania",
@@ -5576,6 +5590,9 @@ async function checkqualfiedmania() {
 //Rankedチェックをする関数(全mode対応)
 async function checkrankedosu() {
 	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
 		//検索でmodeなどの条件を決める
 		const objectosu = {
 			mode: "osu",
@@ -5738,6 +5755,9 @@ async function checkrankedosu() {
 
 async function checkrankedtaiko() {
 	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
 		//検索でmodeなどの条件を決める
 		const objecttaiko = {
 			mode: "taiko",
@@ -5900,6 +5920,9 @@ async function checkrankedtaiko() {
 
 async function checkrankedcatch() {
 	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
 		//検索でmodeなどの条件を決める
 		const objectcatch = {
 			mode: "fruits",
@@ -6062,6 +6085,9 @@ async function checkrankedcatch() {
 
 async function checkrankedmania() {
 	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
 		//検索でmodeなどの条件を決める
 		const objectmania = {
 			mode: "mania",
@@ -6287,6 +6313,7 @@ function matchPercentage(current, total) {
 
 //日付が変わった際にその日のranked予定のものを送信するコード
 async function rankedintheday() {
+	await auth.login(osuclientid, osuclientsecret);
 	for (const channels of fs.readdirSync(`./MapcheckChannels/`)) {
 		const qfrawjson = fs.readFileSync(`./QualfiedBeatmaps/${channels}.json`, "utf-8")
 		const qfparsedjson = JSON.parse(qfrawjson)
@@ -6343,7 +6370,7 @@ async function rankedintheday() {
 					ppstring = `**${minsr.S0} ~ ${maxsr.S0}**pp (DT **${minppDT.S0} ~ ${maxppDT.S0}**pp)`
 				}
 
-				sevenDayAgoQf.push({ name : `${count}. **${GetMapInfo.title} - ${GetMapInfo.artist}**`, value : `▸Mapped by **${GetMapInfo.mapper}**\n▸SR: ${srstring}\n▸PP: ${ppstring}\n▸**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n▸**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}` })
+				sevenDayAgoQf.push({ name : `${count}. **${GetMapInfo.title} - ${GetMapInfo.artist}**`, value : `▸Mapped by **${GetMapInfo.mapper}**\n▸SR: ${srstring}\n▸PP: ${ppstring}\n▸**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}` })
 			}
 		}
 
