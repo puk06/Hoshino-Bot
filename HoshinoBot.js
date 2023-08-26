@@ -4890,6 +4890,8 @@ async function checkqualfiedosu() {
 		//検索結果を取得
 		const qfdatalist = await v2.beatmap.search(objectosu);
 
+		if (qfdatalist.beatmapsets == undefined) return;
+
 		//検索結果からIDのみを取得
 		let qfarray = [];
 		for (const element of qfdatalist.beatmapsets) {
@@ -5067,6 +5069,8 @@ async function checkqualfiedtaiko() {
 
 		//検索結果を取得
 		const qfdatalist = await v2.beatmap.search(objecttaiko);
+
+		if (qfdatalist.beatmapsets == undefined) return;
 
 		//検索結果からIDのみを取得
 		let qfarray = [];
@@ -5246,6 +5250,8 @@ async function checkqualfiedcatch() {
 		//検索結果を取得
 		const qfdatalist = await v2.beatmap.search(objectfruits);
 
+		if (qfdatalist.beatmapsets == undefined) return;
+
 		//検索結果からIDのみを取得
 		let qfarray = [];
 		for (const element of qfdatalist.beatmapsets) {
@@ -5423,6 +5429,8 @@ async function checkqualfiedmania() {
 
 		//検索結果を取得
 		const qfdatalist = await v2.beatmap.search(objectmania);
+
+		if (qfdatalist.beatmapsets == undefined) return;
 
 		//検索結果からIDのみを取得
 		let qfarray = [];
@@ -5602,6 +5610,8 @@ async function checkrankedosu() {
 		//検索結果を取得
 		const rankeddatalist = await v2.beatmap.search(objectosu);
 
+		if (rankeddatalist.beatmapsets == undefined) return;
+
 		//検索結果からIDのみを取得
 		let rankedarray = [];
 		for (const element of rankeddatalist.beatmapsets) {
@@ -5766,6 +5776,8 @@ async function checkrankedtaiko() {
 
 		//検索結果を取得
 		const rankeddatalist = await v2.beatmap.search(objecttaiko);
+
+		if (rankeddatalist.beatmapsets == undefined) return;
 
 		//検索結果からIDのみを取得
 		let rankedarray = [];
@@ -5932,6 +5944,8 @@ async function checkrankedcatch() {
 		//検索結果を取得
 		const rankeddatalist = await v2.beatmap.search(objectcatch);
 
+		if (rankeddatalist.beatmapsets == undefined) return;
+
 		//検索結果からIDのみを取得
 		let rankedarray = [];
 		for (const element of rankeddatalist.beatmapsets) {
@@ -6096,6 +6110,8 @@ async function checkrankedmania() {
 
 		//検索結果を取得
 		const rankeddatalist = await v2.beatmap.search(objectmania);
+
+		if (rankeddatalist.beatmapsets == undefined) return;
 
 		//検索結果からIDのみを取得
 		let rankedarray = [];
