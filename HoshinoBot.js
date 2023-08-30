@@ -62,6 +62,10 @@ client.on(Events.ClientReady, async () => {
 	setInterval(checkrankedtaiko, 30000)
 	setInterval(checkrankedcatch, 30000)
 	setInterval(checkrankedmania, 30000)
+	setInterval(checklovedosu, 30000)
+	setInterval(checklovedtaiko, 30000)
+	setInterval(checklovedcatch, 30000)
+	setInterval(checklovedmania, 30000)
 	setInterval(makeBackup, 3600000)
 });
 
@@ -1370,6 +1374,48 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				}
 			}
 
+			if (interaction.commandName == "loved") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const channelid = interaction.channel.id
+					const allchannels = fs.readFileSync(`./LovedChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+					if (allchannels.includes(channelid)) {
+						interaction.reply("このチャンネルは既にLovedチェックチャンネルとして登録されています。")
+						return
+					}
+					fs.appendFile(`./LovedChannels/${mode}/Channels.txt`, `${channelid} `, function (err) {
+						if (err) throw err
+					})
+					interaction.reply(`このチャンネルを${mode}のLovedチェックチャンネルとして登録しました。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "deloved") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const channelid = interaction.channel.id
+
+					const allchannels = fs.readFileSync(`./LovedChannels/${mode}/Channels.txt`, "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
+					if (allchannels.includes(channelid)) {
+						const currentchannels = fs.readFileSync(`./LovedChannels/${mode}/Channels.txt`, "utf-8")
+						const newchannels = currentchannels.replace(`${channelid} `, "")
+						fs.writeFileSync(`./LovedChannels/${mode}/Channels.txt`, newchannels)
+					} else {
+						interaction.reply("このチャンネルはLovedチェックチャンネルとして登録されていません。")
+						return
+					}
+					interaction.reply(`このチャンネルを${mode}のLovedチェックチャンネルから削除しました。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
 			if (interaction.commandName == "qfmention") {
 				try {
 					const mode = interaction.options.get('mode').value
@@ -1383,6 +1429,26 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						if (err) throw err
 					})
 					interaction.reply(`今度から${mode}でQualfiedが検出されたらこのチャンネルにメンションが飛ぶようになりました。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "lovedmention") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const userid = interaction.user.id
+					const alluser = fs.readFileSync(`./mentionuser/loved/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
+					if (alluser.includes(userid)) {
+						interaction.reply("あなたは既にLovedチェックチャンネルのメンションを受け取るようになっています。")
+						return
+					}
+					fs.appendFile(`./mentionuser/loved/${mode}/user.txt`, `${userid} `, function (err) {
+						if (err) throw err
+					})
+					interaction.reply(`今度から${mode}でlovedが検出されたらこのチャンネルにメンションが飛ぶようになりました。`)
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
@@ -1424,7 +1490,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("このチャンネルはQualfied、Rankedチェックチャンネルとして登録されていません。")
 						return
 					}
-					interaction.reply(`このチャンネルを${mode}のQualfiedチェックチャンネルから削除しました。`)
+					interaction.reply(`このチャンネルを${mode}のQualfied、Rankedチェックチャンネルから削除しました。`)
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
@@ -1467,6 +1533,27 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						return
 					}
 					interaction.reply(`今度から${mode}でRankedが検出されても、このチャンネルにメンションが飛ばないようになりました。`)
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "delovedmention") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const userid = interaction.user.id
+					const alluser = fs.readFileSync(`./mentionuser/loved/${mode}/user.txt`, "utf-8").split(" ").filter((function(user) {return user !== "";}));
+					if (alluser.includes(userid)) {
+						const currentuser = fs.readFileSync(`./mentionuser/loved/${mode}/user.txt`, "utf-8")
+						const newuser = currentuser.replace(`${userid} `, "")
+						fs.writeFileSync(`./mentionuser/loved/${mode}/user.txt`, newuser)
+					} else {
+						interaction.reply("あなたは既にLovedチェックチャンネルのメンションを受け取るようになっていません。")
+						return
+					}
+					interaction.reply(`今度から${mode}でLovedが検出されても、このチャンネルにメンションが飛ばないようになりました。`)
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中にエラーが発生しました。")
@@ -2762,7 +2849,9 @@ client.on(Events.MessageCreate, async (message) =>
 			if (serverJSONdata[message.guildId][message.author.id] == undefined) {
 				serverJSONdata[message.guildId][message.author.id] = 1
 			} else {
-				if (!message.content.startsWith("!")) serverJSONdata[message.guildId][message.author.id] += 1
+				if (!message.content.startsWith("!")) {
+					serverJSONdata[message.guildId][message.author.id] += 1
+				}
 			}
 			fs.writeFileSync(`./talkcount.json`, JSON.stringify(serverJSONdata, null, "\t"))
 		} catch (e) {
@@ -6256,6 +6345,491 @@ async function checkrankedmania() {
 					mentionstring += `<@${user}> `
 				}
 				if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのRanked譜面が出ました！`);
+			}
+		}
+	} catch (e) {
+		console.log(e)
+		return
+	}
+}
+
+//lovedチェックをする関数(全mode対応)
+async function checklovedosu() {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objectosu = {
+			mode: "osu",
+			section: "loved"
+		};
+
+		//検索結果を取得
+		const loveddatalist = await v2.beatmap.search(objectosu);
+
+		if (loveddatalist.beatmapsets == undefined) return;
+
+		//検索結果からIDのみを取得
+		let lovedarray = [];
+		for (const element of loveddatalist.beatmapsets) {
+			lovedarray.push(element.id)
+		}
+
+		//現在のLovedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentlovedlistfile = fs.readFileSync(`./LovedBeatmaps/osu.txt`, 'utf8');
+		const currentlovedlistarray = currentlovedlistfile.split(",");
+		for (let i = 0; i < currentlovedlistarray.length; i++) {
+			currentlovedlistarray[i] = Number(currentlovedlistarray[i])
+		}
+
+		//先程の検索結果と現在のLovedのIDを比較し、違う物を取得
+		const differentlovedarray = findDifferentElements(currentlovedlistarray, lovedarray);
+		fs.writeFileSync(`./LovedBeatmaps/osu.txt`, lovedarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentlovedarray == null) return;
+
+		for (const differentloved of differentlovedarray) {
+			//違う物があった場合の処理(SRやPPの計算過程)
+			let lovedbeatmapsmaxsrId;
+			let lovedbeatmapsminsrId;
+
+			//BeatmapIdを取得
+			await v2.beatmap.set(differentloved).then(async (res) => {
+				const array = res.beatmaps;
+				array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+				const maxRatingObj = array[array.length - 1];
+				const minRatingObj = array[0];
+				lovedbeatmapsmaxsrId = maxRatingObj.id;
+				lovedbeatmapsminsrId = minRatingObj.id;
+			});
+
+			//なんらかのエラーでundefinedだった場合の処理
+			if (lovedbeatmapsmaxsrId == undefined || lovedbeatmapsminsrId == undefined) return;
+
+			//マップ情報を取得(タイトルなど)
+			const GetMapInfo = await getMapforRecent(lovedbeatmapsmaxsrId, apikey, "0");
+			const GetMapInfomin = await getMapforRecent(lovedbeatmapsminsrId, apikey, "0");
+			const maxsr = await calculateSR(lovedbeatmapsmaxsrId, 0, "osu");
+			const minsr = await calculateSR(lovedbeatmapsminsrId, 0, "osu");
+			const maxppDT = await calculateSR(lovedbeatmapsmaxsrId, 64, "osu");
+			const minppDT = await calculateSR(lovedbeatmapsminsrId, 64, "osu");
+			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
+			const minobject = GetMapInfomin.combo;
+			const maxobject = GetMapInfo.combo;
+			let Objectstring;
+			if (minobject == maxobject) {
+				Objectstring = `${maxobject}`
+			} else {
+				Objectstring = `${minobject} ~ ${maxobject}`
+			}
+			const lengthsec = GetMapInfo.totallength;
+			const lengthsecDT = GetMapInfo.totallength / 1.5;
+			const maptime = timeconvert(lengthsec);
+			const maptimeDT = timeconvert(lengthsecDT);
+			const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
+
+			//loved時の日時を取得
+			const now = new Date();
+			const month = now.getMonth() + 1;
+			const day = now.getDate();
+			const hours = now.getHours();
+			const minutes = now.getMinutes();
+			const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+			//表示用の文字列を作成
+			let srstring;
+			if (maxsr.sr == minsr.sr) {
+				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+			} else {
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+			}
+
+			//メッセージの送信
+			const embed = new EmbedBuilder()
+				.setColor("Blue")
+				.setAuthor({ name: `💓New Loved Osu Map💓` })
+				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
+				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+				.setURL(GetMapInfo.maplink)
+				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+				.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+				.addFields({ name: "`loved 日時`", value: `**${dateString}**`, inline: true })
+			for (const element of fs.readFileSync(`./LovedChannels/osu/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+				if (client.channels.cache?.get(element) == undefined) continue;
+				client.channels.cache.get(element).send({ embeds: [embed] });
+				const membersdata = await client.channels.cache.get(element).guild.members.fetch();
+				let mentionstring = "";
+				for (const user of fs.readFileSync(`./mentionuser/loved/osu/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+					if (membersdata.get(user) == undefined) continue;
+					mentionstring += `<@${user}> `
+				}
+				if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいOsu!のLoved譜面が出ました！`);
+			}
+		}
+	} catch (e) {
+		console.log(e)
+		return
+	}
+}
+
+async function checklovedtaiko() {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objecttaiko = {
+			mode: "taiko",
+			section: "loved"
+		};
+
+		//検索結果を取得
+		const loveddatalist = await v2.beatmap.search(objecttaiko);
+
+		if (loveddatalist.beatmapsets == undefined) return;
+
+		//検索結果からIDのみを取得
+		let lovedarray = [];
+		for (const element of loveddatalist.beatmapsets) {
+			lovedarray.push(element.id)
+		}
+
+		//現在のLovedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentlovedlistfile = fs.readFileSync(`./LovedBeatmaps/taiko.txt`, 'utf8');
+		const currentlovedlistarray = currentlovedlistfile.split(",");
+		for (let i = 0; i < currentlovedlistarray.length; i++) {
+			currentlovedlistarray[i] = Number(currentlovedlistarray[i])
+		}
+
+		//先程の検索結果と現在のLovedのIDを比較し、違う物を取得
+		const differentlovedarray = findDifferentElements(currentlovedlistarray, lovedarray);
+		fs.writeFileSync(`./LovedBeatmaps/taiko.txt`, lovedarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentlovedarray == null) return;
+
+		for (const differentloved of differentlovedarray) {
+			//違う物があった場合の処理(SRやPPの計算過程)
+			let lovedbeatmapsmaxsrId;
+			let lovedbeatmapsminsrId;
+
+			//BeatmapIdを取得
+			await v2.beatmap.set(differentloved).then(async (res) => {
+				const array = res.beatmaps;
+				array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+				const maxRatingObj = array[array.length - 1];
+				const minRatingObj = array[0];
+				lovedbeatmapsmaxsrId = maxRatingObj.id;
+				lovedbeatmapsminsrId = minRatingObj.id;
+			});
+
+			//なんらかのエラーでundefinedだった場合の処理
+			if (lovedbeatmapsmaxsrId == undefined || lovedbeatmapsminsrId == undefined) return;
+
+			//マップ情報を取得(タイトルなど)
+			const GetMapInfo = await getMapforRecent(lovedbeatmapsmaxsrId, apikey, "0");
+			const GetMapInfomin = await getMapforRecent(lovedbeatmapsminsrId, apikey, "0");
+			const maxsr = await calculateSR(lovedbeatmapsmaxsrId, 0, "taiko");
+			const minsr = await calculateSR(lovedbeatmapsminsrId, 0, "taiko");
+			const maxppDT = await calculateSR(lovedbeatmapsmaxsrId, 64, "taiko");
+			const minppDT = await calculateSR(lovedbeatmapsminsrId, 64, "taiko");
+			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
+			const minobject = GetMapInfomin.combo;
+			const maxobject = GetMapInfo.combo;
+			let Objectstring;
+			if (minobject == maxobject) {
+				Objectstring = `${maxobject}`
+			} else {
+				Objectstring = `${minobject} ~ ${maxobject}`
+			}
+			const lengthsec = GetMapInfo.totallength;
+			const lengthsecDT = GetMapInfo.totallength / 1.5;
+			const maptime = timeconvert(lengthsec);
+			const maptimeDT = timeconvert(lengthsecDT);
+			const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
+
+			//loved時の日時を取得
+			const now = new Date();
+			const month = now.getMonth() + 1;
+			const day = now.getDate();
+			const hours = now.getHours();
+			const minutes = now.getMinutes();
+			const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+			//表示用の文字列を作成
+			let srstring;
+			if (maxsr.sr == minsr.sr) {
+				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+			} else {
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+			}
+
+			//メッセージの送信
+			const embed = new EmbedBuilder()
+				.setColor("Blue")
+				.setAuthor({ name: `💓New Loved Taiko Map💓` })
+				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
+				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+				.setURL(GetMapInfo.maplink)
+				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+				.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+				.addFields({ name: "`loved 日時`", value: `**${dateString}**`, inline: true })
+			for (const element of fs.readFileSync(`./LovedChannels/taiko/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+				if (client.channels.cache?.get(element) == undefined) continue;
+				client.channels.cache.get(element).send({ embeds: [embed] });
+				const membersdata = await client.channels.cache.get(element).guild.members.fetch();
+				let mentionstring = "";
+				for (const user of fs.readFileSync(`./mentionuser/loved/taiko/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+					if (membersdata.get(user) == undefined) continue;
+					mentionstring += `<@${user}> `
+				}
+				if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいTaikoのLoved譜面が出ました！`);
+			}
+		}
+	} catch (e) {
+		console.log(e)
+		return
+	}
+}
+
+async function checklovedcatch() {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objectcatch = {
+			mode: "catch",
+			section: "loved"
+		};
+
+		//検索結果を取得
+		const loveddatalist = await v2.beatmap.search(objectcatch);
+
+		if (loveddatalist.beatmapsets == undefined) return;
+
+		//検索結果からIDのみを取得
+		let lovedarray = [];
+		for (const element of loveddatalist.beatmapsets) {
+			lovedarray.push(element.id)
+		}
+
+		//現在のLovedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentlovedlistfile = fs.readFileSync(`./LovedBeatmaps/catch.txt`, 'utf8');
+		const currentlovedlistarray = currentlovedlistfile.split(",");
+		for (let i = 0; i < currentlovedlistarray.length; i++) {
+			currentlovedlistarray[i] = Number(currentlovedlistarray[i])
+		}
+
+		//先程の検索結果と現在のLovedのIDを比較し、違う物を取得
+		const differentlovedarray = findDifferentElements(currentlovedlistarray, lovedarray);
+		fs.writeFileSync(`./LovedBeatmaps/catch.txt`, lovedarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentlovedarray == null) return;
+
+		for (const differentloved of differentlovedarray) {
+			//違う物があった場合の処理(SRやPPの計算過程)
+			let lovedbeatmapsmaxsrId;
+			let lovedbeatmapsminsrId;
+
+			//BeatmapIdを取得
+			await v2.beatmap.set(differentloved).then(async (res) => {
+				const array = res.beatmaps;
+				array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+				const maxRatingObj = array[array.length - 1];
+				const minRatingObj = array[0];
+				lovedbeatmapsmaxsrId = maxRatingObj.id;
+				lovedbeatmapsminsrId = minRatingObj.id;
+			});
+
+			//なんらかのエラーでundefinedだった場合の処理
+			if (lovedbeatmapsmaxsrId == undefined || lovedbeatmapsminsrId == undefined) return;
+
+			//マップ情報を取得(タイトルなど)
+			const GetMapInfo = await getMapforRecent(lovedbeatmapsmaxsrId, apikey, "0");
+			const GetMapInfomin = await getMapforRecent(lovedbeatmapsminsrId, apikey, "0");
+			const maxsr = await calculateSR(lovedbeatmapsmaxsrId, 0, "catch");
+			const minsr = await calculateSR(lovedbeatmapsminsrId, 0, "catch");
+			const maxppDT = await calculateSR(lovedbeatmapsmaxsrId, 64, "catch");
+			const minppDT = await calculateSR(lovedbeatmapsminsrId, 64, "catch");
+			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
+			const minobject = GetMapInfomin.combo;
+			const maxobject = GetMapInfo.combo;
+			let Objectstring;
+			if (minobject == maxobject) {
+				Objectstring = `${maxobject}`
+			} else {
+				Objectstring = `${minobject} ~ ${maxobject}`
+			}
+			const lengthsec = GetMapInfo.totallength;
+			const lengthsecDT = GetMapInfo.totallength / 1.5;
+			const maptime = timeconvert(lengthsec);
+			const maptimeDT = timeconvert(lengthsecDT);
+			const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
+
+			//loved時の日時を取得
+			const now = new Date();
+			const month = now.getMonth() + 1;
+			const day = now.getDate();
+			const hours = now.getHours();
+			const minutes = now.getMinutes();
+			const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+			//表示用の文字列を作成
+			let srstring;
+			if (maxsr.sr == minsr.sr) {
+				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+			} else {
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+			}
+
+			//メッセージの送信
+			const embed = new EmbedBuilder()
+				.setColor("Blue")
+				.setAuthor({ name: `💓New Loved Catch Map💓` })
+				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
+				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+				.setURL(GetMapInfo.maplink)
+				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+				.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+				.addFields({ name: "`loved 日時`", value: `**${dateString}**`, inline: true })
+			for (const element of fs.readFileSync(`./LovedChannels/catch/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+				if (client.channels.cache?.get(element) == undefined) continue;
+				client.channels.cache.get(element).send({ embeds: [embed] });
+				const membersdata = await client.channels.cache.get(element).guild.members.fetch();
+				let mentionstring = "";
+				for (const user of fs.readFileSync(`./mentionuser/loved/catch/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+					if (membersdata.get(user) == undefined) continue;
+					mentionstring += `<@${user}> `
+				}
+				if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいCatchのLoved譜面が出ました！`);
+			}
+		}
+	} catch (e) {
+		console.log(e)
+		return
+	}
+}
+
+async function checklovedmania() {
+	try {
+		//V2にアクセスするためのログイン処理
+		await auth.login(osuclientid, osuclientsecret);
+
+		//検索でmodeなどの条件を決める
+		const objectmania = {
+			mode: "mania",
+			section: "loved"
+		};
+
+		//検索結果を取得
+		const loveddatalist = await v2.beatmap.search(objectmania);
+
+		if (loveddatalist.beatmapsets == undefined) return;
+
+		//検索結果からIDのみを取得
+		let lovedarray = [];
+		for (const element of loveddatalist.beatmapsets) {
+			lovedarray.push(element.id)
+		}
+
+		//現在のLovedのIDを取得(ローカルファイルから１分前の物を取得)
+		const currentlovedlistfile = fs.readFileSync(`./LovedBeatmaps/mania.txt`, 'utf8');
+		const currentlovedlistarray = currentlovedlistfile.split(",");
+		for (let i = 0; i < currentlovedlistarray.length; i++) {
+			currentlovedlistarray[i] = Number(currentlovedlistarray[i])
+		}
+
+		//先程の検索結果と現在のLovedのIDを比較し、違う物を取得
+		const differentlovedarray = findDifferentElements(currentlovedlistarray, lovedarray);
+		fs.writeFileSync(`./LovedBeatmaps/mania.txt`, lovedarray.join(","), 'utf-8');
+
+		//違う物がなかった場合(Null)の処理
+		if (differentlovedarray == null) return;
+
+		for (const differentloved of differentlovedarray) {
+			//違う物があった場合の処理(SRやPPの計算過程)
+			let lovedbeatmapsmaxsrId;
+			let lovedbeatmapsminsrId;
+
+			//BeatmapIdを取得
+			await v2.beatmap.set(differentloved).then(async (res) => {
+				const array = res.beatmaps;
+				array.sort((a, b) => a.difficulty_rating - b.difficulty_rating);
+				const maxRatingObj = array[array.length - 1];
+				const minRatingObj = array[0];
+				lovedbeatmapsmaxsrId = maxRatingObj.id;
+				lovedbeatmapsminsrId = minRatingObj.id;
+			});
+
+			//なんらかのエラーでundefinedだった場合の処理
+			if (lovedbeatmapsmaxsrId == undefined || lovedbeatmapsminsrId == undefined) return;
+
+			//マップ情報を取得(タイトルなど)
+			const GetMapInfo = await getMapforRecent(lovedbeatmapsmaxsrId, apikey, "0");
+			const GetMapInfomin = await getMapforRecent(lovedbeatmapsminsrId, apikey, "0");
+			const maxsr = await calculateSR(lovedbeatmapsmaxsrId, 0, "mania");
+			const minsr = await calculateSR(lovedbeatmapsminsrId, 0, "mania");
+			const maxppDT = await calculateSR(lovedbeatmapsmaxsrId, 64, "mania");
+			const minppDT = await calculateSR(lovedbeatmapsminsrId, 64, "mania");
+			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
+			const minobject = GetMapInfomin.combo;
+			const maxobject = GetMapInfo.combo;
+			let Objectstring;
+			if (minobject == maxobject) {
+				Objectstring = `${maxobject}`
+			} else {
+				Objectstring = `${minobject} ~ ${maxobject}`
+			}
+			const lengthsec = GetMapInfo.totallength;
+			const lengthsecDT = GetMapInfo.totallength / 1.5;
+			const maptime = timeconvert(lengthsec);
+			const maptimeDT = timeconvert(lengthsecDT);
+			const maptimestring = `${maptime.minutes}:${maptime.seconds} (DT ${maptimeDT.minutes}:${maptimeDT.seconds})`;
+
+			//loved時の日時を取得
+			const now = new Date();
+			const month = now.getMonth() + 1;
+			const day = now.getDate();
+			const hours = now.getHours();
+			const minutes = now.getMinutes();
+			const dateString = `${month}月${day}日 ${hours}時${minutes}分`;
+
+			//表示用の文字列を作成
+			let srstring;
+			if (maxsr.sr == minsr.sr) {
+				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+			} else {
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+			}
+
+			//メッセージの送信
+			const embed = new EmbedBuilder()
+				.setColor("Blue")
+				.setAuthor({ name: `💓New Loved Mania Map💓` })
+				.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} by ${GetMapInfo.mapper}`)
+				.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${GetMapInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${GetMapInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${GetMapInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${GetMapInfo.beatmapset_id})`)
+				.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+				.setURL(GetMapInfo.maplink)
+				.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
+				.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
+				.addFields({ name: "`loved 日時`", value: `**${dateString}**`, inline: true })
+			for (const element of fs.readFileSync(`./LovedChannels/mania/Channels.txt`, 'utf8').split(" ").filter((function(channel) {return channel !== "";}))) {
+				if (client.channels.cache?.get(element) == undefined) continue;
+				client.channels.cache.get(element).send({ embeds: [embed] });
+				const membersdata = await client.channels.cache.get(element).guild.members.fetch();
+				let mentionstring = "";
+				for (const user of fs.readFileSync(`./mentionuser/loved/mania/user.txt`, 'utf8').split(" ").filter((function(user) {return user !== "";}))) {
+					if (membersdata.get(user) == undefined) continue;
+					mentionstring += `<@${user}> `
+				}
+				if (mentionstring != "") client.channels.cache.get(element).send(`${mentionstring}\n新しいManiaのLoved譜面が出ました！`);
 			}
 		}
 	} catch (e) {
