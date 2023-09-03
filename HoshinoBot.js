@@ -4291,7 +4291,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//ユーザーネームを取得
 				let playername;
-				if (message.content.split(" ")[1] == undefined) {
+				if (message.content.split(" ")[2] == undefined) {
 					try {
 						let username = message.author.id
 						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
@@ -4301,7 +4301,7 @@ client.on(Events.MessageCreate, async (message) =>
 						return
 					}
 				} else {
-					playername = message.content.split(" ").slice(1).join(" ")
+					playername = message.content.split(" ").slice(2).join(" ")
 					if (playername == "") {
 						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
 						return
