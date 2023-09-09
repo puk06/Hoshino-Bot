@@ -4,6 +4,7 @@ require('./node_modules/dotenv').config();
 const fs = require("fs-extra");
 const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
 const axios = require("./node_modules/axios");
+const { Beatmap, Calculator } = require("./node_modules/rosu-pp");
 const path = require('path');
 const util = require('util');
 const git = require('git-clone');
@@ -87,7 +88,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						return
 					}
 					betAmount = BigInt(betAmount);
-					
+
 					//slotを打ったユーザーが登録されていない場合の処理
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
@@ -97,13 +98,13 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//slotを打ったユーザーの銀行口座残高を取得
 					let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
 					const newBalance = currentBalance - betAmount;
-					
+
 					//slotを打ったユーザーの銀行口座残高がslot後、0を下回る場合の処理
 					if (newBalance <= 0n) {
 						interaction.reply(`この金額を賭けることは出来ません。この金額を賭けた場合、あなたの銀行口座残高が0を下回ってしまいます。(${newBalance.toLocaleString()})`)
 						return
 					}
-					
+
 					//slotを打ったユーザーの銀行口座残高を更新
 					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBalance.toString(), 'utf-8');
 
@@ -150,7 +151,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						return
 					}
 					betAmount = BigInt(betAmount);
-					
+
 					//slotを打ったユーザーが登録されていない場合の処理
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
@@ -160,13 +161,13 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					//slotを打ったユーザーの銀行口座残高を取得
 					let currentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
 					const newBalance = currentBalance - betAmount;
-					
+
 					//slotを打ったユーザーの銀行口座残高がslot後、0を下回る場合の処理
 					if (newBalance <= 0n) {
 						interaction.reply(`この金額を賭けることは出来ません。この金額を賭けた場合、あなたの銀行口座残高が0を下回ってしまいます。(${newBalance.toLocaleString()})`)
 						return
 					}
-					
+
 					//slotを打ったユーザーの銀行口座残高を更新
 					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newBalance.toString(), 'utf-8');
 
@@ -432,7 +433,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("あなたはもう既にこのカジノに登録されています。")
 						return
 					}
-	
+
 					//regを打ったユーザーの銀行口座残高を作成
 					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, "1000000", "utf-8");
 					interaction.reply(`カジノへようこそ ${interaction.user.username}! 初回なので1000000コインを差し上げます。`);
@@ -447,61 +448,61 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//送り先のユーザー名を取得
 					const sentusername = interaction.options.get('username').value;
-	
+
 					//送り先のユーザー名が自分自身の場合の処理
 					if (sentusername == interaction.user.username) {
 						interaction.reply("自分自身に送ることは許されていません！")
 						return
 					}
-	
+
 					//送り先のユーザー名が存在するかの確認
 					if (!fs.existsSync(`./Player Bank/${sentusername}.txt`)) {
 						interaction.reply(`${sentusername} というユーザーはこのカジノに登録されていません。`)
 						return
 					}
-	
+
 					//送る本人が存在するかの確認
 					if (!fs.existsSync(`./Player Bank/${interaction.user.username}.txt`)) {
 						interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。")
 						return
 					}
-	
+
 					//送りたい希望金額を取得
 					let sentmoney = interaction.options.get('amount').value;
 
 					//送りたい希望金額をBigIntに変換
 					sentmoney = BigInt(sentmoney);
-	
+
 					//送りたい希望金額がマイナスの場合の処理
 					if (sentmoney < 0n) {
 						interaction.reply("送る金額をマイナスにすることは出来ません。")
 						return
 					}
-	
+
 					//送る人の銀行口座残高を取得
 					const messagercurrentBalance = BigInt(fs.readFileSync(`./Player Bank/${interaction.user.username}.txt`, 'utf-8'));
-	
+
 					//送る人の銀行口座残高から送りたい希望金額を引く
 					const newmessagerbankbalance = messagercurrentBalance - sentmoney;
-	
+
 					//送る人の銀行口座残高が0を下回る場合の処理
 					if (newmessagerbankbalance < 0n) {
 						interaction.reply(`この金額を送ることは出来ません。この金額を送った場合、あなたの銀行口座残高が0を下回ってしまいます。(${newmessagerbankbalance})`)
 						return
 					}
-	
+
 					//送る人の銀行口座残高を更新
 					fs.writeFileSync(`./Player Bank/${interaction.user.username}.txt`, newmessagerbankbalance.toString(), 'utf-8');
-	
+
 					//送り先の銀行口座残高を取得
 					const sentusercurrentbalance = BigInt(fs.readFileSync(`./Player Bank/${sentusername}.txt`, 'utf-8'));
-	
+
 					//送り先の銀行口座残高に送りたい希望金額を足す
 					const newsentusercurrentbalance = sentusercurrentbalance + sentmoney;
-	
+
 					//送り先の銀行口座残高を更新
 					fs.writeFileSync(`./Player Bank/${sentusername}.txt`, newsentusercurrentbalance.toString(), 'utf-8');
-	
+
 					//送金完了を知らせるメッセージを送信
 					interaction.reply("送金が完了しました。");
 				} catch (e) {
@@ -544,20 +545,20 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//テキストファイルから一覧を取得
 					const text = fs.readFileSync(`./Furry/Furry.txt`, 'utf-8');
-	
+
 					//一覧を配列に変換
 					const lines = text.split(" ").filter((function(link) {return link !== "";}));
-	
+
 					//配列の要素数を取得
 					const lineCount = lines.length;
-	
+
 					//配列の要素数からランダムな数字を生成
 					const randomLineNumber = Math.floor(Math.random() * lineCount);
-	
+
 					//ランダムな数字から一覧の要素を取得
 					const randomLine = lines[randomLineNumber];
 					const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
-	
+
 					//webからデータを取得
 					let error = false;
 					const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(error => {
@@ -568,13 +569,13 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.channel.send("ファイルの削除が完了しました");
 						error = true;
 					})
-	
+
 					//axiosがアクセスできなかった時の処理
 					if (error) return;
-					
+
 					//画像のデータを取得
 					const picData = response.data;
-					
+
 					//画像の送信
 					interaction.reply({ files: [{ attachment: picData, name: `Furry.${lineextension}` }] })
 				} catch (e) {
@@ -629,26 +630,26 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//メッセージからタグを取得
 					const tag = interaction.options.get('tag').value;
-	
+
 					//タグが存在するかの確認
 					if (!fs.existsSync(`./tag/${tag}/picture.txt`)) {
 						interaction.reply("このタグは存在しません。")
 						return
 					}
-	
+
 					//タグの中身が空の場合の処理
 					const text = fs.readFileSync(`./tag/${tag}/picture.txt`, 'utf-8').split(" ").filter((function(link) {return link !== "";}));
 					if (text.length == 0) {
 						interaction.reply("このタグにはファイルがないみたいです。")
 						return
 					}
-	
+
 					//タグの中身のファイルからランダムで画像を選択
 					const lineCount = text.length;
 					const randomLineNumber = Math.floor(Math.random() * lineCount);
 					const randomLine = text[randomLineNumber];
 					const lineextension = randomLine.split(".")[randomLine.split(".").length - 1]
-	
+
 					//webからデータを取得
 					let error = false;
 					const response = await axios.get(randomLine, { responseType: 'arraybuffer' }).catch(error => {
@@ -659,13 +660,13 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.channel.send("ファイルの削除が完了しました");
 						error = true;
 					})
-	
+
 					//axiosがアクセスできなかった時の処理
 					if (error) return;
-					
+
 					//画像のデータを取得
 					const picData = response.data;
-	
+
 					//画像の送信
 					interaction.reply({ files: [{ attachment: picData, name: `${tag}.${lineextension}` }] })
 				} catch (e) {
@@ -786,7 +787,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("このタグは登録されていません。")
 						return;
 					}
-					
+
 					const link = "https://github.com/puk06/PictureDownloader/releases/download/V1.1/PictureDownloader.zip"
 
 					//textファイルを送信
@@ -805,21 +806,21 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const tags = fs.readdirSync(`./tag/`, { withFileTypes: true }).filter((function(tag) {
 						return fs.readdirSync(`./tag/${tag.name}`).length !== 0;
 					}));
-	
+
 					//タグの数が0だった場合
 					if (tags.length == 0) {
 						interaction.reply("タグが存在しません。")
 						return
 					}
-	
+
 					//タグの一覧を格納する配列を作成
 					let taglist = [];
-	
+
 					//タグの一覧を作成
 					for (let i = 0; i < tags.length; i++ ) {
 						taglist.push(`${i + 1}: ${tags[i].name}\n`);
 					}
-	
+
 					//タグの一覧を送信
 					interaction.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
 				} catch (e) {
@@ -833,25 +834,25 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//メッセージからタグを取得
 					const tag = interaction.options.get('tag').value;
-	
+
 					//タグが存在するかの確認
 					if (!fs.existsSync(`./quotetag/${tag}/quote.txt`)) {
 						interaction.reply("このタグは存在しません。")
 						return
 					}
-	
+
 					//タグの中身が空の場合の処理
 					const text = fs.readFileSync(`./quotetag/${tag}/quote.txt`, 'utf-8').split(" ").filter((function(link) {return link !== "";}));
 					if (text.length == 0) {
 						interaction.reply("このタグには名言がないみたいです。")
 						return
 					}
-	
+
 					//タグの中身のファイルからランダムで名言を選択
 					const lineCount = text.length;
 					const randomLineNumber = Math.floor(Math.random() * lineCount);
 					const randomLine = text[randomLineNumber];
-	
+
 					//画像の送信
 					interaction.reply(`**${randomLine}** - ${tag}`);
 				} catch (e) {
@@ -882,7 +883,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("このタグは存在しません。")
 						return
 					}
-	
+
 					//タグの削除
 					fs.remove(`./quotetag/${interaction.channel.name}/quote.txt`, (err) => {
 						if (err) {
@@ -890,7 +891,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 							interaction.reply("ファイルを削除する際にエラーが発生しました。")
 						}
 					})
-	
+
 					//タグの削除が完了したことを知らせるメッセージを送信
 					interaction.reply("タグが正常に削除されました。")
 				} catch (e) {
@@ -907,16 +908,16 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("このタグは存在しません。")
 						return
 					}
-	
+
 					//削除したいリンクを取得
 					const wannadelete = interaction.options.get('quote').value;
-	
+
 					//削除したいリンクの前の空白が1つ多い場合の処理
 					if (wannadelete == "") {
 						interaction.reply("削除したいリンクの前の空白が1つ多い可能性があります。")
 						return
 					}
-	
+
 					//リンクを削除する処理
 					if (fs.readFileSync(`./quotetag/${interaction.channel.name}/quote.txt`, "utf-8").includes(wannadelete)) {
 						const currenttext = fs.readFileSync(`./quotetag/${interaction.channel.name}/quote.txt`, "utf-8")
@@ -941,21 +942,21 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("このタグは登録されていません。")
 						return;
 					}
-	
+
 					//テキストファイルから一覧を取得
 					const text = fs.readFileSync(`./quotetag/${interaction.channel.name}/quote.txt`, 'utf-8');
-	
+
 					//一覧を配列に変換
 					const lines = text.split(" ").filter((function(link) {return link !== "";}));
-	
+
 					//配列の要素数を取得
 					const lineCount = lines.length;
-	
+
 					if (lineCount == 0) {
 						interaction.reply("このタグには名言がないみたいです。")
 						return
 					}
-	
+
 					//要素数の結果を送信
 					interaction.reply(`今まで${interaction.channel.name}タグに追加した名言の合計枚数は${lineCount}個です。`);
 				} catch (e) {
@@ -971,21 +972,21 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const tags = fs.readdirSync(`./quotetag/`, { withFileTypes: true }).filter((function(tag) {
 						return fs.readdirSync(`./quotetag/${tag.name}`).length !== 0;
 					}));
-	
+
 					//タグの数が0だった場合
 					if (tags.length == 0) {
 						interaction.reply("タグが存在しません。")
 						return
 					}
-	
+
 					//タグの一覧を格納する配列を作成
 					let taglist = [];
-	
+
 					//タグの一覧を作成
 					for (let i = 0; i < tags.length; i++ ) {
 						taglist.push(`${i + 1}: ${tags[i].name}\n`);
 					}
-	
+
 					//タグの一覧を送信
 					interaction.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
 				} catch (e) {
@@ -999,26 +1000,26 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//メッセージから文章を取得
 					const kuniicontent = interaction.options.get('content').value;
-	
+
 					//"うんこえろしね"が入力された場合の処理
 					if (kuniicontent == "うんこえろしね") {
 						interaction.reply("しんこうろえね")
 						return
 					}
-	
+
 					//文章が入力されてない場合の処理
 					if (kuniicontent == undefined) {
 						interaction.reply("できないからやばい")
 						return
 					}
-	
+
 					//文章を形態素解析
 					const url = "https://labs.goo.ne.jp/api/morph";
 					const params = {
 						app_id: appid,
 						sentence: kuniicontent
 					};
-	
+
 					//形態素解析の結果を取得
 					let error = false;
 					const data = await axios.post(url, params)
@@ -1032,7 +1033,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 					//axiosがアクセスできなかった時の処理
 					if (error) return;
-	
+
 					//形態素解析の結果から文章を生成
 					if (data[0].length == undefined || data[0].length == 0 || data[0].length == 1 || data[0].length > 4) {
 						interaction.channel.send("できないからやばい")
@@ -1070,19 +1071,19 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//チャンネルidを取得
 					const channelid = interaction.channel.id;
-	
+
 					//全ての登録済みのチャンネルを取得、チャンネルidが既にChannels.txtにあった場合の処理
 					const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
 					if (allchannels.includes(channelid)) {
 						interaction.reply("このチャンネルは既にマップ情報が表示されるようになっています。")
 						return
 					}
-	
+
 					//Channels.txtにチャンネルidを追加
 					fs.appendFile("./BeatmapLinkChannels/Channels.txt", `${channelid} `, function (err) {
 						if (err) throw err
 					})
-	
+
 					//メッセージ送信
 					interaction.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されるようになりました。解除したい場合は/unlinkコマンドを使用してください。`)
 				} catch (e) {
@@ -1096,7 +1097,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//チャンネルidを取得
 					const channelid = interaction.channel.id
-	
+
 					//全ての登録済みのチャンネルを取得、チャンネルidが既にChannels.txtにあった場合の処理(削除)
 					const allchannels = fs.readFileSync("./BeatmapLinkChannels/Channels.txt", "utf-8").split(" ").filter((function(channel) {return channel !== "";}));
 					if (allchannels.includes(channelid)) {
@@ -1107,7 +1108,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("このチャンネルでは既にマップ情報が表示されないようになっています。")
 						return
 					}
-	
+
 					//メッセージ送信
 					interaction.reply(`このチャンネルにマップリンクが送信されてもマップ情報が表示されないようになりました。再度表示したい場合は/linkコマンドを使用してください。`)
 				} catch (e) {
@@ -1125,15 +1126,15 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("ビートマップリンクの形式が間違っています。")
 						return
 					}
-					
+
 					//マップデータを取得
 					const Mapdata = await getMapInfowithoutmods(interaction.options.get("beatmaplink").value, apikey);
 					await getOsuBeatmapFile(Mapdata.beatmapId);
 					const streamdata = await checkStream(Mapdata.beatmapId, Mapdata.bpm);
-	
+
 					//メッセージ送信
 					await interaction.reply(`Streamlength: ${streamdata} `);
-	
+
 					//一時的なBeatmapファイルを削除
 					try {
 						fs.unlinkSync(`./BeatmapFolder/${Mapdata.beatmapId}.txt`);
@@ -1165,17 +1166,17 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 
 					const Mods = interaction.options?.get("mods")?.value;
-	
+
 					//Modsが入力されなかったときの処理、されたときの処理
 					if (Mods == undefined) {
 						mods.push("NM")
 						modsforcalc = 0
 					} else {
 						mods.push(interaction.options?.get("mods")?.value.toUpperCase())
-	
+
 						//Modsを配列に変える処理
 						mods = splitString(mods)
-	
+
 						//Modsが正しいかどうか判別する処理
 						if (!checkStrings(mods)) {
 							interaction.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
@@ -1185,7 +1186,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 							interaction.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。")
 							return
 						}
-	
+
 						//ModsにNCが入っていたときにDTに置き換える処理
 						if (mods.includes("NC")) {
 							let modsnotDT = mods.filter((item) => /NC/.exec(item) == null)
@@ -1198,15 +1199,15 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 					let data = await getMapInfo(maplink, apikey, mods);
 					let sr = await calculateSR(data.beatmapId, modsforcalc, modeconvert(data.mode));
-	
+
 					//Mapstatusを取得(Ranked, Loved, Qualified, Pending, WIP, Graveyard)
 					const Mapstatus = mapstatus(data.approved);
-	
+
 					//PP、FPを計算
 					const FP = parseFloat(sr.S0 / data.totallength * 100).toFixed(1);
 					let FPmessage;
 					let rankplayer;
-	
+
 					//FPによってメッセージを変える処理
 					if (FP >= 700) {
 						FPmessage = "**This is SO GOOD PP map**"
@@ -1219,7 +1220,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					} else {
 						FPmessage = "This is no PP map ;-;"
 					}
-	
+
 					//PPによってメッセージを変える処理
 					if (sr.S0 >= 750) {
 						rankplayer = "**High rank player**"
@@ -1230,11 +1231,11 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					} else {
 						rankplayer = "**Beginner player**"
 					}
-	
+
 					//"PP/s"を計算
 					const ppdevidetotallength = (sr.S0 / data.totallength);
 					const ppdevideparsefloat = parseFloat(ppdevidetotallength).toFixed(1);
-	
+
 					//メッセージを送信
 					interaction.reply(`Totalpp : **${sr.S0}** (**${Mapstatus}**) | Farmscore : **${FP}** For ${rankplayer} | ${FPmessage} (${ppdevideparsefloat} pp/s)`);
 				} catch (e) {
@@ -1255,7 +1256,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply(`ビートマップリンクの形式が間違っています。`);
 						return;
 					}
-	
+
 					//BeatmapIdをメッセージから取得
 					const beatmapid = maplink.split("/")[maplink.split("/").length - 1]
 					const Mods = interaction.options?.get("mods")?.value;
@@ -1269,7 +1270,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						mods.push(Mods.toUpperCase());
 						mods = splitString(mods)
 					}
-	
+
 					//Modsが正しいかどうか判別する処理
 					if (!checkStrings(mods)) {
 						interaction.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。")
@@ -1280,30 +1281,30 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。")
 						return
 					}
-	
+
 					//ModsにNCが入っていたときにDTに置き換える処理
 					let modsnotNC = mods;
 					if (mods.includes("NC")) {
 						mods.push("DT")
 						modsnotNC = mods.filter((item) => /NC/.exec(item) == null)
 					}
-	
+
 					//マップリンクから必要な情報を取得
 					const Mapinfo = await getMapInfo(maplink, apikey, mods);
 					const mapperinfo = await getplayersdata(apikey, Mapinfo.mapper, Mapinfo.mode);
-	
+
 					//マッパーの情報の取得中にエラーが発生した場合の処理
 					if (mapperinfo == undefined) {
 						interaction.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
 						return
 					}
-	
+
 					const mapsetlink = Mapinfo.maplink.split("/")[4].split("#")[0];
-	
+
 					//SR、BPMを計算
 					let SR = await calculateSR(beatmapid, parseModString(modsnotNC), modeconvert(Mapinfo.mode));
 					let BPM = Mapinfo.bpm;
-	
+
 					//Mods、BPMの処理
 					if (mods.includes('NC')) {
 						mods.push('DT')
@@ -1316,21 +1317,21 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 
 					interaction.reply("ランキングの作成中です...")
-	
+
 					//top5を取得
 					const resulttop5 = await GetMapScore(beatmapid, parseModString(mods), apikey, Mapinfo.mode);
-	
+
 					if (resulttop5 == undefined) {
 						interaction.channel.send("この譜面には選択されたModの記録が無いようです")
 						return
 					}
-	
+
 					//ModsにDT、NCの療法が含まれていたときの処理
 					if (mods.includes("DT") && mods.includes("NC")) {
 						let modsnotDT = mods.filter((item) => /DT/.exec(item) == null)
 						mods = modsnotDT
 					}
-	
+
 					//メッセージ内容を作成、送信
 					const embed = new EmbedBuilder()
 						.setColor("Blue")
@@ -1565,7 +1566,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//メッセージからリンクを取得
 					const maplink = interaction.options.get("beatmaplink").value
-	
+
 					//osuのbeatmapリンクか判断する
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
@@ -1607,24 +1608,24 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply(`ビートマップリンクの形式が間違っています。`);
 						return;
 					}
-	
+
 					//メッセージからMODを取得
 					const modmessage = [interaction.options.get('mods').value.toUpperCase()];
 					let modforcalc = splitString(modmessage)
-	
+
 					const beatmapId = maplink.split("/")[maplink.split("/").length - 1]
-	
+
 					//MODが存在するか、指定できないMODが指定されていないか確認
 					if (!checkStrings(modforcalc)) {
 						interaction.reply("Modが存在しないか、指定できないModです。")
 						return
 					}
-	
+
 					if ((modforcalc.includes("NC") && modforcalc.includes("HT")) || (modforcalc.includes("DT") && modforcalc.includes("HT") || (modforcalc.includes("DT") && modforcalc.includes("NC")) || (modforcalc.includes("EZ") && modforcalc.includes("HR")))) {
 						interaction.reply("同時に指定できないModの組み合わせがあるようです。ちゃんとしたModの組み合わせを指定するようにしてください。");
 						return
 					}
-	
+
 					//modsforcalcにDTとNCの両方があった場合の処理
 					if (modforcalc.includes("NC")) {
 						let modsnotNC = modforcalc.filter((item) => /NC/.exec(item) == null)
@@ -1633,45 +1634,45 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					} else if (modforcalc.length == 0) {
 						modforcalc.push("NM")
 					}
-	
+
 					//マップ情報、スコア情報を取得
 					const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
 					const playersscore = await getplayerscore(apikey, beatmapId, playername, Mapinfo.mode);
-	
+
 					//スコア情報がなかった時の処理
 					if (playersscore == undefined) {
 						interaction.reply(`${playername}さんのスコアが見つかりませんでした。`)
 						return
 					}
-	
+
 					//マップ情報、プレイヤー情報、マッパー情報を取得
 					const Playersinfo = await getplayersdata(apikey, playername, Mapinfo.mode);
-	
+
 					//プレイヤーの情報の取得中にエラーが発生した場合の処理
 					if (Playersinfo == undefined) {
 						interaction.reply("プレイヤーの情報の取得中にエラーが発生しました。このプレイヤーは存在しない可能性があります。")
 						return
 					}
-	
+
 					const Mapperinfo = await getplayersdata(apikey, Mapinfo.mapper);
-	
+
 					//マッパーの情報の取得中にエラーが発生した場合の処理
 					if (Mapperinfo == 0) {
 						interaction.reply("マッパーの情報の取得中にエラーが発生しました。このマッパーは存在しない可能性があります。")
 						return
 					}
-	
+
 					//Accを計算
 					const acc = tools.accuracy({300: playersscore.count300.toString(), 100: playersscore.count100.toString(), 50: playersscore.count50.toString(), 0: playersscore.countmiss.toString(), geki : playersscore.countgeki.toString(), katu: playersscore.countgeki.toString()}, modeconvert(Mapinfo.mode));
-					
+
 					//Modsを取得
 					let stringmodsbefore = playersscore.enabled_mods;
 					let stringmodsafter = modforcalc;
-	
+
 					//SS時のPPを取得
 					const PPbefore = await calculateSRwithacc(beatmapId, stringmodsbefore, modeconvert(Mapinfo.mode), acc, playersscore.countmiss, playersscore.maxcombo);
 					const PPafter = await calculateSRwithacc(beatmapId, parseModString(stringmodsafter), modeconvert(Mapinfo.mode), acc, playersscore.countmiss, playersscore.maxcombo);
-	
+
 					//表示専用のMod欄を作成
 					let showonlymodsforbefore = parseMods(playersscore.enabled_mods);
 					if (showonlymodsforbefore.includes("DT") && showonlymodsforbefore.includes("NC")) {
@@ -1680,7 +1681,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					} else if (showonlymodsforbefore.length == 0) {
 						showonlymodsforbefore.push("NM")
 					}
-	
+
 					//モードを取得
 					let mode = "";
 					let modeforranking = "";
@@ -1699,7 +1700,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					}
 
 					interaction.reply(`${playername}さんのランキングを計算中です。`)
-	
+
 					//ユーザー情報、PPなどを取得
 					const response = await axios.get(
 						`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${mode}&u=${playername}&limit=100`
@@ -1712,10 +1713,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						pp.push(Math.round(element.pp))
 						oldpp.push(Math.round(element.pp))
 					}
-	
+
 					pp.push(Math.round(PPafter.ppwithacc))
 					pp.sort((a, b) => b - a)
-	
+
 					//PPが変動しないときの処理(101個目のものと同じ場合)
 					if (Math.round(PPafter.ppwithacc) == pp[pp.length - 1]) {
 						interaction.channel.send("PPに変動は有りません。")
@@ -1730,7 +1731,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.channel.send({ embeds: [embed] })
 						return
 					}
-	
+
 					if (pp.indexOf(Math.round(PPbefore.ppwithacc)) == -1) {
 						pp.pop()
 					} else {
@@ -1746,9 +1747,9 @@ client.on(Events.InteractionCreate, async(interaction) =>
 							}
 						}
 					}
-	
+
 					pp.sort((a, b) => b - a)
-	
+
 					//GlobalPPやBonusPPなどを計算する
 					const userdata = await getplayersdata(apikey, playername, mode);
 					const playcount = userdata.count_rank_ss + userdata.count_rank_ssh + userdata.count_rank_s + userdata.count_rank_sh + userdata.count_rank_a;
@@ -1756,7 +1757,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					const globalPPwithoutBonusPP = calculateScorePP(pp, playcount);
 					const bonusPP = userdata.pp_raw - oldglobalPPwithoutBonusPP;
 					const globalPP = globalPPwithoutBonusPP + bonusPP;
-	
+
 					//ランキングを取得
 					let ranking = 0;
 					await auth.login(osuclientid, osuclientsecret);
@@ -1773,10 +1774,10 @@ client.on(Events.InteractionCreate, async(interaction) =>
 								}
 							}
 						}
-						
+
 						if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) break;
 					}
-	
+
 					if (!foundflagforranking) {
 						const embed = new EmbedBuilder()
 							.setColor("Blue")
@@ -1789,7 +1790,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.channel.send({ embeds: [embed] })
 						return
 					}
-	
+
 					const embed = new EmbedBuilder()
 						.setColor("Blue")
 						.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
@@ -1811,7 +1812,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//マップリンクを取得
 					const maplink = interaction.options.get("beatmaplink").value;
-	
+
 					//osuのbeatmapリンクか判断する
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
@@ -1829,7 +1830,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						interaction.reply("5000combo以上のマップは計算できません。")
 						return
 					}
-	
+
 					//チャートの作成
 					interaction.reply("SRの計算中です。")
 					await srchart(beatmapid, modeconvert(mapdata.mode));
@@ -1849,20 +1850,20 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				try {
 					//メッセージからマップリンクを取得
 					const maplink = interaction.options.get("beatmaplink").value;
-	
+
 					//osuのbeatmapリンクか判断する
 					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 					if (!regex.test(maplink)) {
 						interaction.reply(`ビートマップリンクの形式が間違っています。`);
 						return;
 					}
-	
+
 					//マップ情報を取得
 					const Mapinfo = await getMapInfowithoutmods(maplink, apikey);
 					const beatmapid = Mapinfo.beatmapId;
 					const previewlink = `https://osu-preview.jmir.xyz/preview#${beatmapid}`
 					const SR = await calculateSR(beatmapid, 0, modeconvert(Mapinfo.mode));
-	
+
 					//Mapinfo.lengthsecを分と秒に分ける処理、秒の桁数によって処理を変える(1秒 => 01秒、9秒 => 09秒)
 					let lengthsec;
 					if (Mapinfo.lengthsec.toFixed(0).length == 1) {
@@ -1870,9 +1871,9 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					} else {
 						lengthsec = parseFloat(Mapinfo.lengthsec).toFixed(0)
 					}
-	
+
 					const mapperdata = await getplayersdata(apikey, Mapinfo.mapper);
-	
+
 					//メッセージを作成
 					const embed = new EmbedBuilder()
 						.setColor("Blue")
@@ -1886,6 +1887,169 @@ client.on(Events.InteractionCreate, async(interaction) =>
 				} catch (e) {
 					console.log(e)
 					interaction.channel.send("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+					return
+				}
+			}
+
+			if (interaction.commandName == "calculatepp") {
+				try {
+					const mode = interaction.options.get('mode').value
+					const osufile = interaction.options.get('beatmapfile').attachment.attachment
+
+					if (!osufile.endsWith(".osu")) {
+						interaction.reply("ファイルの形式が間違っています。〇〇.osuファイルを送信してください。")
+						return
+					}
+
+					let mod = interaction?.options?.get('mods')?.value ? splitString([interaction.options.get('mods').value.toUpperCase()]) : splitString(["NM"])
+
+					//MODが存在するか、指定できないMODが指定されていないか確認
+					if (!checkStrings(mod)) {
+						interaction.reply("Modが存在しないか、指定できないModです。")
+						return
+					}
+
+					if (mod.includes("NC")) {
+						mod.push("DT")
+						mod = mod.filter((item) => /NC/.exec(item) == null)
+					}
+
+					const modsforcalc = parseModString(mod)
+					const beatmapdata = await axios.get(osufile, {responseType: 'arraybuffer'});
+					fs.writeFileSync(`./BeatmapFolder/${osufile.split("/")[osufile.split("/").length - 1]}`, beatmapdata.data)
+
+					//SR、PPの計算
+					interaction.reply("計算中です。")
+					const map = new Beatmap({ path: `./BeatmapFolder/${osufile.split("/")[osufile.split("/").length - 1]}`});
+					let score = {
+						mode: mode,
+						mods: modsforcalc,
+					};
+					const filePath = `./BeatmapFolder/${osufile.split("/")[osufile.split("/").length - 1]}`;
+					const linesToRead = 100; // 上から読み込む行数
+
+					const readStream = fs.createReadStream(filePath, 'utf-8');
+
+					//マップ情報を格納するオブジェクトの作成
+					let Mapinfo = {
+						Artist: "",
+						Title: "",
+						Creator: "",
+						Version: "",
+						HPDrainRate: 0,
+						CircleSize: 0,
+						OverallDifficulty: 0,
+						ApproachRate: 0,
+						BPM: 0,
+						TotalLength: 0
+					}
+
+					let timingpointflag = false;
+					let hitobjectflag = false;
+					let count = 0;
+					let combo = 0;
+
+					readStream.on('data', (chunk) => {
+						const lines = chunk.split('\n');
+						for (const line of lines) {
+
+							if (timingpointflag) {
+								timingpointflag = false;
+								const bpm = 1 / parseFloat(line.split(",")[1]) * 1000 * 60;
+								Mapinfo.BPM = bpm.toFixed(1);
+							}
+
+							if (line == "[TimingPoints]\r") {
+								timingpointflag = true;
+							}
+
+							if (line == "[HitObjects]\r") {
+								hitobjectflag = true
+							}
+
+							if (hitobjectflag) {
+								combo++
+							}
+
+							if (count == lines.length - 2) {
+								const ms = parseInt(line.split(",")[2]);
+
+								const totalSeconds = Math.floor(ms / 1000);
+
+								// 秒を分に変換
+								const minutes = Math.floor(totalSeconds / 60);
+
+								// 残りの秒数を計算
+								let seconds = totalSeconds % 60;
+								if (seconds.length == 1) {
+									seconds = ('00' + parseFloat(seconds).toFixed(0)).slice(-2)
+								}
+								Mapinfo.TotalLength = `${minutes}:${seconds}`
+							}
+
+							count++
+							if (line.startsWith("[")) continue;
+							const key = line.split(":")[0];
+							const value = line.split(":")[1];
+
+							// マップ情報を格納
+							if (key === 'Artist') Mapinfo.Artist = value.replace("\r", "");
+							if (key === 'Title') Mapinfo.Title = value.replace("\r", "");
+							if (key === 'Creator') Mapinfo.Creator = value.replace("\r", "");
+							if (key === 'Version') Mapinfo.Version = value.replace("\r", "");
+							if (key === 'HPDrainRate') Mapinfo.HPDrainRate = parseFloat(value);
+							if (key === 'CircleSize') Mapinfo.CircleSize = parseFloat(value);
+							if (key === 'OverallDifficulty') Mapinfo.OverallDifficulty = parseFloat(value);
+							if (key === 'ApproachRate') Mapinfo.ApproachRate = parseFloat(value);
+						}
+					});
+
+					readStream.on('end', () => {
+						let calc = new Calculator(score);
+						let Calculated = calc.performance(map);
+						const PP98 = ppDigits(calc.acc(98).performance(map).pp.toFixed(2));
+						const PP99 = ppDigits(calc.acc(99).performance(map).pp.toFixed(2));
+						const PP995 = ppDigits(calc.acc(99.5).performance(map).pp.toFixed(2));
+						const PP100 = ppDigits(calc.acc(100).performance(map).pp.toFixed(2));
+
+						function ppDigits(ppstring) {
+							if (ppstring.length >= 7) {
+								return `  ${ppstring} `
+							} else if (ppstring.length == 6) {
+								return `  ${ppstring}  `
+							} else if (ppstring.length == 5) {
+								return `  ${ppstring}   `
+							} else if (ppstring.length == 4) {
+								return `   ${ppstring}   `
+							}
+						}
+
+						fs.remove(`./BeatmapFolder/${osufile.split("/")[osufile.split("/").length - 1]}`);
+
+						if (mod.includes("NC") || mod.includes("DT")) {
+							Mapinfo.BPM *= 1.5
+						} else if (mod.includes("HT")) {
+							Mapinfo.BPM *= 0.75
+						}
+
+						if (mod.includes("HR")) {
+							Mapinfo.OverallDifficulty *= 1.4
+						} else if (mod.includes("EZ")) {
+							Mapinfo.OverallDifficulty *= 0.5
+						}
+
+						const embed = new EmbedBuilder()
+							.setColor("Blue")
+							.setAuthor({ name: `Mapped by ${Mapinfo.Creator}` })
+							.setTitle(`${Mapinfo.Artist} - ${Mapinfo.Title}`)
+							.setURL(osufile)
+							.addFields({ name: `**[${Mapinfo.Version}]** **+${mod.join("")}**`, value: `Combo: \`${combo - 2}\` Stars: \`${Calculated.difficulty.stars.toFixed(2)}\` \n Length: \`${Mapinfo.TotalLength}\` BPM: \`${Mapinfo.BPM}\` Objects: \`${combo - 2}\` \n CS: \`${Mapinfo.CircleSize}\` AR: \`${Mapinfo.ApproachRate}\` OD: \`${Mapinfo.OverallDifficulty}\`  HP: \`${Mapinfo.HPDrainRate}\` `, inline: false })
+							.addFields({ name: `**__PP__**`, value: `\`\`\` Acc |    98%   |    99%   |   99.5%  |   100%   | \n ----+----------+----------+----------+----------+  \n  PP |${PP98}|${PP99}|${PP995}|${PP100}|\`\`\``, inline: true })
+						interaction.channel.send({ embeds: [embed] })
+					});
+				} catch (e) {
+					console.log(e)
+					interaction.channel.send("コマンド処理中にエラーが発生しました。")
 					return
 				}
 			}
@@ -2944,7 +3108,7 @@ client.on(Events.MessageCreate, async (message) =>
 			try {
 				//コマンドのみ入力された場合の処理
 				if (message.content == "!map") {
-					message.reply("使い方: !s <マップリンク> <Mods(省略可)> <Acc(省略可)>")
+					message.reply("使い方: !map <マップリンク> <Mods(省略可)> <Acc(省略可)>")
 					return
 				}
 
@@ -4858,16 +5022,14 @@ client.on(Events.MessageCreate, async (message) =>
 		}
 
 		//時間計算機
-		if (/^[0-9.]+時間?$/.test(message.content) && message.content.includes(".") && !/^\.+$/.test(message.content)) {
+		if (/^[0-9.]+時間?$/.test(message.content) && message.content.includes(".") && !/^\.+$/.test(message.content) && message.content.includes("時間")) {
 			const totalHours = parseFloat(message.content.split("時間")[0])
 			if (!message.content.split("時間")[0].includes(".")) return
 			message.reply(`${Math.floor(totalHours)}時間 ${Math.floor((totalHours - Math.floor(totalHours)) * 60)}分 ${Math.round(((totalHours - Math.floor(totalHours)) * 60 - Math.floor((totalHours - Math.floor(totalHours)) * 60)) * 60)}秒`);
-		} else if (/^[0-9.]+分?$/.test(message.content) && message.content.includes(".") && !/^\.+$/.test(message.content)) {
+		} else if (/^[0-9.]+分?$/.test(message.content) && message.content.includes(".") && !/^\.+$/.test(message.content) && message.content.includes("分")) {
 			const totalminutes = parseFloat(message.content.split("分")[0])
 			if (!message.content.split("分")[0].includes(".")) return
 			message.reply(`${Math.floor(totalminutes)}分 ${Math.round((totalminutes - Math.floor(totalminutes)) * 60)}秒`);
-		} else {
-			return
 		}
 	}
 );
