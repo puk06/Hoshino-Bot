@@ -1344,7 +1344,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 					for (let i = 0; i < Math.min(resulttop5.length, 5); i++) {
 						const acc = tools.accuracy({300: resulttop5[i].count300, 100: resulttop5[i].count100, 50: resulttop5[i].count50, 0: resulttop5[i].countmiss, geki:  resulttop5[i].countgeki, katu: resulttop5[i].countkatu}, modeconvert(Mapinfo.mode));
 						const pp = await calculateSRwithacc(beatmapid, parseModString(modsnotNC), modeconvert(Mapinfo.mode), acc, parseInt(resulttop5[0].countmiss), parseInt(resulttop5[i].maxcombo));
-						rankingdata.push({ name: `\`#${i + 1}\``, value: `**Rank**: \`${resulttop5[i].rank}\` **Player**: \`${resulttop5[i].username}\` **Score**: ${resulttop5[i].score} \n [\`${resulttop5[i].maxcombo}\`combo] \`${acc}\`% \`${pp.ppwithacc.toFixed(2)}\`pp miss:${resulttop5[i].countmiss}`, inline: false });
+						rankingdata.push({ name: `\`#${i + 1}\``, value: `**Rank**: ${rankconverter(resulttop5[i].rank)} **Player**: \`${resulttop5[i].username}\` **Score**: ${resulttop5[i].score} \n [\`${resulttop5[i].maxcombo}\`combo] \`${acc}\`% \`${pp.ppwithacc.toFixed(2)}\`pp miss:${resulttop5[i].countmiss}`, inline: false });
 					}
 					embed.addFields(rankingdata)
 					interaction.channel.send({ embeds: [embed] })
@@ -3457,7 +3457,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** + ${modforresult.join("")}`, inline: true })
+					.addFields({ name: "`Grade`", value: `${rankconverter(recentplay.rank)} + ${modforresult.join("")}`, inline: true })
 					.addFields({ name: "`Score`", value: `${recentplay.score}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
@@ -3479,7 +3479,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: rankingString, value: `**${recentplay.rank}** + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+								.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
 								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
@@ -3672,7 +3672,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, inline: true })
+					.addFields({ name: "`Grade`", value: `${rankconverter(recentplay.rank)} (${percentage}%) + ${modforresult.join("")}`, inline: true })
 					.addFields({ name: "`Score`", value: `${recentplay.score}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
@@ -3694,7 +3694,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: rankingString, value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${parseFloat(recentpp.ppwithacc).toFixed(2)}** / ${iffcpp.SSPP} [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]  {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+								.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${parseFloat(recentpp.ppwithacc).toFixed(2)}** / ${iffcpp.SSPP} [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]  {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
 								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
@@ -3892,7 +3892,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** + ${modforresult.join("")}`, inline: true })
+					.addFields({ name: "`Grade`", value: `${rankconverter(recentplay.rank)} + ${modforresult.join("")}`, inline: true })
 					.addFields({ name: "`Score`", value: `${recentplay.score}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
@@ -3914,7 +3914,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: rankingString, value: `**${recentplay.rank}** + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
+								.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
 								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
@@ -4117,7 +4117,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`)
 					.setURL(GetMapInfo.maplink)
 					.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-					.addFields({ name: "`Grade`", value: `**${recentplay.rank}** (${percentage}%) + ${modforresult.join("")}`, inline: true })
+					.addFields({ name: "`Grade`", value: `${rankconverter(recentplay.rank)} (${percentage}%) + ${modforresult.join("")}`, inline: true })
 					.addFields({ name: "`Score`", value: `${recentplay.score}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${acc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentpp.ppwithacc}** / ${iffcpp.SSPP}PP`, inline: true })
@@ -4139,7 +4139,7 @@ client.on(Events.MessageCreate, async (message) =>
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: rankingString, value: `**${recentplay.rank}** (**${percentage}%**) + **${modforresult}**  **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
+								.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} (**${percentage}%**) + **${modforresult}**  **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
 								sentMessage.edit({ embeds: [embednew] })
 							}, 20000
 						)
@@ -4289,7 +4289,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.addFields({ name: "Player name", value: `[${playername}](https://osu.ppy.sh/users/${playername})`, inline: true })
 					.addFields({ name: "SR", value: `\`★${srpp.sr}\``, inline: true })
 					.addFields({ name: "BPM", value: `\`${bpm}\``, inline: true })
-					.addFields({ name: "Rank", value: `\`${playersscore.rank}\``, inline: true })
+					.addFields({ name: "Rank", value: `${rankconverter(playersscore.rank)}`, inline: true })
 					.addFields({ name: "Hits", value: Hits, inline: true })
 					.addFields({ name: "Mods", value: `\`${showonlymods.join("")}\``, inline: true })
 					.addFields({ name: "Accuracy", value: `\`${acc}%\``, inline: true })
@@ -5124,6 +5124,40 @@ function getFilesSortedByDate(directory) {
 	}));
 	fileStats.sort((a, b) => a.stat.mtime.getTime() - b.stat.mtime.getTime());
 	return fileStats.map((fileStat) => fileStat.name);
+}
+
+function rankconverter(rank) {
+	/**
+	 * <:_F:1150129368765579415>
+	 * <:_D:1150129435643756645>
+	 * <:_C:1150129490480070797>
+	 * <:_B:1150129538752319578>
+	 * <:_A:1150129599754277005>
+	 * <:_S:1150129649330946108>
+	 * <:_SH:1150129639629525085>
+	 * <:_X:1150129643714789417>
+	 * <:_XH:1150129646055211138>
+	 */
+
+	if (rank == "F") {
+		return "<:_F:1150129368765579415>"
+	} else if (rank == "D") {
+		return "<:_D:1150129435643756645>"
+	} else if (rank == "C") {
+		return "<:_C:1150129490480070797>"
+	} else if (rank == "B") {
+		return "<:_B:1150129538752319578>"
+	} else if (rank == "A") {
+		return "<:_A:1150129599754277005>"
+	} else if (rank == "S") {
+		return "<:_S:1150129649330946108>"
+	} else if (rank == "SH") {
+		return "<:_SH:1150129639629525085>"
+	} else if (rank == "X") {
+		return "<:_X:1150129643714789417>"
+	} else if (rank == "XH") {
+		return "<:_XH:1150129646055211138>"
+	}
 }
 
 //Qualfiedチェックをする関数(全mode対応)
