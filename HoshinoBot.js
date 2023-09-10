@@ -8,7 +8,7 @@ const { Beatmap, Calculator } = require("./node_modules/rosu-pp");
 const path = require('path');
 const util = require('util');
 const git = require('git-clone');
-const { createCanvas, loadImage, registerFont } = require('canvas');
+const { createCanvas, loadImage, registerFont } = require('./node_modules/canvas');
 
 //必要なファイルの読み込み
 const { calculateSR, calculateSRwithacc } = require("./src/CalculateSR/CalculateSRPP");
@@ -3870,8 +3870,12 @@ client.on(Events.MessageCreate, async (message) =>
 				ctx.fillStyle = '#ffffff';
 
 				let scorestring = "";
-				for (let i = 0; i < recentplay.score.toString().length; i++) {
-					scorestring += recentplay.score.toString()[i] + " ";
+				let recentscore = recentplay.score.toString();
+				while (recentscore.length < 8) {
+					recentscore = '0' + recentscore;
+				}
+				for (let i = 0; i < recentscore.length; i++) {
+					scorestring += recentscore[i] + " ";
 				}
 				ctx.fillText(scorestring, 170, 160);
 
