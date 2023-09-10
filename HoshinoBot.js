@@ -3748,7 +3748,80 @@ client.on(Events.MessageCreate, async (message) =>
 				//Accを計算
 				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "taiko");
 
+				let modsforcalc = parseModString(mods);
+				if (mods.includes("NC")) {
+					let modsnotNC = mods.filter((item) => item.match("NC") == null)
+					mods = modsnotNC
+					modsforcalc = parseModString(mods);
+				}
+
+				//SR、IfFCの精度(300や100)を計算
+				let sr = await calculateSR(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode));
+				let ifFC100;
+				if (recentplay.countmiss == 0) {
+					ifFC100 = recentplay.count100
+				} else {
+					ifFC100 = recentplay.count100 + recentplay.countmiss
+				}
+				let ifFC300;
+				if (recentplay.countmiss == 0) {
+					ifFC300 = GetMapInfo.combo - recentplay.count100
+				} else {
+					ifFC300 = GetMapInfo.combo - recentplay.count100 - recentplay.countmiss
+				}
+
+				//IfFCの精度(300や100)からAccを計算
+				const ifFCacc = tools.accuracy({300: ifFC300.toString(), 100: ifFC100.toString(), 50: "0", 0: "0", geki: "0", katu: "0"}, "taiko");
+
+				//RecentplayのPP、IfFCのPPを計算
+				const recentpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), acc, recentplay.countmiss, recentplay.maxcombo);
+				const iffcpp = await calculateSRwithacc(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode), ifFCacc, 0, GetMapInfo.combo);
+
+				//BPランキングを計算
+				let BPranking;
+				const response = await axios.get(
+					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${GetMapInfo.mode}&u=${playername}&limit=100`
+				);
+				const userplays = response.data;
+				let pp = [];
+				for (const element of userplays) {
+					pp.push(parseFloat(parseFloat(element.pp).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+				}
+				if (pp.includes(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2)))) {
+					BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+				} else {
+					pp.push(parseFloat((recentpp.ppwithacc).toFixed(2)))
+					pp.sort(function(a, b) {
+						return b - a;
+					});
+					if (pp[pp.length - 1] == parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) {
+						BPranking = 0
+					} else {
+						BPranking = pp.indexOf(parseFloat(parseFloat(recentpp.ppwithacc).toFixed(2))) + 1
+					}
+				}
+
+				//マップランキングを取得
+				let mapranking;
+				const maprankingdata = await axios.get(`https://osu.ppy.sh/api/get_scores?k=${apikey}&b=${recentplay.beatmap_id}&m=${GetMapInfo.mode}&limit=50`).then((responce) => {
+					return responce.data
+				})
+				let maprankinguser = [];
+				for (const element of maprankingdata) {
+					maprankinguser.push(element.username)
+				}
+
+				if (maprankinguser.includes(playername)) {
+					mapranking = maprankinguser.indexOf(playername) + 1
+				} else {
+					mapranking = 0
+				}
+
 				//ModにDTとNCが入っていたときの処理
+
 				if (modforresult.includes("DT") && modforresult.includes("NC")) {
 					let modsnotDT = modforresult.filter((item) => item.match("DT") == null)
 					modforresult = modsnotDT
@@ -3892,6 +3965,27 @@ client.on(Events.MessageCreate, async (message) =>
 				//ランキング文字の設定
 				const rankingimage = await loadImage(`./Assets/ranking-title.png`);
 				ctx.drawImage(rankingimage, 915, -4, 371, 124);
+
+				//グラフの設定
+				const graphimage = await loadImage(`./Assets/ranking-graph.png`);
+				ctx.drawImage(graphimage, 183, 567, 400, 152);
+
+				//PPの設定
+				ctx.font = '42px "KGCG-W4_NAA"';
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText(`PP: ${recentpp.ppwithacc.toFixed(1)}pp`, 200, 615);
+				ctx.fillText(`IFFC: ${iffcpp.ppwithacc}pp`, 200, 657);
+				let rankingstring = "";
+				if ((BPranking != 0 && BPranking <= 50) || (mapranking != 0 && mapranking <= 50)) {
+					if ((BPranking != 0 && BPranking <= 50) && (mapranking != 0 && mapranking <= 50)) {
+						rankingstring = `Rank: #${mapranking}(BP #${BPranking})`
+					} else if (BPranking != 0 && BPranking <= 50) {
+						rankingstring = `Rank: BP #${BPranking}`
+					} else if (mapranking != 0 && mapranking <= 50) {
+						rankingstring = `Rank: #${mapranking}`
+					}
+				}
+				ctx.fillText(rankingstring, 200, 699);
 
 				//画像の送信
 				message.channel.send({ files: [{ attachment: canvas.toBuffer(), name: 'result.png' }] });
