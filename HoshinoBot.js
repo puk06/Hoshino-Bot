@@ -42,6 +42,9 @@ const file = process.env.FILE;
 //discord.jsのインテンツを指定
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers] })
 
+//コマンドのクールダウン
+let cooldown = 0
+
 //BOTが準備完了したら実行
 client.on(Events.ClientReady, async () => {
     console.log(`Success Logged in to ほしのBot V1.0.0`)
@@ -69,6 +72,9 @@ client.on(Events.ClientReady, async () => {
 	setInterval(checklovedcatch, 120000)
 	setInterval(checklovedmania, 120000)
 	setInterval(makeBackup, 3600000)
+	setInterval(() => {
+		cooldown = 0
+	}, 10000)
 });
 
 //カジノの絵文字
@@ -3107,6 +3113,12 @@ client.on(Events.MessageCreate, async (message) =>
 		//!mapコマンドの処理(osu!BOT)
 		if (message.content.split(" ")[0] == "!map") {
 			try {
+				//クールダウンの設定
+				if (cooldown > 4) {
+					message.reply("コマンドのクールダウン中です。数秒後にまた実行してください。")
+					return
+				}
+
 				//コマンドのみ入力された場合の処理
 				if (message.content == "!map") {
 					message.reply("使い方: !map <マップリンク> <Mods(省略可)> <Acc(省略可)>")
@@ -3270,7 +3282,9 @@ client.on(Events.MessageCreate, async (message) =>
 					let accpp = await calculateSRwithacc(MapInfo.beatmapId, Modsconverted, modeconvert(MapInfo.mode), parseFloat(message.content.split(" ")[3]), 0,  MapInfo.combo)
 					message.reply(`**${Showonlymods}**で**${message.content.split(" ")[3]}%**を取った時のPPは__**${accpp.ppwithacc}pp**__です。`)
 				}
+				cooldown++;
 			} catch (e) {
+				cooldown++;
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
@@ -3280,6 +3294,12 @@ client.on(Events.MessageCreate, async (message) =>
 		//!roコマンドの処理(osu!BOT)
 		if (message.content.split(" ")[0] == "!ro") {
 			try {
+				//クールダウンの設定
+				if (cooldown > 4) {
+					message.reply("コマンドのクールダウン中です。数秒後にまた実行してください。")
+					return
+				}
+
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
 				if (message.content.split(" ")[1] == undefined) {
@@ -3471,22 +3491,23 @@ client.on(Events.MessageCreate, async (message) =>
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
 					.setFooter({ text: `${Mapstatus} mapset of ${GetMapInfo.mapper}`, iconURL: mappersdata.iconurl });
-					await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
-						setTimeout(() =>
-							{
-								const embednew = new EmbedBuilder()
-								.setColor("Blue")
-								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
-								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
-								.setURL(GetMapInfo.maplink)
-								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
-								sentMessage.edit({ embeds: [embednew] })
-							}, 20000
-						)
+				await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
+					setTimeout(() =>
+						{
+							const embednew = new EmbedBuilder()
+							.setColor("Blue")
+							.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
+							.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+							.setURL(GetMapInfo.maplink)
+							.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+							.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+							sentMessage.edit({ embeds: [embednew] })
+						}, 20000)
 					}
 				)
+				cooldown++;
 			} catch (e) {
+				cooldown++;
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
@@ -3496,6 +3517,12 @@ client.on(Events.MessageCreate, async (message) =>
 		//!rtコマンドの処理(osu!BOT)
 		if (message.content.split(" ")[0] == "!rt") {
 			try {
+				//クールダウンの設定
+				if (cooldown > 4) {
+					message.reply("コマンドのクールダウン中です。数秒後にまた実行してください。")
+					return
+				}
+
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
 				if (message.content.split(" ")[1] == undefined) {
@@ -3686,21 +3713,21 @@ client.on(Events.MessageCreate, async (message) =>
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
 					.setFooter({ text: `${Mapstatus} mapset of ${GetMapInfo.mapper}`, iconURL: mappersdata.iconurl });
-					await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
-						setTimeout(() =>
-							{
-								const embednew = new EmbedBuilder()
-								.setColor("Blue")
-								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
-								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
-								.setURL(GetMapInfo.maplink)
-								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${parseFloat(recentpp.ppwithacc).toFixed(2)}** / ${iffcpp.SSPP} [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]  {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
-								sentMessage.edit({ embeds: [embednew] })
-							}, 20000
-						)
+				await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
+					setTimeout(() =>
+						{
+							const embednew = new EmbedBuilder()
+							.setColor("Blue")
+							.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
+							.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+							.setURL(GetMapInfo.maplink)
+							.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+							.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} (**${percentage}%**) + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${parseFloat(recentpp.ppwithacc).toFixed(2)}** / ${iffcpp.SSPP} [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]  {${recentplay.count300}/${recentplay.count100}/${recentplay.countmiss}}`, inline: true })
+							sentMessage.edit({ embeds: [embednew] })
+						}, 20000)
 					}
 				)
+				cooldown++;
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
@@ -3711,6 +3738,12 @@ client.on(Events.MessageCreate, async (message) =>
 		//!rtimageコマンドの処理(osu!BOT)
 		if (message.content.split(" ")[0] == "!rtimage") {
 			try {
+				//クールダウンの設定
+				if (cooldown > 4) {
+					message.reply("コマンドのクールダウン中です。数秒後にまた実行してください。")
+					return
+				}
+
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
 				if (message.content.split(" ")[1] == undefined) {
@@ -4000,6 +4033,12 @@ client.on(Events.MessageCreate, async (message) =>
 		//!rcコマンドの処理(osu!BOT)
 		if (message.content.split(" ")[0] == "!rc") {
 			try {
+				//クールダウンの設定
+				if (cooldown > 4) {
+					message.reply("コマンドのクールダウン中です。数秒後にまた実行してください。")
+					return
+				}
+
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
 				if (message.content.split(" ")[1] == undefined) {
@@ -4195,22 +4234,23 @@ client.on(Events.MessageCreate, async (message) =>
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
 					.setFooter({ text: `${Mapstatus} mapset of ${GetMapInfo.mapper}`, iconURL: mappersdata.iconurl });
-					await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
-						setTimeout(() =>
-							{
-								const embednew = new EmbedBuilder()
+				await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
+					setTimeout(() =>
+						{
+							const embednew = new EmbedBuilder()
 								.setColor("Blue")
 								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
 								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
 								.setURL(GetMapInfo.maplink)
 								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
 								.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} + **${modforresult.join("")}**   **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recentplay.count300}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
-								sentMessage.edit({ embeds: [embednew] })
-							}, 20000
-						)
+							sentMessage.edit({ embeds: [embednew] })
+						}, 20000)
 					}
 				)
+				cooldown++;
 			} catch (e) {
+				cooldown++;
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
@@ -4220,6 +4260,12 @@ client.on(Events.MessageCreate, async (message) =>
 		//!rmコマンドの処理(osu!BOT)
 		if (message.content.split(" ")[0] == "!rm") {
 			try {
+				//クールダウンの設定
+				if (cooldown > 4) {
+					message.reply("コマンドのクールダウン中です。数秒後にまた実行してください。")
+					return
+				}
+
 				//ユーザー名が入力されなかったときの処理、されたときの処理
 				let playername;
 				if (message.content.split(" ")[1] == undefined) {
@@ -4420,22 +4466,23 @@ client.on(Events.MessageCreate, async (message) =>
 					.setImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp()
 					.setFooter({ text: `${Mapstatus} mapset of ${GetMapInfo.mapper}`, iconURL: mappersdata.iconurl });
-					await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
-						setTimeout(() =>
-							{
-								const embednew = new EmbedBuilder()
-								.setColor("Blue")
-								.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
-								.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
-								.setURL(GetMapInfo.maplink)
-								.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
-								.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} (**${percentage}%**) + **${modforresult}**  **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
-								sentMessage.edit({ embeds: [embednew] })
-							}, 20000
-						)
+				await message.channel.send({ embeds: [embed] }).then((sentMessage) =>
+					{
+						setTimeout(() => {
+							const embednew = new EmbedBuilder()
+							.setColor("Blue")
+							.setTitle(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}] [${sr.sr}★]`)
+							.setThumbnail(`https://b.ppy.sh/thumb/${GetMapInfo.beatmapset_id}l.jpg`)
+							.setURL(GetMapInfo.maplink)
+							.setAuthor({ name: `${playersdata.username}: ${playersdata.pp_raw}pp (#${playersdata.pp_rank} ${playersdata.country}${playersdata.pp_country_rank})`, iconURL: playersdata.iconurl, url: playersdata.playerurl })
+							.addFields({ name: rankingString, value: `${rankconverter(recentplay.rank)} (**${percentage}%**) + **${modforresult}**  **Score**:**${recentplay.score}** (**ACC**:**${acc}%**) \n  **PP**:**${recentpp.ppwithacc}** / ${iffcpp.SSPP}   [**${recentplay.maxcombo}**x / ${GetMapInfo.combo}x]   {${recent300}/${recentplay.countkatu}/${recentplay.count100}/${recentplay.count50}/${recentplay.countmiss}}`, inline: true })
+							sentMessage.edit({ embeds: [embednew] })
+						}, 20000)
 					}
 				)
+				cooldown++;
 			} catch (e) {
+				cooldown++;
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
@@ -4451,6 +4498,12 @@ client.on(Events.MessageCreate, async (message) =>
 		//ユーザーの最高記録を表示するコマンド(osu!BOT)
 		if (message.content.split(" ")[0] == "!s") {
 			try {
+				//クールダウンの設定
+				if (cooldown > 4) {
+					message.reply("コマンドのクールダウン中です。数秒後にまた実行してください。")
+					return
+				}
+
 				//!sのみ入力された場合の処理
 				if (message.content == "!s") {
 					message.reply("使い方: !s <マップリンク> <osu!ユーザーネーム(省略可)>")
@@ -4587,8 +4640,10 @@ client.on(Events.MessageCreate, async (message) =>
 					.addFields({ name: "Mirror Download link", value: `[Nerinyan](https://api.nerinyan.moe/d/${Mapinfo.beatmapset_id}?nv=1) \n [Beatconnect](https://beatconnect.io/b/${Mapinfo.beatmapset_id})`, inline: true })
 					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
 					.setFooter({ text: `Played by ${playername}  #${Playersinfo.pp_rank} (${Playersinfo.country}${Playersinfo.pp_country_rank})`, iconURL: Playersinfo.iconurl });
-					message.channel.send({ embeds: [embed] })
+				message.channel.send({ embeds: [embed] })
+				cooldown++;
 			} catch (e) {
+				cooldown++;
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
@@ -4728,8 +4783,8 @@ client.on(Events.MessageCreate, async (message) =>
 					.setFooter({ text: `${mapstatus(mapdata.approved)} mapset of ${mapdata.mapper}` });
 				message.channel.send({ embeds: [embed] })
 			} catch (e) {
-				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				console.log(e)
+				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
 			}
 		}
@@ -4737,6 +4792,12 @@ client.on(Events.MessageCreate, async (message) =>
 		//!wi + o,t,c,mコマンドの処理
 		if (message.content.startsWith("!wi")) {
 			try {
+				//クールダウンの設定
+				if (cooldown > 4) {
+					message.reply("コマンドのクールダウン中です。数秒後にまた実行してください。")
+					return
+				}
+
 				//!wiのみ入力された時の処理
 				if (message.content == "!wi") {
 					message.reply("使い方: !wi◯<モード(o, t, c, m)> <osu!ユーザーネーム(省略可)>")
@@ -4880,7 +4941,9 @@ client.on(Events.MessageCreate, async (message) =>
 					.setThumbnail(userdata.iconurl)
 					.setAuthor({ name: `${userdata.username}: ${userdata.pp_raw.toLocaleString()}pp (#${userdata.pp_rank.toLocaleString()} ${userdata.country}${userdata.pp_country_rank.toLocaleString()})`, iconURL: userdata.iconurl, url: userdata.playerurl })
 				message.channel.send({ embeds: [embed] })
+				cooldown++;
 			} catch (e) {
+				cooldown++;
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
 				return
