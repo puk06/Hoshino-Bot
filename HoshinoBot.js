@@ -3870,8 +3870,7 @@ client.on(Events.MessageCreate, async (message) =>
 				let date = new Date(recentplay.date.replace(/-/g, "/"));
 				date.setHours(date.getHours() + 9);
 				const newDateString = date.getFullYear() + "/" + ("0" + (date.getMonth() + 1)).slice(-2) + "/" + ("0" + date.getDate()).slice(-2) + " " + ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2) + ":" + ("0" + date.getSeconds()).slice(-2);
-				ctx.font = '18px "Aller"';
-				ctx.fillText(`Played by ${playername} on ${newDateString}.`, 5, 69);
+				ctx.fillText(`Played by ${playername} on ${newDateString}.`, 5, 71);
 
 				//backボタンの設定
 				const back = await loadImage(`./Assets/menu-back.png`);
@@ -3968,13 +3967,13 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//グラフの設定
 				const graphimage = await loadImage(`./Assets/ranking-graph.png`);
-				ctx.drawImage(graphimage, 183, 567, 400, 152);
+				ctx.drawImage(graphimage, 206, 567, 377, 152);
 
 				//PPの設定
 				ctx.font = '42px "KGCG-W4_NAA"';
 				ctx.fillStyle = '#ffffff';
-				ctx.fillText(`PP: ${recentpp.ppwithacc.toFixed(1)}pp`, 200, 615);
-				ctx.fillText(`IFFC: ${iffcpp.ppwithacc}pp`, 200, 657);
+				ctx.fillText(`PP: ${recentpp.ppwithacc.toFixed(1)}pp`, 223, 615);
+				ctx.fillText(`IFFC: ${iffcpp.ppwithacc}pp`, 223, 657);
 				let rankingstring = "";
 				if ((BPranking != 0 && BPranking <= 50) || (mapranking != 0 && mapranking <= 50)) {
 					if ((BPranking != 0 && BPranking <= 50) && (mapranking != 0 && mapranking <= 50)) {
@@ -3985,7 +3984,7 @@ client.on(Events.MessageCreate, async (message) =>
 						rankingstring = `Rank: #${mapranking}`
 					}
 				}
-				ctx.fillText(rankingstring, 200, 699);
+				ctx.fillText(rankingstring, 223, 699);
 
 				//画像の送信
 				message.channel.send({ files: [{ attachment: canvas.toBuffer(), name: 'result.png' }] });
