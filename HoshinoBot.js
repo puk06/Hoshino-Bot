@@ -8,6 +8,7 @@ const { Beatmap, Calculator } = require("./node_modules/rosu-pp");
 const path = require('path');
 const util = require('util');
 const git = require('git-clone');
+const { createCanvas, loadImage, registerFont } = require('canvas');
 
 //必要なファイルの読み込み
 const { calculateSR, calculateSRwithacc } = require("./src/CalculateSR/CalculateSRPP");
@@ -3700,6 +3701,192 @@ client.on(Events.MessageCreate, async (message) =>
 						)
 					}
 				)
+			} catch (e) {
+				console.log(e)
+				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
+				return
+			}
+		}
+
+		//!rtimageコマンドの処理(osu!BOT)
+		if (message.content.split(" ")[0] == "!rtimage") {
+			try {
+				//ユーザー名が入力されなかったときの処理、されたときの処理
+				let playername;
+				if (message.content.split(" ")[1] == undefined) {
+					try {
+						let username = message.author.id
+						let osuid = fs.readFileSync(`./Player infomation/${username}.txt`, "utf-8")
+						playername = osuid
+					} catch (e) {
+						message.reply("ユーザーが登録されていません。/osuregコマンドで登録してください。")
+						return
+					}
+				} else {
+					playername = message.content.split(" ").slice(1).join(" ")
+					if (playername == "") {
+						message.reply("ユーザー名の前の空白が1つ多い可能性があります。")
+						return
+					}
+				}
+
+				//ユーザー名からRecentplayを情報を取得
+				const recentplay = await Recentplay(apikey, playername, 1);
+				if (recentplay == undefined) {
+					message.reply(`${playername}さんには24時間以内にプレイしたTaiko譜面がないようです。`)
+					return
+				} else if (recentplay.rank == "F") {
+					message.reply("Fランクのプレイは表示できません。")
+					return
+				}
+
+				//Recentplayの情報から必要な情報を取得
+				let modforresult = parseMods(recentplay.enabled_mods);
+				let mods = parseMods(recentplay.enabled_mods);
+				const GetMapInfo = await getMapforRecent(recentplay.beatmap_id, apikey, mods);
+
+				//Accを計算
+				const acc = tools.accuracy({300: recentplay.count300.toString(), 100: recentplay.count100.toString(), 50: recentplay.count50.toString(), 0: recentplay.countmiss.toString(), geki: recentplay.countgeki.toString(), katu: recentplay.countkatu.toString()}, "taiko");
+
+				//ModにDTとNCが入っていたときの処理
+				if (modforresult.includes("DT") && modforresult.includes("NC")) {
+					let modsnotDT = modforresult.filter((item) => item.match("DT") == null)
+					modforresult = modsnotDT
+				}
+
+				//画像の作成
+				const canvas = createCanvas(1280, 720);
+				const ctx = canvas.getContext('2d');
+
+				registerFont(`./Assets/Fonts/Aller.ttf`, { family: 'Aller' });
+				registerFont(`./Assets/Fonts/taiko.ttf`, { family: 'KGCG-W4_NAA' });
+
+				//BGの設定
+				const background = await loadImage(`https://assets.ppy.sh/beatmaps/${GetMapInfo.beatmapset_id}/covers/raw.jpg`);
+				ctx.drawImage(background, 0, 0, 1280, 720);
+				const pixels = ctx.getImageData(0, 0, 1280, 720);
+				let d = pixels.data;
+				for (let i = 0; i < d.length; i+=4) {
+					d[i]   -= 27;
+					d[i+1] -= 27;
+					d[i+2] -= 27;
+				}
+				ctx.putImageData(pixels, 0, 0);
+
+				//上の黒い帯の設定
+				const band = await loadImage(`./Assets/black.jpg`);
+				ctx.drawImage(band, 0, 0, 1280, 90);
+
+				//ranking-panelの設定
+				const image = await loadImage(`./Assets/ranking-panel.png`);
+				ctx.drawImage(image, 2, 96, 580, 475);
+
+				//ランクの設定
+				const rankimage = await loadImage(`./Assets/ranking-${recentplay.rank}.png`);
+				ctx.drawImage(rankimage, 915, 70, 370, 482);
+
+				//タイトルの設定
+				ctx.font = 'light 26px "Aller"';
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText(`${GetMapInfo.artist} - ${GetMapInfo.title} [${GetMapInfo.version}]`, 5, 26, );
+
+				ctx.font = '20px "Aller"';
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText(`Beatmap by ${GetMapInfo.mapper}`, 5, 49);
+				ctx.font = '18px "Aller"';
+				ctx.fillText(`Played by ${playername} on ${recentplay.date.replace(/-/g, "/")}.`, 5, 69);
+
+				//backボタンの設定
+				const back = await loadImage(`./Assets/menu-back.png`);
+				ctx.drawImage(back, 0, 564, 190, 155);
+
+				//コンボの設定
+				ctx.font = '45px "KGCG-W4_NAA"';
+				ctx.fillStyle = '#ffffff';
+
+				//300の文字の設定
+				let count300string = "";
+				for (let i = 0; i < recentplay.count300.toString().length; i++) {
+					count300string += recentplay.count300.toString()[i] + " ";
+				}
+				const greatimage = await loadImage(`./Assets/taiko-hit300.png`);
+				ctx.drawImage(greatimage, 5, 170, 115, 115);
+				ctx.fillText(`${count300string} x`, 123, 256);
+
+				//100の文字の設定
+				let count100string = "";
+				for (let i = 0; i < recentplay.count100.toString().length; i++) {
+					count100string += recentplay.count100.toString()[i] + " ";
+				}
+				const goodimage = await loadImage(`./Assets/taiko-hit100.png`);
+				ctx.drawImage(goodimage, 5, 260, 115, 115);
+				ctx.fillText(`${count100string} x`, 123, 346);
+
+				//ミスの文字の設定
+				let countmissstring = "";
+				for (let i = 0; i < recentplay.countmiss.toString().length; i++) {
+					countmissstring += recentplay.countmiss.toString()[i] + " ";
+				}
+				const missimage = await loadImage(`./Assets/taiko-hit0.png`);
+				ctx.drawImage(missimage, 5, 350, 115, 115);
+				ctx.fillText(`${countmissstring} x`, 123, 436);
+
+				//geki、katuの文字の設定
+				let countgekistring = "";
+				for (let i = 0; i < recentplay.countgeki.toString().length; i++) {
+					countgekistring += recentplay.countgeki.toString()[i] + " ";
+				}
+				const gekiimage = await loadImage(`./Assets/taiko-hit300g.png`);
+				ctx.drawImage(gekiimage, 305, 170, 115, 115);
+				ctx.fillText(`${countgekistring} x`, 423, 256);
+
+				let countkatustring = "";
+				for (let i = 0; i < recentplay.countkatu.toString().length; i++) {
+					countkatustring += recentplay.countkatu.toString()[i] + " ";
+				}
+				const katuimage = await loadImage(`./Assets/taiko-hit100k.png`);
+				ctx.drawImage(katuimage, 305, 260, 115, 115);
+				ctx.fillText(`${countkatustring} x`, 423, 346);
+
+				//max combo、Accuracyの設定
+				let maxcombostring = "";
+				for (let i = 0; i < recentplay.maxcombo.toString().length; i++) {
+					maxcombostring += recentplay.maxcombo.toString()[i] + " ";
+				}
+				ctx.fillText(`${maxcombostring} x`, 25, 535);
+				const maxcomboimage = await loadImage(`./Assets/ranking-maxcombo.png`);
+				ctx.drawImage(maxcomboimage, 5, 450, 157, 51);
+				const accuracyimage = await loadImage(`./Assets/ranking-accuracy.png`);
+				ctx.drawImage(accuracyimage, 272, 450, 157, 51);
+
+				let accstring = "";
+				for (let i = 0; i < acc.toString().length; i++) {
+					accstring += acc.toString()[i] + " ";
+				}
+				ctx.fillText(accstring, 292, 535);
+
+				//スコアの設定
+				ctx.font = '47px "KGCG-W4_NAA"';
+				ctx.fillStyle = '#ffffff';
+
+				let scorestring = "";
+				for (let i = 0; i < recentplay.score.toString().length; i++) {
+					scorestring += recentplay.score.toString()[i] + " ";
+				}
+				ctx.fillText(scorestring, 170, 160);
+
+				//modsの設定
+				for (let i = 0; i < modforresult.length; i++) {
+					const modimage = await loadImage(`./Assets/mods/${modforresult[i]}.png`);
+					ctx.drawImage(modimage, (1190 - (30 * i)), 360, 66, 47);
+				}
+
+				//ランキング文字の設定
+				const rankingimage = await loadImage(`./Assets/ranking-title.png`);
+				ctx.drawImage(rankingimage, 915, -4, 371, 124);
+
+				//画像の送信
+				message.channel.send({ files: [{ attachment: canvas.toBuffer(), name: 'result.png' }] });
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
