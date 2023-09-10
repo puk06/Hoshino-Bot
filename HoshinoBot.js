@@ -3810,8 +3810,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//300の文字の設定
 				let count300string = "";
-				for (let i = 0; i < (recentplay.count300 + recentplay.countgeki).toString().length; i++) {
-					count300string += (recentplay.count300 + recentplay.countgeki).toString()[i] + " ";
+				for (let i = 0; i < (recentplay.count300 - recentplay.countgeki).toString().length; i++) {
+					count300string += (recentplay.count300 - recentplay.countgeki).toString()[i] + " ";
 				}
 				const greatimage = await loadImage(`./Assets/taiko-hit300.png`);
 				ctx.drawImage(greatimage, 5, 170, 115, 115);
@@ -3819,8 +3819,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//100の文字の設定
 				let count100string = "";
-				for (let i = 0; i < (recentplay.count100 + recentplay.countkatu).toString().length; i++) {
-					count100string += (recentplay.count100 + recentplay.countkatu).toString()[i] + " ";
+				for (let i = 0; i < (recentplay.count100 - recentplay.countkatu).toString().length; i++) {
+					count100string += (recentplay.count100 - recentplay.countkatu).toString()[i] + " ";
 				}
 				const goodimage = await loadImage(`./Assets/taiko-hit100.png`);
 				ctx.drawImage(goodimage, 5, 260, 115, 115);
