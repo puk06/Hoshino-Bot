@@ -3793,8 +3793,12 @@ client.on(Events.MessageCreate, async (message) =>
 				ctx.font = '20px "Aller"';
 				ctx.fillStyle = '#ffffff';
 				ctx.fillText(`Beatmap by ${GetMapInfo.mapper}`, 5, 49);
+
+				let date = new Date(recentplay.date.replace(/-/g, "/"));
+				date.setHours(date.getHours() + 9);
+				const newDateString = date.getFullYear() + "/" + ("0" + (date.getMonth() + 1)).slice(-2) + "/" + ("0" + date.getDate()).slice(-2) + " " + ("0" + date.getHours()).slice(-2) + ":" + ("0" + date.getMinutes()).slice(-2) + ":" + ("0" + date.getSeconds()).slice(-2);
 				ctx.font = '18px "Aller"';
-				ctx.fillText(`Played by ${playername} on ${recentplay.date.replace(/-/g, "/")}.`, 5, 69);
+				ctx.fillText(`Played by ${playername} on ${newDateString}.`, 5, 69);
 
 				//backボタンの設定
 				const back = await loadImage(`./Assets/menu-back.png`);
@@ -3806,8 +3810,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//300の文字の設定
 				let count300string = "";
-				for (let i = 0; i < recentplay.count300.toString().length; i++) {
-					count300string += recentplay.count300.toString()[i] + " ";
+				for (let i = 0; i < (recentplay.count300 + recentplay.countgeki).toString().length; i++) {
+					count300string += (recentplay.count300 + recentplay.countgeki).toString()[i] + " ";
 				}
 				const greatimage = await loadImage(`./Assets/taiko-hit300.png`);
 				ctx.drawImage(greatimage, 5, 170, 115, 115);
@@ -3815,8 +3819,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//100の文字の設定
 				let count100string = "";
-				for (let i = 0; i < recentplay.count100.toString().length; i++) {
-					count100string += recentplay.count100.toString()[i] + " ";
+				for (let i = 0; i < (recentplay.count100 + recentplay.countkatu).toString().length; i++) {
+					count100string += (recentplay.count100 + recentplay.countkatu).toString()[i] + " ";
 				}
 				const goodimage = await loadImage(`./Assets/taiko-hit100.png`);
 				ctx.drawImage(goodimage, 5, 260, 115, 115);
