@@ -3756,7 +3756,6 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				//SR、IfFCの精度(300や100)を計算
-				let sr = await calculateSR(recentplay.beatmap_id, modsforcalc, modeconvert(GetMapInfo.mode));
 				let ifFC100;
 				if (recentplay.countmiss == 0) {
 					ifFC100 = recentplay.count100
@@ -3828,7 +3827,7 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				//画像の作成
-				const canvas = createCanvas(1280, 720);
+				let canvas = createCanvas(1280, 720);
 				const ctx = canvas.getContext('2d');
 
 				registerFont(`./Assets/Fonts/Aller.ttf`, { family: 'Aller' });
@@ -3882,8 +3881,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//300の文字の設定
 				let count300string = "";
-				for (let i = 0; i < (recentplay.count300 - recentplay.countgeki).toString().length; i++) {
-					count300string += (recentplay.count300 - recentplay.countgeki).toString()[i] + " ";
+				for (const element of (recentplay.count300 - recentplay.countgeki).toString()) {
+					count300string += element + " ";
 				}
 				const greatimage = await loadImage(`./Assets/taiko-hit300.png`);
 				ctx.drawImage(greatimage, 5, 170, 115, 115);
@@ -3891,8 +3890,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//100の文字の設定
 				let count100string = "";
-				for (let i = 0; i < (recentplay.count100 - recentplay.countkatu).toString().length; i++) {
-					count100string += (recentplay.count100 - recentplay.countkatu).toString()[i] + " ";
+				for (const element of (recentplay.count100 - recentplay.countkatu).toString()) {
+					count100string += element + " ";
 				}
 				const goodimage = await loadImage(`./Assets/taiko-hit100.png`);
 				ctx.drawImage(goodimage, 5, 260, 115, 115);
@@ -3900,8 +3899,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//ミスの文字の設定
 				let countmissstring = "";
-				for (let i = 0; i < recentplay.countmiss.toString().length; i++) {
-					countmissstring += recentplay.countmiss.toString()[i] + " ";
+				for (const element of recentplay.countmiss.toString()) {
+					countmissstring += element + " ";
 				}
 				const missimage = await loadImage(`./Assets/taiko-hit0.png`);
 				ctx.drawImage(missimage, 5, 350, 115, 115);
@@ -3909,16 +3908,16 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//geki、katuの文字の設定
 				let countgekistring = "";
-				for (let i = 0; i < recentplay.countgeki.toString().length; i++) {
-					countgekistring += recentplay.countgeki.toString()[i] + " ";
+				for (const element of recentplay.countgeki.toString()) {
+					countgekistring += element + " ";
 				}
 				const gekiimage = await loadImage(`./Assets/taiko-hit300g.png`);
 				ctx.drawImage(gekiimage, 305, 170, 115, 115);
 				ctx.fillText(`${countgekistring} x`, 423, 256);
 
 				let countkatustring = "";
-				for (let i = 0; i < recentplay.countkatu.toString().length; i++) {
-					countkatustring += recentplay.countkatu.toString()[i] + " ";
+				for (const element of recentplay.countkatu.toString()) {
+					countkatustring += element + " ";
 				}
 				const katuimage = await loadImage(`./Assets/taiko-hit100k.png`);
 				ctx.drawImage(katuimage, 305, 260, 115, 115);
@@ -3926,8 +3925,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				//max combo、Accuracyの設定
 				let maxcombostring = "";
-				for (let i = 0; i < recentplay.maxcombo.toString().length; i++) {
-					maxcombostring += recentplay.maxcombo.toString()[i] + " ";
+				for (const element of recentplay.maxcombo.toString()) {
+					maxcombostring += element + " ";
 				}
 				ctx.fillText(`${maxcombostring} x`, 25, 535);
 				const maxcomboimage = await loadImage(`./Assets/ranking-maxcombo.png`);
@@ -3936,8 +3935,8 @@ client.on(Events.MessageCreate, async (message) =>
 				ctx.drawImage(accuracyimage, 272, 450, 157, 51);
 
 				let accstring = "";
-				for (let i = 0; i < acc.toFixed(2).length; i++) {
-					accstring += acc.toFixed(2)[i] + " ";
+				for (const element of acc.toFixed(2)) {
+					accstring += element + " ";
 				}
 				ctx.fillText(accstring, 292, 535);
 
@@ -3950,8 +3949,8 @@ client.on(Events.MessageCreate, async (message) =>
 				while (recentscore.length < 8) {
 					recentscore = '0' + recentscore;
 				}
-				for (let i = 0; i < recentscore.length; i++) {
-					scorestring += recentscore[i] + " ";
+				for (const element of recentscore) {
+					scorestring += element + " ";
 				}
 				ctx.fillText(scorestring, 170, 160);
 
@@ -3987,7 +3986,10 @@ client.on(Events.MessageCreate, async (message) =>
 				ctx.fillText(rankingstring, 223, 699);
 
 				//画像の送信
-				message.channel.send({ files: [{ attachment: canvas.toBuffer(), name: 'result.png' }] });
+				await message.channel.send({ files: [{ attachment: canvas.toBuffer(), name: 'result.png' }] });
+
+				//メモリの解放
+				canvas = null;
 			} catch (e) {
 				console.log(e)
 				message.reply("コマンド処理中になんらかのエラーが発生しました。osu!のサーバーエラーか、サーバーのネットワークの問題かと思われます。")
