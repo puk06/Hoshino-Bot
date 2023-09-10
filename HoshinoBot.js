@@ -3864,8 +3864,8 @@ client.on(Events.MessageCreate, async (message) =>
 				ctx.drawImage(accuracyimage, 272, 450, 157, 51);
 
 				let accstring = "";
-				for (let i = 0; i < acc.toString().length; i++) {
-					accstring += acc.toString()[i] + " ";
+				for (let i = 0; i < acc.toFixed(2).length; i++) {
+					accstring += acc.toFixed(2)[i] + " ";
 				}
 				ctx.fillText(accstring, 292, 535);
 
