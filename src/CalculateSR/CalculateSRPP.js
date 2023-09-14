@@ -13,7 +13,9 @@ module.exports.calculateSR = async (beatmapId, mods, mode) => {
 		S2: parseFloat(srppdata.S2.toFixed(2)),
 		S3: parseFloat(srppdata.S3.toFixed(2)),
 		S4: parseFloat(srppdata.S4.toFixed(2)),
-		S5: parseFloat(srppdata.S5.toFixed(2))
+		S5: parseFloat(srppdata.S5.toFixed(2)),
+		DTSR: parseFloat(srppdata.DTSR.toFixed(2)),
+		DTSS: parseFloat(srppdata.DTPP.toFixed(2))
 	}
 }
 
@@ -33,8 +35,17 @@ function calculateStarRating (beatmap, mods, mode) {
 		mode: mode,
 		mods: mods,
 	};
+
 	let calc = new Calculator(score);
 	let Calculated = calc.performance(map);
+
+	let DTscore = {
+		mode: mode,
+		mods: 64,
+	}
+
+	let DTcalc = new Calculator(DTscore);
+	let DTcalculated = DTcalc.performance(map);
 	return {
 		sr: parseFloat(Calculated.difficulty.stars.toFixed(2)),
 		S0: parseFloat(calc.acc(100).performance(map).pp.toFixed(2)),
@@ -42,7 +53,9 @@ function calculateStarRating (beatmap, mods, mode) {
 		S2: parseFloat(calc.acc(99).performance(map).pp.toFixed(2)),
 		S3: parseFloat(calc.acc(98).performance(map).pp.toFixed(2)),
 		S4: parseFloat(calc.acc(97).performance(map).pp.toFixed(2)),
-		S5: parseFloat(calc.acc(95).performance(map).pp.toFixed(2))
+		S5: parseFloat(calc.acc(95).performance(map).pp.toFixed(2)),
+		DTSR: parseFloat(DTcalculated.difficulty.stars.toFixed(2)),
+		DTPP: parseFloat(DTcalculated.acc(100).performance(map).pp.toFixed(2))
 	}
 }
 
