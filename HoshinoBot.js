@@ -2335,21 +2335,19 @@ client.on(Events.InteractionCreate, async(interaction) =>
 						let minsrobj = minRatingObj.id;
 						const maxsr = await calculateSR(maxsrobj, 0, interaction.options.get('mode').value);
 						const minsr = await calculateSR(minsrobj, 0, interaction.options.get('mode').value);
-						const maxppDT = await calculateSR(maxsrobj, 64, interaction.options.get('mode').value);
-						const minppDT = await calculateSR(minsrobj, 64, interaction.options.get('mode').value);
 
 						let srstring = "";
 						if (maxsr.sr == minsr.sr) {
-							srstring = `SR: ☆**${maxsr.sr.toFixed(2)}** (☆**${maxppDT.sr.toFixed(2)}**)`
+							srstring = `SR: ☆**${maxsr.sr.toFixed(2)}** (☆**${maxsr.DTSR.toFixed(2)}**)`
 						} else {
-							srstring = `SR: ☆**${minsr.sr.toFixed(2)} ~ ${maxsr.sr.toFixed(2)}** (DT ☆**${minppDT.sr.toFixed(2)} ~ ${maxppDT.sr.toFixed(2)}**)`
+							srstring = `SR: ☆**${minsr.sr.toFixed(2)} ~ ${maxsr.sr.toFixed(2)}** (DT ☆**${minsr.DTSR.toFixed(2)} ~ ${maxsr.DTSR.toFixed(2)}**)`
 						}
 
 						let ppstring = "";
 						if (maxsr.S0 == minsr.S0) {
 							ppstring = `PP: **${maxsr.S0.toFixed(2)}**pp (DT **${maxppDT.S0.toFixed(2)}**pp)`
 						} else {
-							ppstring = `PP: **${minsr.S0.toFixed(2)} ~ ${maxsr.S0.toFixed(2)}**pp (DT **${minppDT.S0.toFixed(2)} ~ ${maxppDT.S0.toFixed(2)}**pp)`
+							ppstring = `PP: **${minsr.S0.toFixed(2)} ~ ${maxsr.S0.toFixed(2)}**pp (DT **${minsr.DTPP.toFixed(2)} ~ ${maxsr.DTPP.toFixed(2)}**pp)`
 						}
 						data.push({ name: `${i + 1}. ${seracheddata.beatmapsets[i].title} - ${seracheddata.beatmapsets[i].artist}`, value: `▸Mapped by **${seracheddata.beatmapsets[i].creator}**\n▸${srstring}\n▸${ppstring}\n▸**Download**: [map](https://osu.ppy.sh/beatmapsets/${seracheddata.beatmapsets[i].id}) | [osu!direct](https://osu.ppy.sh/d/${seracheddata.beatmapsets[i].id}) | [Nerinyan](https://api.nerinyan.moe/d/${seracheddata.beatmapsets[i].id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${seracheddata.beatmapsets[i].id})` })
 					}
@@ -5600,8 +5598,6 @@ async function checkqualfiedosu() {
 			const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "osu");
 			const minsr = await calculateSR(QFbeatmapsminsrId, 0, "osu");
-			const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "osu");
-			const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "osu");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -5652,14 +5648,14 @@ async function checkqualfiedosu() {
 			let srstring;
 			let ppstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 			if (maxsr.S0 == minsr.S0) {
-				ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+				ppstring = `${maxsr.S0}pp (DT ${maxsr.DTPP}pp)`
 			} else {
-				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minsr.DTPP} ~ ${maxsr.DTPP}pp)`
 			}
 
 			//メッセージの送信
@@ -5780,8 +5776,6 @@ async function checkqualfiedtaiko() {
 			const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "taiko");
 			const minsr = await calculateSR(QFbeatmapsminsrId, 0, "taiko");
-			const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "taiko");
-			const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "taiko");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -5832,14 +5826,14 @@ async function checkqualfiedtaiko() {
 			let srstring;
 			let ppstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 			if (maxsr.S0 == minsr.S0) {
-				ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+				ppstring = `${maxsr.S0}pp (DT ${maxsr.DTPP}pp)`
 			} else {
-				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minsr.DTPP} ~ ${maxsr.DTPP}pp)`
 			}
 
 			//メッセージの送信
@@ -5961,8 +5955,6 @@ async function checkqualfiedcatch() {
 			const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "catch");
 			const minsr = await calculateSR(QFbeatmapsminsrId, 0, "catch");
-			const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "catch");
-			const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "catch");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -6013,14 +6005,14 @@ async function checkqualfiedcatch() {
 			let srstring;
 			let ppstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 			if (maxsr.S0 == minsr.S0) {
-				ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+				ppstring = `${maxsr.S0}pp (DT ${maxsr.DTPP}pp)`
 			} else {
-				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minsr.DTPP} ~ ${maxsr.DTPP}pp)`
 			}
 
 			//メッセージの送信
@@ -6140,8 +6132,6 @@ async function checkqualfiedmania() {
 			const GetMapInfomin = await getMapforRecent(QFbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(QFbeatmapsmaxsrId, 0, "mania");
 			const minsr = await calculateSR(QFbeatmapsminsrId, 0, "mania");
-			const maxppDT = await calculateSR(QFbeatmapsmaxsrId, 64, "mania");
-			const minppDT = await calculateSR(QFbeatmapsminsrId, 64, "mania");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -6192,14 +6182,14 @@ async function checkqualfiedmania() {
 			let srstring;
 			let ppstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 			if (maxsr.S0 == minsr.S0) {
-				ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+				ppstring = `${maxsr.S0}pp (DT ${maxsr.DTPP}pp)`
 			} else {
-				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minsr.DTPP} ~ ${maxsr.DTPP}pp)`
 			}
 
 			//メッセージの送信
@@ -6332,8 +6322,6 @@ async function checkrankedosu() {
 			const GetMapInfomin = await getMapforRecent(rankedbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "osu");
 			const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "osu");
-			const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "osu");
-			const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "osu");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -6361,14 +6349,14 @@ async function checkrankedosu() {
 			let srstring;
 			let ppstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 			if (maxsr.S0 == minsr.S0) {
-				ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+				ppstring = `${maxsr.S0}pp (DT ${maxsr.DTPP}pp)`
 			} else {
-				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minsr.DTPP} ~ ${maxsr.DTPP}pp)`
 			}
 
 			//メッセージの送信
@@ -6499,8 +6487,6 @@ async function checkrankedtaiko() {
 			const GetMapInfomin = await getMapforRecent(rankedbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "taiko");
 			const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "taiko");
-			const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "taiko");
-			const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "taiko");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -6528,14 +6514,14 @@ async function checkrankedtaiko() {
 			let srstring;
 			let ppstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 			if (maxsr.S0 == minsr.S0) {
-				ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+				ppstring = `${maxsr.S0}pp (DT ${maxsr.DTPP}pp)`
 			} else {
-				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minsr.DTPP} ~ ${maxsr.DTPP}pp)`
 			}
 
 			//メッセージの送信
@@ -6666,8 +6652,6 @@ async function checkrankedcatch() {
 			const GetMapInfomin = await getMapforRecent(rankedbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "catch");
 			const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "catch");
-			const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "catch");
-			const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "catch");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -6695,14 +6679,14 @@ async function checkrankedcatch() {
 			let srstring;
 			let ppstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 			if (maxsr.S0 == minsr.S0) {
-				ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+				ppstring = `${maxsr.S0}pp (DT ${maxsr.DTPP}pp)`
 			} else {
-				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minsr.DTPP} ~ ${maxsr.DTPP}pp)`
 			}
 
 			//メッセージの送信
@@ -6833,8 +6817,6 @@ async function checkrankedmania() {
 			const GetMapInfomin = await getMapforRecent(rankedbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(rankedbeatmapsmaxsrId, 0, "mania");
 			const minsr = await calculateSR(rankedbeatmapsminsrId, 0, "mania");
-			const maxppDT = await calculateSR(rankedbeatmapsmaxsrId, 64, "mania");
-			const minppDT = await calculateSR(rankedbeatmapsminsrId, 64, "mania");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -6862,14 +6844,14 @@ async function checkrankedmania() {
 			let srstring;
 			let ppstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 			if (maxsr.S0 == minsr.S0) {
-				ppstring = `${maxsr.S0}pp (DT ${maxppDT.S0}pp)`
+				ppstring = `${maxsr.S0}pp (DT ${maxsr.DTPP}pp)`
 			} else {
-				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minppDT.S0} ~ ${maxppDT.S0}pp)`
+				ppstring = `${minsr.S0} ~ ${maxsr.S0}pp (DT ${minsr.DTPP} ~ ${maxsr.DTPP}pp)`
 			}
 
 			//メッセージの送信
@@ -6962,8 +6944,6 @@ async function checklovedosu() {
 			const GetMapInfomin = await getMapforRecent(lovedbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(lovedbeatmapsmaxsrId, 0, "osu");
 			const minsr = await calculateSR(lovedbeatmapsminsrId, 0, "osu");
-			const maxppDT = await calculateSR(lovedbeatmapsmaxsrId, 64, "osu");
-			const minppDT = await calculateSR(lovedbeatmapsminsrId, 64, "osu");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -6990,9 +6970,9 @@ async function checklovedosu() {
 			//表示用の文字列を作成
 			let srstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 
 			//メッセージの送信
@@ -7083,8 +7063,6 @@ async function checklovedtaiko() {
 			const GetMapInfomin = await getMapforRecent(lovedbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(lovedbeatmapsmaxsrId, 0, "taiko");
 			const minsr = await calculateSR(lovedbeatmapsminsrId, 0, "taiko");
-			const maxppDT = await calculateSR(lovedbeatmapsmaxsrId, 64, "taiko");
-			const minppDT = await calculateSR(lovedbeatmapsminsrId, 64, "taiko");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -7111,9 +7089,9 @@ async function checklovedtaiko() {
 			//表示用の文字列を作成
 			let srstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 
 			//メッセージの送信
@@ -7204,8 +7182,6 @@ async function checklovedcatch() {
 			const GetMapInfomin = await getMapforRecent(lovedbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(lovedbeatmapsmaxsrId, 0, "catch");
 			const minsr = await calculateSR(lovedbeatmapsminsrId, 0, "catch");
-			const maxppDT = await calculateSR(lovedbeatmapsmaxsrId, 64, "catch");
-			const minppDT = await calculateSR(lovedbeatmapsminsrId, 64, "catch");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -7232,9 +7208,9 @@ async function checklovedcatch() {
 			//表示用の文字列を作成
 			let srstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 
 			//メッセージの送信
@@ -7325,8 +7301,6 @@ async function checklovedmania() {
 			const GetMapInfomin = await getMapforRecent(lovedbeatmapsminsrId, apikey, "0");
 			const maxsr = await calculateSR(lovedbeatmapsmaxsrId, 0, "mania");
 			const minsr = await calculateSR(lovedbeatmapsminsrId, 0, "mania");
-			const maxppDT = await calculateSR(lovedbeatmapsmaxsrId, 64, "mania");
-			const minppDT = await calculateSR(lovedbeatmapsminsrId, 64, "mania");
 			const BPM = `${GetMapInfo.bpm}BPM (DT ${(GetMapInfo.bpm * 1.5).toFixed(0)}BPM)`;
 			const minobject = GetMapInfomin.combo;
 			const maxobject = GetMapInfo.combo;
@@ -7353,9 +7327,9 @@ async function checklovedmania() {
 			//表示用の文字列を作成
 			let srstring;
 			if (maxsr.sr == minsr.sr) {
-				srstring = `★${maxsr.sr} (DT ★${maxppDT.sr})`
+				srstring = `★${maxsr.sr} (DT ★${maxsr.DTSR})`
 			} else {
-				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minppDT.sr} ~ ${maxppDT.sr})`
+				srstring = `★${minsr.sr} ~ ${maxsr.sr} (DT ★${minsr.DTSR} ~ ${maxsr.DTSR})`
 			}
 
 			//メッセージの送信
