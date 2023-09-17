@@ -2345,7 +2345,7 @@ client.on(Events.InteractionCreate, async(interaction) =>
 
 						let ppstring = "";
 						if (maxsr.S0 == minsr.S0) {
-							ppstring = `PP: **${maxsr.S0.toFixed(2)}**pp (DT **${maxppDT.S0.toFixed(2)}**pp)`
+							ppstring = `PP: **${maxsr.S0.toFixed(2)}**pp (DT **${maxsr.DTSR.toFixed(2)}**pp)`
 						} else {
 							ppstring = `PP: **${minsr.S0.toFixed(2)} ~ ${maxsr.S0.toFixed(2)}**pp (DT **${minsr.DTPP.toFixed(2)} ~ ${maxsr.DTPP.toFixed(2)}**pp)`
 						}
