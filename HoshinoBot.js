@@ -3028,7 +3028,7 @@ client.on(Events.MessageCreate, async (message) =>
 		}
 		
 		//特定のチェンネルに添付画像などが送られたら実行する処理(FurryBOT)
-		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.endsWith('.avi') || attachment.url.endsWith('.mov') || attachment.url.endsWith('.mp4') || attachment.url.endsWith('.png') || attachment.url.endsWith('.jpg') || attachment.url.endsWith('.gif')) && message.channel.id == Furrychannel) {
+		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif')) && message.channel.id == Furrychannel) {
 			try {
 				//Botが送った画像に対しての処理をブロック
 				if (message.author.bot) return;
@@ -3057,7 +3057,7 @@ client.on(Events.MessageCreate, async (message) =>
 		}
 
 		//画像が送信された時の処理(All picture Bot)
-		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.endsWith('.avi') || attachment.url.endsWith('.mov') || attachment.url.endsWith('.mp4') || attachment.url.endsWith('.png') || attachment.url.endsWith('.jpg') || attachment.url.endsWith('.gif'))) {
+		if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif'))) {
 			try {
 				//Botが送った画像に対しての処理をブロック
 				if (message.author.bot) return;
