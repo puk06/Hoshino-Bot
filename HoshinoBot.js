@@ -818,23 +818,23 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const allchannels = JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8"));
 				switch (interaction.commandName) {
 					case "qf": {
-						if (allchannels["Qualfied"][mode].includes(channelid)) {
-							await interaction.reply("このチャンネルは既にQualfied、Rankedチェックチャンネルとして登録されています。");
+						if (allchannels["Qualified"][mode].includes(channelid)) {
+							await interaction.reply("このチャンネルは既にQualified、Rankedチェックチャンネルとして登録されています。");
 							return;
 						}
-						allchannels["Qualfied"][mode].push(channelid);
+						allchannels["Qualified"][mode].push(channelid);
 						fs.writeFileSync(`./ServerDatas/MapcheckChannels.json`, JSON.stringify(allchannels, null, 4));
-						await interaction.reply(`このチャンネルを${mode}のQualfied、Rankedチェックチャンネルとして登録しました。`);
+						await interaction.reply(`このチャンネルを${mode}のQualified、Rankedチェックチャンネルとして登録しました。`);
 						return;
 					}
 
 					case "deqf": {
-						if (allchannels["Qualfied"][mode].includes(channelid)) {
-							const newchannels = allchannels["Qualfied"][mode].filter(item => item !== channelid);
+						if (allchannels["Qualified"][mode].includes(channelid)) {
+							const newchannels = allchannels["Qualified"][mode].filter(item => item !== channelid);
 							fs.writeFileSync(`./ServerDatas/MapcheckChannels.json`, JSON.stringify(newchannels, null, 4));
-							await interaction.reply(`このチャンネルを${mode}のQualfied、Rankedチェックチャンネルから削除しました。`);
+							await interaction.reply(`このチャンネルを${mode}のQualified、Rankedチェックチャンネルから削除しました。`);
 						} else {
-							await interaction.reply("このチャンネルはQualfied、Rankedチェックチャンネルとして登録されていません。");
+							await interaction.reply("このチャンネルはQualified、Rankedチェックチャンネルとして登録されていません。");
 						}
 						return;
 					}
@@ -870,19 +870,19 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const alluser = JSON.parse(fs.readFileSync(`./ServerDatas/MentionUser.json`, "utf-8"));
 				switch (interaction.commandName) {
 					case "qfmention": {
-						if (alluser["Qualfied"][serverid]?.[mode].includes(userid)) {
-							await interaction.reply("あなたは既にQualfiedチェックチャンネルのメンションを受け取るようになっています。");
+						if (alluser["Qualified"][serverid]?.[mode].includes(userid)) {
+							await interaction.reply("あなたは既にQualifiedチェックチャンネルのメンションを受け取るようになっています。");
 							return;
 						}
-						if (!alluser["Qualfied"][serverid]) alluser["Qualfied"][serverid] = {
+						if (!alluser["Qualified"][serverid]) alluser["Qualified"][serverid] = {
 							"osu": [],
 							"taiko": [],
 							"catch": [],
 							"mania": []
 						};
-						alluser["Qualfied"][serverid][mode].push(userid);
+						alluser["Qualified"][serverid][mode].push(userid);
 						fs.writeFileSync(`./ServerDatas/MentionUser.json`, JSON.stringify(alluser, null, 4));
-						await interaction.reply(`今度から${mode}でQualfiedが検出されたらメンションが飛ぶようになりました.`);
+						await interaction.reply(`今度から${mode}でQualifiedが検出されたらメンションが飛ぶようになりました.`);
 						return;
 					}
 
@@ -921,12 +921,12 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					}
 
 					case "deqfmention": {
-						if (alluser["Qualfied"][serverid]?.[mode].includes(userid)) {
-							const newuser = alluser["Qualfied"][serverid][mode].filter(item => item !== userid);
+						if (alluser["Qualified"][serverid]?.[mode].includes(userid)) {
+							const newuser = alluser["Qualified"][serverid][mode].filter(item => item !== userid);
 							fs.writeFileSync(`./ServerDatas/MentionUser.json`, JSON.stringify(newuser, null, 4));
-							await interaction.reply(`今度から${mode}でQualfied検出されても、メンションが飛ばないようになりました。`);
+							await interaction.reply(`今度から${mode}でQualified検出されても、メンションが飛ばないようになりました。`);
 						} else {
-							await interaction.reply("あなたは既にQualfiedチェックチャンネルのメンションを受け取るようになっていません。");
+							await interaction.reply("あなたは既にQualifiedチェックチャンネルのメンションを受け取るようになっていません。");
 						}
 						return;
 					}
@@ -2891,19 +2891,20 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let rankingString = "";
-				if (mapRanking <= 50 && BPranking <= 50 && userRecentData.rank != "F") {
-					if (osuLibrary.Tools.mapstatus(mapData.approved) == "Ranked") {
+				const mapStatus = osuLibrary.Tools.mapstatus(mapData.approved);
+				if (mapRanking <= 50 && BPranking <= 50 && userRecentData.rank != "F" && (mapStatus == "Ranked" || mapStatus == "Qualified" || mapStatus == "Loved" || mapStatus == "Approved")) {
+					if (mapStatus == "Ranked" || mapStatus == "Approved") {
 						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapRanking}__**`;
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapRanking}__**`;
 					}
 				} else if (mapRanking == 51 && BPranking <= 50 && userRecentData.rank != "F") {
-					if (osuLibrary.Tools.mapstatus(mapData.approved) == "Ranked") {
+					if (mapStatus == "Ranked" || mapStatus == "Approved") {
 						rankingString = `**__Personal Best #${BPranking}__**`;
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`;
 					}
-				} else if (mapRanking <= 50 && BPranking > 50 && userRecentData.rank != "F") {
+				} else if (mapRanking <= 50 && BPranking > 50 && userRecentData.rank != "F" && (mapStatus == "Ranked" || mapStatus == "Qualified" || mapStatus == "Loved" || mapStatus == "Approved")) {
 					rankingString = `**__Global Top #${mapRanking}__**`;
 				} else {
 					rankingString = "`Result`";
@@ -2930,7 +2931,7 @@ client.on(Events.MessageCreate, async (message) =>
 						.addFields({ name: "`Map Info`", value: `Length:\`${formattedTotalLength}(${formattedHitLength})\` BPM:\`${BPM}\` Objects:\`${objectCount}\` \n  CS:\`${Cs}\` AR:\`${Ar}\` OD:\`${Od}\` HP:\`${Hp}\` Stars:\`${ssPp.sr.toFixed(2)}\``, inline: true })
 						.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
 						.setTimestamp()
-						.setFooter({ text: `${osuLibrary.Tools.mapstatus(mapData.approved)} mapset of ${mapData.creator}`, iconURL: mapperIconUrl });
+						.setFooter({ text: `${mapStatus} mapset of ${mapData.creator}`, iconURL: mapperIconUrl });
 				} else {
 					embed
 						.addFields({ name: "`If FC`", value: `**${ifFCPP.toFixed(2)}** / ${ssPp.pp.toFixed(2)}PP`, inline: true })
@@ -2939,7 +2940,7 @@ client.on(Events.MessageCreate, async (message) =>
 						.addFields({ name: "`Map Info`", value: `Length:\`${formattedTotalLength}(${formattedHitLength})\` BPM:\`${BPM}\` Objects:\`${objectCount}\` \n  CS:\`${Cs}\` AR:\`${Ar}\` OD:\`${Od}\` HP:\`${Hp}\` Stars:\`${ssPp.sr.toFixed(2)}\``, inline: true })
 						.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
 						.setTimestamp()
-						.setFooter({ text: `${osuLibrary.Tools.mapstatus(mapData.approved)} mapset of ${mapData.creator}`, iconURL: mapperIconUrl });
+						.setFooter({ text: `${mapStatus} mapset of ${mapData.creator}`, iconURL: mapperIconUrl });
 				}
 
 				await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
@@ -4128,7 +4129,7 @@ function rankconverter(rank) {
 	}
 }
 
-function checkqualfied() {
+function checkqualified() {
 	return new Promise (async resolve => {
 		const modeconvertforSearch = (mode) => { return mode == "catch" ? "fruits" : mode; };
 		const modeArray = ["osu", "taiko", "catch", "mania"];
@@ -4145,8 +4146,8 @@ function checkqualfied() {
 					qfarray.push(qfdatalist.beatmapsets[i].id);
 				}
 				const allBeatmaps = JSON.parse(fs.readFileSync("./ServerDatas/Beatmaps/Beatmaps.json", "utf-8"));
-				const differentQFarray = findDifferentElements(allBeatmaps.Qualfied[mode], qfarray);
-				allBeatmaps.Qualfied[mode] = qfarray;
+				const differentQFarray = findDifferentElements(allBeatmaps.Qualified[mode], qfarray);
+				allBeatmaps.Qualified[mode] = qfarray;
 				fs.writeFileSync("./ServerDatas/Beatmaps/Beatmaps.json", JSON.stringify(allBeatmaps, null, 4), "utf-8");
 				if (differentQFarray == null) continue;
 				for (const differentQF of differentQFarray) {
@@ -4236,7 +4237,7 @@ function checkqualfied() {
 
 					const embed = new EmbedBuilder()
 						.setColor("Blue")
-						.setAuthor({ name: `🎉New Qualfied ${mode} Map🎉` })
+						.setAuthor({ name: `🎉New Qualified ${mode} Map🎉` })
 						.setTitle(`${mapMaxInfo.artist} - ${mapMaxInfo.title} by ${mapMaxInfo.creator}`)
 						.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapMaxInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapMaxInfo.beatmapset_id})`)
 						.setThumbnail(`https://b.ppy.sh/thumb/${mapMaxInfo.beatmapset_id}l.jpg`)
@@ -4244,23 +4245,23 @@ function checkqualfied() {
 						.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 						.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 						.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
-						.addFields({ name: "`Qualfied 日時`", value: `**${dateString}**`, inline: true })
+						.addFields({ name: "`Qualified 日時`", value: `**${dateString}**`, inline: true })
 						.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true });
-					for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Qualfied[mode]) {
+					for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Qualified[mode]) {
 						try {
 							if (client.channels.cache?.get(element) == undefined) continue;
 							await client.channels.cache.get(element).send({ embeds: [embed] });
 							const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 							let mentionstring = [];
 							const allUser = JSON.parse(fs.readFileSync(`./ServerDatas/MentionUser.json`, "utf-8"));
-							const mentionUser = allUser["Qualfied"][element]?.[mode];
+							const mentionUser = allUser["Qualified"][element]?.[mode];
 							if (mentionUser == undefined) continue;
 							for (const user of mentionUser) {
 								if (membersdata.get(user) == undefined) continue;
 								mentionstring.push(`<@${user}>`);
 							}
 							if (mentionstring.length != 0) {
-								await client.channels.cache.get(element).send(`${mentionstring.join(" ")}\n新しい${mode}のQualfied譜面が出ました！`);
+								await client.channels.cache.get(element).send(`${mentionstring.join(" ")}\n新しい${mode}のQualified譜面が出ました！`);
 							}
 						} catch {
 							continue;
@@ -4380,7 +4381,7 @@ function checkranked() {
 						.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 						.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
 						.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: **${rankederrorstring}**)`, inline: true });
-					for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Qualfied[mode]) {
+					for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Qualified[mode]) {
 						try {
 							if (client.channels.cache?.get(element) == undefined) continue;
 							await client.channels.cache.get(element).send({ embeds: [embed] });
@@ -4560,7 +4561,7 @@ async function rankedintheday() {
 					const mindtpp = await minCalculator.calculateDT();
 					let srstring = maxsrpp.sr == minsrpp.sr ? `★${maxsrpp.sr.toFixed(2)} (DT ★${maxdtpp.sr.toFixed(2)})` : `★${minsrpp.sr.toFixed(2)} ~ ${maxsrpp.sr.toFixed(2)} (DT ★${mindtpp.sr.toFixed(2)} ~ ${maxdtpp.sr.toFixed(2)})`;
 					let ppstring = maxsrpp.pp == minsrpp.pp ? `${maxsrpp.pp.toFixed(2)}pp (DT ${maxdtpp.pp.toFixed(2)}pp)` : `${minsrpp.pp.toFixed(2)} ~ ${maxsrpp.pp.toFixed(2)}pp (DT ${mindtpp.pp.toFixed(2)} ~ ${maxdtpp.pp.toFixed(2)}pp)`;
-					sevenDayAgoQf.push({ name : `${count}. **${mapInfo.title} - ${mapInfo.artist}**`, value : `▸Mapped by **${mapInfo.creator}**\n▸SR: ${srstring}\n▸PP: ${ppstring}\n▸**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualfied**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}\n` });
+					sevenDayAgoQf.push({ name : `${count}. **${mapInfo.title} - ${mapInfo.artist}**`, value : `▸Mapped by **${mapInfo.creator}**\n▸SR: ${srstring}\n▸PP: ${ppstring}\n▸**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualified**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}\n` });
 				}
 			} catch (e) {
 				console.log(e);
@@ -4568,15 +4569,15 @@ async function rankedintheday() {
 			}
 		}
 
-		if (sevenDayAgoQf.length == 0) sevenDayAgoQf.push({ name : `**今日ranked予定の${mode}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDate()}日 ${formatNumber(now.getHours())}:${formatNumber(now.getMinutes())}` });
+		if (sevenDayAgoQf.length == 0) sevenDayAgoQf.push({ name : `**今日Ranked予定の${mode}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDate()}日 ${formatNumber(now.getHours())}:${formatNumber(now.getMinutes())}` });
 
 		const embed = new EmbedBuilder()
 			.setColor("Yellow")
 			.setAuthor({ name: `🎉Daily Ranked check🎉` })
-			.setTitle(`日付が変わりました！今日ranked予定の${mode}マップのリストです！`)
+			.setTitle(`日付が変わりました！今日Ranked予定の${mode}マップのリストです！`)
 			.addFields(sevenDayAgoQf)
-			.setFooter({ text: `このメッセージは毎日0時に送信されます。既にrankedされた譜面は表示されません。` });
-		for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Qualfied[mode]) {
+			.setFooter({ text: `このメッセージは毎日0時に送信されます。既にRankedされた譜面は表示されません。` });
+		for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Qualified[mode]) {
 			try {
 				if (client.channels.cache?.get(element) == undefined) continue;
 				await client.channels.cache.get(element).send({ embeds: [embed] });
@@ -4592,7 +4593,7 @@ function formatNumber(num) {
 }
 
 async function checkMap () {
-	await checkqualfied();
+	await checkqualified();
 	await checkranked();
 	await checkloved();
 }
