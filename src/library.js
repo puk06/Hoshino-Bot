@@ -275,54 +275,311 @@ class CalculatePPSR {
     }
 }
 
-class CheckStreamLength {
+class CheckMapData {
     constructor(maplink) {
         this.maplink = maplink;
         this.beatmapID = this.maplink.split("/")[5];
     }
 
-    checkLength() {
+    check() {
         return new Promise(async (resolve, reject) => {
             try {
                 const mapdata = await axios.get(`https://osu.ppy.sh/osu/${this.beatmapID}`, { responseType: "stream" });
-
                 const lineReader = require('readline').createInterface({
                     input: mapdata.data
                 });
-
                 let BPMarray = [];
                 let prevValue = null;
                 let currentBPM = 0;
-                let maxStream = 0;
                 let stream = 0;
-    
+                let eightStream = 0;
+                let sixStream = 0;
+                let threeStream = 0;
                 let timingpointflag = false;
                 let hitobjects = false;
-    
+                let lastEight = false;
+                let lastSix = false;
+                let lastThree = false;
+                let lastStream = false;
+                let isTechStream = false;
+                let tempTechStream = 0;
+                let streamArray = [];
+                let techStreamArray = [];
+                let mapData = {
+                    "BPMarray": [],
+                    "maxStream": 0,
+                    "streamCount": 0,
+                    "over100ComboAverageStreamLength": 0,
+                    "techStream" : 0,
+                    "techStreamCount": 0,
+                    "over100ComboAverageTechStreamLength": 0,
+                    "1/3 times": 0,
+                    "max1/3Length": 0,
+                    "1/4 times": 0,
+                    "max1/4Length": 0,
+                    "1/6 times": 0,
+                    "max1/6Length": 0,
+                    "1/8 times": 0,
+                    "max1/8Length": 0
+                };
+
                 lineReader.on('line', (line) => {
                     if (timingpointflag) {
                         const timingpoint = line.split(",");
                         if (timingpoint[6] == 1) {
                             const BPM = 1 / Number(line.split(",")[1]) * 60000;
-                            BPMarray.push(Number(timingpoint[0]), BPM);
+                            BPMarray.push([Number(timingpoint[2]), BPM]);
+                            mapData.BPMarray.push(BPM);
                         }
                     }
     
                     if (hitobjects) {
                         const timing = Number(line.split(",")[2]);
-                        for (let i = 0; i < BPMarray.length; i++) {
-                            if (timing > BPMarray[i] && timing < BPMarray[i + 2]) {
-                                currentBPM = BPMarray[i + 1];
+                        for (const element of BPMarray) {
+                            if (element && timing >= element[0] && timing < element[0]) {
+                                currentBPM = element[1];
+                                break;
                             }
                         }
-                        const interval = (( 60 / currentBPM ) * 1000 * 1 / 4) + 1;
-                        const value = Number(line.split(',')[2]);
-                        if (prevValue !== null && Math.abs(value - prevValue) <= interval) {
-                            stream++;
-                        } else {
-                            if (stream > maxStream) {
-                                maxStream = stream;
+
+                        for (let i = 0; i < BPMarray.length; i++) {
+                            if (!BPMarray[i + 1]) {
+                                currentBPM = BPMarray[i][1];
+                                break;
                             }
+
+                            if (BPMarray[i] && timing >= BPMarray[i][0] && timing < BPMarray[i + 1][0]) {
+                                currentBPM = BPMarray[i][1];
+                            }
+                        }
+
+                        let eightInterval = (( 60 / currentBPM ) * 1000 * 1 / 8) + 1;
+                        let sixInterval = (( 60 / currentBPM ) * 1000 * 1 / 6) + 1;
+                        let fourInterval = (( 60 / currentBPM ) * 1000 * 1 / 4) + 1;
+                        let threeInterval = (( 60 / currentBPM ) * 1000 * 1 / 3) + 1;
+                        const value = Number(line.split(',')[2]);
+
+                        if (prevValue !== null && Math.abs(value - prevValue) <= eightInterval) {
+                            if (!lastEight) eightStream = 1;
+                            if ((lastSix || lastStream || lastThree) && !isTechStream) {
+                                isTechStream = true;
+                                tempTechStream = 1;
+                            }
+
+                            if (isTechStream) tempTechStream++;
+
+                            if (tempTechStream > 30 && tempTechStream > mapData["techStream"] && isTechStream) {
+                                mapData["techStream"] = tempTechStream;
+                            }
+
+                            if (lastSix) mapData["1/6 times"]++;
+                            if (sixStream > mapData["max1/6Length"]) {
+                                mapData["max1/6Length"] = sixStream + 1;
+                            }
+                            lastSix = false;
+                            sixStream = 0;
+                            
+                            if (lastStream && stream >= 100) {
+                                mapData["streamCount"]++;
+                                if (stream > mapData["maxStream"]) {
+                                    mapData["maxStream"] = stream + 1;
+                                }
+                            } else {
+                                mapData["1/4 times"]++;
+                            }
+                            if (stream > mapData["max1/4Length"]) {
+                                mapData["max1/4Length"] = stream + 1;
+                            }
+                            if (stream >= 100) streamArray.push(stream);
+                            lastStream = false;
+                            stream = 0;
+
+                            if (lastThree) mapData["1/3 times"]++;
+                            if (threeStream > mapData["max1/3Length"]) {
+                                mapData["max1/3Length"] = threeStream + 1;
+                            }
+                            lastThree = false;
+                            threeStream = 0;
+
+                            lastEight = true;
+                            eightStream++;
+                            if (eightStream > mapData["max1/8Length"]) {
+                                mapData["max1/8Length"] = eightStream;
+                            }
+                        } else if (prevValue !== null && Math.abs(value - prevValue) <= sixInterval) {
+                            if (!lastSix) sixStream = 1;
+                            if ((lastEight || lastStream || lastThree) && !isTechStream) {
+                                isTechStream = true;
+                                tempTechStream = 1;
+                            }
+
+                            if (isTechStream) tempTechStream++;
+
+                            if (tempTechStream > 30 && tempTechStream > mapData["techStream"] && isTechStream) {
+                                mapData["techStream"] = tempTechStream;
+                            }
+
+                            if (lastEight) mapData["1/8 times"]++;
+                            if (eightStream > mapData["max1/8Length"]) {
+                                mapData["max1/8Length"] = eightStream + 1;
+                            }
+                            lastEight = false;
+                            eightStream = 0;
+                            
+                            if (lastStream && stream >= 100) {
+                                mapData["streamCount"]++;
+                                if (stream > mapData["maxStream"]) {
+                                    mapData["maxStream"] = stream + 1;
+                                }
+                            } else {
+                                mapData["1/4 times"]++;
+                            }
+                            if (stream > mapData["max1/4Length"]) {
+                                mapData["max1/4Length"] = stream + 1;
+                            }
+                            if (stream >= 100) streamArray.push(stream);
+                            lastStream = false;
+                            stream = 0;
+
+                            if (lastThree) mapData["1/3 times"]++;
+                            if (threeStream > mapData["max1/3Length"]) {
+                                mapData["max1/3Length"] = threeStream + 1;
+                            }
+                            lastThree = false;
+                            threeStream = 0;
+
+                            lastSix = true;
+                            sixStream++;
+                            if (sixStream > mapData["max1/6Length"]) {
+                                mapData["max1/6Length"] = sixStream;
+                            }
+                        } else if (prevValue !== null && Math.abs(value - prevValue) <= fourInterval) {
+                            if (!lastStream) stream = 1;
+                            if ((lastEight || lastSix || lastThree) && !isTechStream) {
+                                isTechStream = true;
+                                tempTechStream = 1;
+                            }
+
+                            if (isTechStream) tempTechStream++;
+
+                            if (tempTechStream > 30 && tempTechStream > mapData["techStream"] && isTechStream) {
+                                mapData["techStream"] = tempTechStream;
+                            }
+
+                            if (lastEight) mapData["1/8 times"]++;
+                            if (eightStream > mapData["max1/8Length"]) {
+                                mapData["max1/8Length"] = eightStream + 1;
+                            }
+                            lastEight = false;
+                            eightStream = 0;
+                            
+                            if (lastSix) mapData["1/6 times"]++;
+                            if (sixStream > mapData["max1/6Length"]) {
+                                mapData["max1/6Length"] = sixStream + 1;
+                            }
+                            lastSix = false;
+                            sixStream = 0;
+
+                            if (lastThree) mapData["1/3 times"]++;
+                            if (threeStream > mapData["max1/3Length"]) {
+                                mapData["max1/3Length"] = threeStream + 1;
+                            }
+                            lastThree = false;
+                            threeStream = 0;
+
+                            lastStream = true;
+                            stream++;
+                            if (stream > mapData["max1/4Length"]) {
+                                mapData["max1/4Length"] = stream;
+                            }
+                        } else if (prevValue !== null && Math.abs(value - prevValue) <= threeInterval) {
+                            if (!lastThree) threeStream = 1;
+                            if ((lastEight || lastSix || lastStream) && !isTechStream) {
+                                isTechStream = true;
+                                tempTechStream = 1;
+                            }
+
+                            if (isTechStream) tempTechStream++;
+
+                            if (tempTechStream > 30 && tempTechStream > mapData["techStream"] && isTechStream) {
+                                mapData["techStream"] = tempTechStream;
+                            }
+
+                            if (lastEight) mapData["1/8 times"]++;
+                            if (eightStream > mapData["max1/8Length"]) {
+                                mapData["max1/8Length"] = eightStream + 1;
+                            }
+                            lastEight = false;
+                            eightStream = 0;
+
+                            if (lastSix) mapData["1/6 times"]++;
+                            if (sixStream > mapData["max1/6Length"]) {
+                                mapData["max1/6Length"] = sixStream + 1;
+                            }
+                            lastSix = false;
+                            sixStream = 0;
+                            
+                            if (lastStream && stream >= 100) {
+                                mapData["streamCount"]++;
+                                if (stream > mapData["maxStream"]) {
+                                    mapData["maxStream"] = stream + 1;
+                                }
+                            } else {
+                                mapData["1/4 times"]++;
+                            }
+                            if (stream > mapData["max1/4Length"]) {
+                                mapData["max1/4Length"] = stream + 1;
+                            }
+                            if (stream >= 100) streamArray.push(stream);
+                            lastStream = false;
+                            stream = 0;
+
+                            lastThree = true;
+                            threeStream++;
+                            if (threeStream > mapData["max1/3Length"]) {
+                                mapData["max1/3Length"] = threeStream;
+                            }
+                        } else {
+                            if (isTechStream && tempTechStream > 30) {
+                                mapData["techStreamCount"]++;
+                                techStreamArray.push(tempTechStream);
+                            }
+                            isTechStream = false;
+                            tempTechStream = 0;
+                            if (lastEight) mapData["1/8 times"]++;
+                            if (eightStream > mapData["max1/8Length"]) {
+                                mapData["max1/8Length"] = eightStream + 1;
+                            }
+                            lastEight = false;
+                            eightStream = 0;
+                            
+                            if (lastSix) mapData["1/6 times"]++;
+                            if (sixStream > mapData["max1/6Length"]) {
+                                mapData["max1/6Length"] = sixStream + 1;
+                            }
+                            lastSix = false;
+                            sixStream = 0;
+
+                            if (lastThree) mapData["1/3 times"]++;
+                            if (threeStream > mapData["max1/3Length"]) {
+                                mapData["max1/3Length"] = threeStream + 1;
+                            }
+                            lastThree = false;
+                            threeStream = 0;
+                            
+                            if (lastStream && stream >= 100) {
+                                mapData["streamCount"]++;
+                                if (stream > mapData["maxStream"]) {
+                                    mapData["maxStream"] = stream + 1;
+                                }
+                            } else {
+                                mapData["1/4 times"]++;
+                            }
+                            if (stream > mapData["max1/4Length"]) {
+                                mapData["max1/4Length"] = stream + 1;
+                            }
+                            if (stream >= 100) streamArray.push(stream);
+                            lastStream = false;
                             stream = 0;
                         }
                         prevValue = value;
@@ -332,23 +589,67 @@ class CheckStreamLength {
                         timingpointflag = false;
                         hitobjects = true;
                     }
+
+                    if (line.startsWith("[Colors]")) {
+                        timingpointflag = false;
+                    }
     
                     if (line.startsWith("[TimingPoints]")) {
                         timingpointflag = true;
                     }
-                })
+                });
     
                 lineReader.on('close', () => {
-                    if (stream > maxStream) {
-                        maxStream = stream;
+                    if (isTechStream && tempTechStream > 30) {
+                        mapData["techStreamCount"]++;
                     }
-                    resolve(maxStream);
+
+                    if (lastEight) mapData["1/8 times"]++;
+                    if (eightStream > mapData["max1/8Length"]) {
+                        mapData["max1/8Length"] = eightStream + 1;
+                    }
+                    
+                    if (lastSix) mapData["1/6 times"]++;
+                    if (sixStream > mapData["max1/6Length"]) {
+                        mapData["max1/6Length"] = sixStream + 1;
+                    }
+
+                    if (lastThree) mapData["1/3 times"]++;
+                    if (threeStream > mapData["max1/3Length"]) {
+                        mapData["max1/3Length"] = threeStream + 1;
+                    }
+                    
+                    if (lastStream && stream >= 100) {
+                        mapData["streamCount"]++;
+                        if (stream > mapData["maxStream"]) {
+                            mapData["maxStream"] = stream + 1;
+                        }
+                    } else {
+                        mapData["1/4 times"]++;
+                    }
+                    if (stream > mapData["max1/4Length"]) {
+                        mapData["max1/4Length"] = stream + 1;
+                    }
+                    if (stream >= 100) streamArray.push(stream);
+
+                    lastEight = false;
+                    lastSix = false;
+                    lastStream = false;
+                    lastThree = false;
+                    isTechStream = false;
+                    eightStream = 0;
+                    sixStream = 0;
+                    stream = 0;
+                    threeStream = 0;
+                    tempTechStream = 0;
+                    mapData["over100ComboAverageStreamLength"] = streamArray.length == 0 ? 0 : streamArray.reduce((acc, cur) => acc + cur, 0) / streamArray.length;
+                    mapData["over100ComboAverageTechStreamLength"] = techStreamArray.length == 0 ? 0 : techStreamArray.reduce((acc, cur) => acc + cur, 0) / techStreamArray.length;
+                    resolve(mapData);
                 })
 
                 lineReader.on('error', (error) => {
                     reject(error);
                 });
-    
             } catch (error) {
                 reject(error);
             }
@@ -764,7 +1065,7 @@ module.exports = {
     GetUserRecent,
     GetUserScore,
     CalculatePPSR,
-    CheckStreamLength,
+    CheckMapData,
     Mod,
     URLBuilder,
     Tools,
