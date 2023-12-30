@@ -5,6 +5,7 @@ const fs = require("./node_modules/fs-extra");
 const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
 const axios = require("./node_modules/axios");
 const { Beatmap, Calculator } = require("./node_modules/rosu-pp");
+const asciify = require("./node_modules/asciify");
 const { Readable } = require("node:stream");
 const path = require('node:path');
 const git = require('git-clone');
@@ -15,7 +16,6 @@ const apikey = process.env.APIKEY;
 const token = process.env.TOKEN;
 const osuclientid = process.env.CLIENTID;
 const osuclientsecret = process.env.CLIENTSECRET;
-const appid = process.env.APPID;
 const hypixelapikey = process.env.HYPIXELAPI;
 const BotadminId = process.env.BOTADMINID;
 const Furrychannel = process.env.FURRYCHANNEL;
@@ -35,7 +35,10 @@ const client = new Client({
 });
 
 client.on(Events.ClientReady, async () => {
-    console.log(`Success Logged in to ほしのBot V1.1.0`);
+	asciify("Hoshino Bot", { font: "larry3d" }, (err, msg) =>{
+		if(err) return;
+		console.log(msg);
+	});
 	client.user.setPresence({
 		activities: [{
 			name: `ほしのBot Ver1.1.0を起動中`,
@@ -514,6 +517,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("このタグは既に存在しています。");
 					return;
 				}
+
 				allQuotes[interaction.channel.name] = [];
 				fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
 				await interaction.reply("タグが正常に作成されました。");
@@ -526,6 +530,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("このタグは存在しません。");
 					return;
 				}
+
 				delete allQuotes[interaction.channel.name];
 				fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
 				await interaction.reply("タグが正常に削除されました。");
@@ -544,6 +549,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("その名言は存在しません。");
 					return;
 				}
+
 				allQuotes[interaction.channel.name].filter(item => item !== wannadelete);
 				fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
 				await interaction.reply("名言の削除が完了しました。");
@@ -578,49 +584,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				await interaction.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
 			}
 
-			if (interaction.commandName == "kunii") {
-				const kuniicontent = interaction.options.get('content').value;
-				if (kuniicontent == "うんこえろしね") {
-					await interaction.reply("しんこうろえね");
-					return;
-				}
-
-				if (kuniicontent == undefined) {
-					await interaction.reply("できないからやばい");
-					return;
-				}
-
-				const url = "https://labs.goo.ne.jp/api/morph";
-				const params = {
-					app_id: appid,
-					sentence: kuniicontent
-				};
-				const data = await axios.post(url, params).then(res => res.data.word_list);
-
-				if (data[0].length == undefined || data[0].length == 0 || data[0].length == 1 || data[0].length > 4) {
-					await interaction.channel.send("できないからやばい");
-				} else if (data[0].length == 2) {
-					const data1 = data[0][0][0];
-					const data2 = data[0][1][0];
-					const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1);
-					await interaction.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`);
-				} else if (data[0].length == 3) {
-					const data1 = data[0][0][0];
-					const data2 = data[0][1][0];
-					const data3 = data[0][2][0];
-					const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data3;
-					await interaction.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`);
-				} else if (data[0].length == 4) {
-					const data1 = data[0][0][0];
-					const data2 = data[0][1][0];
-					const data3 = data[0][2][0];
-					const data4 = data[0][3][0];
-					const kuniiWord = data2.charAt(0) + data1.slice(1) + data1.charAt(0) + data2.slice(1) + data4.charAt(0) + data3.slice(1) + data3.charAt(0) + data4.slice(1);
-					await interaction.channel.send(`${kuniicontent}\n↹\n${kuniiWord}`);
-				}
-				return;
-			}
-
 			if (interaction.commandName == "link") {
 				const channelid = interaction.channel.id;
 				const allchannels = JSON.parse(fs.readFileSync("./ServerDatas/BeatmapLinkChannels.json", "utf-8"));
@@ -651,14 +614,77 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "check") {
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-				if (!regex.test(interaction.options.get("beatmaplink").value)) {
+				const maplink = interaction.options.get("beatmaplink").value;
+				if (!regex.test(maplink)) {
 					await interaction.reply("ビートマップリンクの形式が間違っています。");
 					return;
 				}
 
-				new osuLibrary.CheckStreamLength(interaction.options.get("beatmaplink").value).checkLength()
+				await interaction.reply("マップ情報を取得し、計算しています...");
+				new osuLibrary.CheckMapData(maplink).check()
 					.then(async data => {
-						await interaction.reply(`1/4 Streamlength: ${data} `);
+						function mode(array) {
+							if (array.length === 0){
+								return "?";
+							}
+							let counter = {};
+							let nativeValues = {};
+							let maxCounter = 0;
+							let maxValue = null;
+						
+							for (const element of array) {
+								if (!counter[element + "_" + typeof element]) {
+									counter[element + "_" + typeof element] = 0;
+								}
+								counter[element + "_" + typeof element]++;
+								nativeValues[element + "_" + typeof element] = element;
+							}
+
+							for (const element of Object.keys(counter)) {
+								const key = element;
+								if (counter[key] > maxCounter) {
+									maxCounter = counter[key];
+									maxValue = nativeValues[key];
+								}
+							}
+							return maxValue;
+						}
+						const mapData = await new osuLibrary.GetMapData(maplink, apikey).getDataWithoutMode();
+						const mapperData = await new osuLibrary.GetUserData(mapData.creator, apikey).getData();
+						const mapperIconURL = osuLibrary.URLBuilder.iconURL(mapperData?.user_id);
+						const mapperUserURL = osuLibrary.URLBuilder.userURL(mapperData?.user_id);
+						const backgroundURL = osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id);
+						const bpmMin = isNaN(Math.min(...data.BPMarray)) ? 0 : Math.min(...data.BPMarray);
+						const bpmMax = isNaN(Math.max(...data.BPMarray)) ? 0 : Math.max(...data.BPMarray);
+						const bpmStr = bpmMin == bpmMax ? bpmMax.toFixed(1) : `${bpmMin.toFixed(1)} ~ ${bpmMax.toFixed(1)}`;
+						const hitTotal = data["1/3 times"] + data["1/4 times"] + data["1/6 times"] + data["1/8 times"];
+						const streamTotal = data.streamCount + data.techStreamCount;
+						const hitPercentData = [Math.round(data["1/3 times"] / hitTotal * 100), Math.round(data["1/4 times"] / hitTotal * 100), Math.round(data["1/6 times"] / hitTotal * 100), Math.round(data["1/8 times"] / hitTotal * 100)] ;
+						const streamPercentData = [Math.round(data.streamCount / streamTotal * 100), Math.round(data.techStreamCount / streamTotal * 100)];
+
+						let mapInfoPrediction = "通常の譜面かと思われます。";
+						if (streamPercentData[0] > streamPercentData[1]) {
+							mapInfoPrediction = "ストリーム譜面かと思われます。";
+						} else if (hitPercentData[2] > 70) {
+							mapInfoPrediction = "1/6譜面かと思われます。";
+						} else if (hitPercentData[3] > 70) {
+							mapInfoPrediction = "倍取り譜面かと思われます。(BPMが2倍の可能性もあります)";
+						} else if (Math.abs(hitPercentData[2] - hitPercentData[3]) < 15) {
+							mapInfoPrediction = "1/6、1/8~譜面かと思われます。";
+						} else if (streamTotal[5] > streamTotal[0]) {
+							mapInfoPrediction = "Tech譜面かと思われます。";
+						}
+						const embed = new EmbedBuilder()
+							.setColor("Blue")
+							.setTitle(`${mapData.artist} - ${mapData.title} [${mapData.version}]`)
+							.setURL(maplink)
+							.setAuthor({ name: `Mapped by ${mapperData.username}`, iconURL: mapperIconURL, url: mapperUserURL })
+							.addFields({ name: "**BPM**", value: `**${bpmStr}** (最頻値: **${mode(data.BPMarray).toFixed(1)}**)`, inline: false })
+							.addFields({ name: "**Streams** (>100 combo)", value: `**1/4 Streams**: **${data.streamCount}**回 [最大**${data.maxStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageStreamLength)}**コンボ] (${streamPercentData[0]}%)\n**Tech Streams**: **${data.techStreamCount}**回 [最大**${data.techStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageTechStreamLength)}**コンボ] (${streamPercentData[1]}%)`, inline: false })
+							.addFields({ name: "**Hit Objects**", value: `**1/3**: **${data["1/3 times"]}**回 [最大**${data["max1/3Length"]}**コンボ] (${hitPercentData[0]}%)\n**1/4**: **${data["1/4 times"]}**回 [最大**${data["max1/4Length"]}**コンボ] (${hitPercentData[1]}%)\n**1/6**: **${data["1/6 times"]}**回 [最大**${data["max1/6Length"]}**コンボ] (${hitPercentData[2]}%)\n**1/8**: **${data["1/8 times"]}**回 [最大**${data["max1/8Length"]}**コンボ] (${hitPercentData[3]}%)`, inline: false })
+							.addFields({ name: "**Map Prediction**", value: `結果: **${mapInfoPrediction}**`, inline: false })
+							.setImage(backgroundURL);
+						await interaction.channel.send({ embeds: [embed] });
 					});
 				return;
 			}
@@ -2357,6 +2383,10 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							});
 					});
 			} else {
+				asciify("Error", { font: "larry3d" }, (err, msg) =>{
+					if(err) return;
+					console.log(msg);
+				});
 				console.log(e);
 				await interaction.channel.send(`${interaction.user.username}さんのコマンドの実行中にエラーが発生しました。`)
 					.catch(async () => {
@@ -3876,6 +3906,10 @@ client.on(Events.MessageCreate, async (message) =>
 							});
 					});
 			} else {
+				asciify("Error", { font: "larry3d" }, (err, msg) =>{
+					if(err) return;
+					console.log(msg);
+				});
 				console.log(e);
 				await message.reply(`${message.author.username}さんのコマンドの実行中にエラーが発生しました。`)
 					.catch(async () => {
@@ -3893,6 +3927,10 @@ client.on(Events.MessageCreate, async (message) =>
 );
 
 client.on(Events.Error, (error) => {
+	asciify("API Error", { font: "larry3d" }, (err, msg) =>{
+		if(err) return;
+		console.log(msg);
+	});
 	console.log(`エラー名: ${error.name}\nエラー内容: ${error.message}`);
 });
 
@@ -4573,7 +4611,7 @@ async function rankedintheday() {
 
 		const embed = new EmbedBuilder()
 			.setColor("Yellow")
-			.setAuthor({ name: `🎉Daily Ranked check🎉` })
+			.setAuthor({ name: `🎉Daily Ranked Check🎉` })
 			.setTitle(`日付が変わりました！今日Ranked予定の${mode}マップのリストです！`)
 			.addFields(sevenDayAgoQf)
 			.setFooter({ text: `このメッセージは毎日0時に送信されます。既にRankedされた譜面は表示されません。` });
