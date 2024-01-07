@@ -151,11 +151,6 @@ module.exports = [
     },
     {
         data: new SlashCommandBuilder()
-            .setName("downloadtag")
-            .setDescription("送られたチャンネルのタグの画像をダウンロードします。")
-    },
-    {
-        data: new SlashCommandBuilder()
             .setName("alltags")
             .setDescription("全てのタグ一覧を表示します。")
     },
@@ -165,7 +160,7 @@ module.exports = [
             .setDescription("指定されたタグの名言を表示します。")
             .addStringOption(option =>
                 option
-                    .setName('tag')
+                    .setName('name')
                     .setDescription('タグ名')
                     .setRequired(true)
             )
@@ -173,12 +168,18 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("setquotetag")
-            .setDescription("このチャンネル名を名言タグに設定します。")
+            .setDescription("この名言タグを作成、更新します。")
+            .addStringOption(option =>
+                option
+                    .setName('name')
+                    .setDescription('タグ名')
+                    .setRequired(true)
+            )
     },
     {
         data: new SlashCommandBuilder()
             .setName("delquotetag")
-            .setDescription("このチャンネル名を名言タグから削除します。")
+            .setDescription("このチャンネルを名言タグから削除します。")
     },
     {
         data: new SlashCommandBuilder()
@@ -194,23 +195,18 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("quotecount")
-            .setDescription("送られたチャンネルの名言タグの総名言数を表示します。")
+            .setDescription("送られた名言タグの総名言数を表示します。")
+            .addStringOption(option =>
+                option
+                    .setName('name')
+                    .setDescription('タグ名')
+                    .setRequired(true)
+            )
     },
     {
         data: new SlashCommandBuilder()
             .setName("allquotetags")
             .setDescription("全ての名言タグ一覧を表示します。")
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName("kunii")
-            .setDescription("文章の先頭を入れ替えます。")
-            .addStringOption(option =>
-                option
-                    .setName('content')
-                    .setDescription('入れ替えたい文章')
-                    .setRequired(true)
-            )
     },
     {
         data: new SlashCommandBuilder()
@@ -225,7 +221,7 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("check")
-            .setDescription("送られたマップの1/4ストリームの最大の長さを表示します。")
+            .setDescription("送られたマップの傾向を計算し、予測します。")
             .addStringOption(option =>
                 option
                     .setName('beatmaplink')
@@ -304,7 +300,7 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("qfmention")
-            .setDescription("Qualfiedが検出されたらメンションします。")
+            .setDescription("Qualifiedが検出されたらメンションします。")
             .addStringOption(option =>
                 option
                     .setName('mode')
@@ -389,7 +385,7 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("deqfmention")
-            .setDescription("Qualfiedが検出されたらメンションするのを解除します。")
+            .setDescription("Qualifiedが検出されたらメンションするのを解除します。")
             .addStringOption(option =>
                 option
                     .setName('mode')
@@ -746,16 +742,6 @@ module.exports = [
         data: new SlashCommandBuilder()
             .setName("backupcreate")
             .setDescription("バックアップを作成します。管理者専用です。")
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName("update")
-            .setDescription("サーバーデータを更新します。管理者専用です。")
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName("allupdate")
-            .setDescription("全てのサーバーデータを更新します。管理者専用です。")
     },
     {
         data: new SlashCommandBuilder()

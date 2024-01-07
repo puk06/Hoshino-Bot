@@ -1,15 +1,13 @@
 //必要となるライブラリ
-const { Client, EmbedBuilder, Events, GatewayIntentBits, ActivityType, ReactionUserManager } = require("./node_modules/discord.js");
+const { Client, EmbedBuilder, Events, GatewayIntentBits, ActivityType } = require("./node_modules/discord.js");
 require('./node_modules/dotenv').config();
 const fs = require("./node_modules/fs-extra");
 const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
 const axios = require("./node_modules/axios");
-const { Beatmap, Calculator } = require("./node_modules/rosu-pp");
+const { Beatmap, Calculator } = require("./node_modules/rosu-pp-nodev");
 const asciify = require("./node_modules/asciify");
 const { Readable } = require("node:stream");
 const path = require('node:path');
-const git = require('git-clone');
-const { downloadHoshinobotFile, getCommitDiffofHoshinobot } = require("./HoshinoBot updater");
 const osuLibrary = require("./src/library.js");
 
 const apikey = process.env.APIKEY;
@@ -19,11 +17,6 @@ const osuclientsecret = process.env.CLIENTSECRET;
 const hypixelapikey = process.env.HYPIXELAPI;
 const BotadminId = process.env.BOTADMINID;
 const Furrychannel = process.env.FURRYCHANNEL;
-const Githuburl = process.env.GITHUBURL;
-const botfilepath = process.env.BOTFILEPATH;
-const owner = process.env.OWNER;
-const repo = process.env.REPO;
-const file = process.env.FILE;
 
 const client = new Client({
 	intents: [
@@ -35,7 +28,7 @@ const client = new Client({
 });
 
 client.on(Events.ClientReady, async () => {
-	asciify("Hoshino Bot", { font: "larry3d" }, (err, msg) =>{
+	asciify("Hoshino Bot", { font: "larry3d" }, (err, msg) => {
 		if(err) return;
 		console.log(msg);
 	});
@@ -163,10 +156,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				let nextbalance = 0n;
 				for (let i = 1n ; i <= 300n; i += 1n) {
 					if (balance / BigInt(120n ** i) < 1n && currentrank == 0) {
-						await interaction.reply("あなたの現在のレベルは**__0lv__**以下です。")
-							.catch(error => {
-								throw error;
-							});
+						await interaction.reply("あなたの現在のレベルは**__0lv__**以下です。");
 						return;
 					} else if (balance / BigInt(120n ** i) >= 1n) {
 						currentrank += 1;
@@ -341,7 +331,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "kemo") {
-				const dataBase = JSON.parse(fs.readFileSync("./Furry/DataBase.json", "utf-8"));
+				const dataBase = JSON.parse(fs.readFileSync("./Pictures/Furry/DataBase.json", "utf-8"));
 				if (dataBase.FileCount == 0) {
 					await interaction.reply("ファイルが存在しません。");
 					return;
@@ -349,13 +339,13 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 				const random = Math.floor(Math.random() * dataBase.FileCount);
 				const file = dataBase.PhotoDataBase[random];
-				const picData = fs.readFileSync(path.join("./Furry", file));
+				const picData = fs.readFileSync(path.join("./Pictures/Furry", file));
 				await interaction.reply({ files: [{ attachment: picData, name: file }] });
 				return;
 			}
 
 			if (interaction.commandName == "kemodelete") {
-				const dataBase = JSON.parse(fs.readFileSync("./Furry/DataBase.json", "utf-8"));
+				const dataBase = JSON.parse(fs.readFileSync("./Pictures/Furry/DataBase.json", "utf-8"));
 				const usercount = interaction.options.get('count').value;
 
 				let foundFlag = false;
@@ -363,10 +353,10 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					const file = fileName.split(".")[0];
 					if (file == usercount) {
 						foundFlag = true;
-						await fs.remove(`./Furry/${fileName}`);
-						dataBase.PhotoDataBase.filter(item => item !== fileName);
+						await fs.remove(`./Pictures/Furry/${fileName}`);
+						dataBase.PhotoDataBase = dataBase.PhotoDataBase.filter(item => item !== fileName);
 						dataBase.FileCount--;
-						fs.writeFileSync("./Furry/DataBase.json", JSON.stringify(dataBase, null, 4), "utf-8");
+						fs.writeFileSync("./Pictures/Furry/DataBase.json", JSON.stringify(dataBase, null, 4), "utf-8");
 						await interaction.reply("ファイルが正常に削除されました。");
 						break;
 					}
@@ -380,46 +370,46 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "kemocount") {
-				const dataBase = JSON.parse(fs.readFileSync("./Furry/DataBase.json", "utf-8"));
+				const dataBase = JSON.parse(fs.readFileSync("./Pictures/Furry/DataBase.json", "utf-8"));
 				const count = dataBase.FileCount;
 				await interaction.reply(`今まで追加した画像や映像、gifの合計枚数は${count}枚です。`);
 				return;
 			}
 
+			//ここから修正予定
+
 			if (interaction.commandName == "pic") {
 				const tag = interaction.options.get('tag').value;
-				if (!fs.existsSync(path.join("./tag", tag, "DataBase.json"))) {
+				if (!fs.existsSync(path.join("./Pictures/tag", tag, "DataBase.json"))) {
 					await interaction.reply("このタグは存在しません。");
 					return;
 				}
-				const dataBase = JSON.parse(fs.readFileSync(path.join("./tag", tag, "DataBase.json"), "utf-8"));
-
+				const dataBase = JSON.parse(fs.readFileSync(path.join("./Pictures/tag", tag, "DataBase.json"), "utf-8"));
 				const filecount = dataBase.FileCount;
 				if (filecount == 0) {
 					await interaction.reply("ファイルが存在しません。");
 					return;
 				};
-
 				const random = Math.floor(Math.random() * filecount);
 				const file = dataBase.PhotoDataBase[random];
-				const picData = fs.readFileSync(path.join("./tag", tag, file));
+				const picData = fs.readFileSync(path.join("./Pictures/tag", tag, file));
 				await interaction.reply({ files: [{ attachment: picData, name: file }] });
 				return;
 			}
 
 			if (interaction.commandName == "settag") {
-				if (fs.existsSync(`./tag/${interaction.channel.name}`)) {
+				if (fs.existsSync(`./Pictures/tag/${interaction.channel.name}`)) {
 					await interaction.reply("このタグ名は登録できません。");
 					return;
 				}
 
-				if (fs.existsSync(`./tag/${interaction.channel.name}/DataBase.json`)) {
+				if (fs.existsSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`)) {
 					await interaction.reply("このタグは既に存在しています。");
 					return;
 				}
 				
-				await fs.mkdir(`./tag/${interaction.channel.name}`);
-				fs.writeFileSync(`./tag/${interaction.channel.name}/DataBase.json`, JSON.stringify({
+				await fs.mkdir(`./Pictures/tag/${interaction.channel.name}`);
+				fs.writeFileSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`, JSON.stringify({
 					FileCount: 0,
 					PhotoDataBase: []
 				}, null, 4), "utf-8");
@@ -428,23 +418,23 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "deltag") {
-				if (!fs.existsSync(`./tag/${interaction.channel.name}/DataBase.json`)) {
+				if (!fs.existsSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`)) {
 					await interaction.reply("このタグは存在しません。");
 					return;
 				}
 
-				await fs.remove(`./tag/${interaction.channel.name}/DataBase.json`);
+				await fs.remove(`./Pictures/tag/${interaction.channel.name}/DataBase.json`);
 				await interaction.reply("タグの削除が正常に完了しました。");
 				return;
 			}
 
 			if (interaction.commandName == "delpic") {
-				if (!fs.existsSync(`./tag/${interaction.channel.name}/DataBase.json`)) {
+				if (!fs.existsSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`)) {
 					await interaction.reply("このタグは存在しません。");
 					return;
 				}
 
-				const dataBase = JSON.parse(fs.readFileSync(`./tag/${interaction.channel.name}/DataBase.json`, "utf-8"));
+				const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`, "utf-8"));
 				const usercount = interaction.options.get('count').value;
 
 				let foundFlag = false;
@@ -452,10 +442,10 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					const file = fileName.split(".")[0];
 					if (file == usercount) {
 						foundFlag = true;
-						await fs.remove(`./tag/${interaction.channel.name}/${fileName}`);
+						await fs.remove(`./Pictures/tag/${interaction.channel.name}/${fileName}`);
 						dataBase.PhotoDataBase.filter(item => item !== fileName);
 						dataBase.FileCount--;
-						fs.writeFileSync(`./tag/${interaction.channel.name}/DataBase.json`, JSON.stringify(dataBase, null, 4), "utf-8");
+						fs.writeFileSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`, JSON.stringify(dataBase, null, 4), "utf-8");
 						await interaction.reply("ファイルが正常に削除されました。");
 						break;
 					}
@@ -469,56 +459,64 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "piccount") {
-				if (!fs.existsSync(`./tag/${interaction.channel.name}/DataBase.json`)) {
+				if (!fs.existsSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`)) {
 					await interaction.reply("このタグは登録されていません。");
 					return;
 				}
-				const dataBase = JSON.parse(fs.readFileSync(`./tag/${interaction.channel.name}/DataBase.json`, "utf-8"));
+				const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`, "utf-8"));
 				const filecount = dataBase.FileCount;
 				await interaction.reply(`今まで${interaction.channel.name}タグに追加した画像や映像、gifの合計枚数は${filecount}枚です。`);
 				return;
 			}
 
+			//ここまでが修正予定
+
 			if (interaction.commandName == "alltags") {
-				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
-				if (allQuotes.length == 0) {
-					await interaction.reply("まだ１つもタグが存在しません。");
-					return;
-				}
-				let taglist = [];
-				for (let i = 0; i < allQuotes.length; i++) taglist.push(`${i + 1}: ${allQuotes[i]}\n`);
-				await interaction.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
+				let tagList = [];
+				const allTags = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
+				for (let i = 0; i < allTags.length; i++) tagList.push(`${i + 1}: ${allTags[i]}\n`);
+				await interaction.reply(`現在登録されているタグは以下の通りです。\n${tagList.join("")}`);
 				return;
 			}
 
 			if (interaction.commandName == "quote") {
-				const tag = interaction.options.get('tag').value;
+				const tag = interaction.options.get('name').value;
 				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
 				if (!allQuotes[tag]) {
 					await interaction.reply("このタグは存在しません。");
 					return;
 				}
-
-				if (allQuotes[tag].length == 0) {
+				if (allQuotes[tag].quotes.length == 0) {
 					await interaction.reply("このタグには名言がないみたいです。");
 					return;
 				}
-
-				const lineCount = allQuotes[tag].length;
+				const lineCount = allQuotes[tag].quotes.length;
 				const randomLineNumber = Math.floor(Math.random() * lineCount);
-				const randomLine = text[randomLineNumber];
+				const randomLine = allQuotes[tag].quotes[randomLineNumber];
 				await interaction.reply(`**${randomLine}** - ${tag}`);
 				return;
 			}
 
 			if (interaction.commandName == "setquotetag") {
+				const tagName = interaction.options.get('name').value;
 				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
-				if (allQuotes[interaction.channel.name]) {
-					await interaction.reply("このタグは既に存在しています。");
+				if (allQuotes[tagName]) {
+					await interaction.reply("このタグ名は既に存在しています。");
 					return;
 				}
-
-				allQuotes[interaction.channel.name] = [];
+				for (const key in allQuotes) {
+					if (allQuotes[key].id == interaction.channel.id) {
+						allQuotes[tagName] = allQuotes[key];
+						delete allQuotes[key];
+						await interaction.reply("このチャンネルのタグ名を更新しました。");
+						fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
+						return;
+					}
+				}
+				allQuotes[tagName] = {
+					"id": interaction.channel.id,
+					"quotes": []
+				};
 				fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
 				await interaction.reply("タグが正常に作成されました。");
 				return;
@@ -526,62 +524,66 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "delquotetag") {
 				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
-				if (!allQuotes[interaction.channel.name]) {
-					await interaction.reply("このタグは存在しません。");
-					return;
+				for (const key in allQuotes) {
+					if (allQuotes[key].id == interaction.channel.id) {
+						delete allQuotes[key];
+						fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
+						await interaction.reply("タグが正常に削除されました。");
+						return;
+					}
 				}
-
-				delete allQuotes[interaction.channel.name];
-				fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
-				await interaction.reply("タグが正常に削除されました。");
+				await interaction.reply("このチャンネルにタグは存在しません。");
 				return;
 			}
 
 			if (interaction.commandName == "delquote") {
 				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
-				if (!allQuotes[interaction.channel.name]) {
-					await interaction.reply("このタグは存在しません。");
-					return;
+				for (const key in allQuotes) {
+					if (allQuotes[key].id == interaction.channel.id) {
+						const wannadelete = interaction.options.get('quote').value;
+						if (!allQuotes[key].quotes.includes(wannadelete)) {
+							await interaction.reply("その名言は存在しません。");
+							return;
+						}
+						allQuotes[key].quotes = allQuotes[key].quotes.filter(item => item !== wannadelete );
+						fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
+						await interaction.reply("名言の削除が完了しました。");
+						return;
+					}
 				}
-
-				const wannadelete = interaction.options.get('quote').value;
-				if (!allQuotes[interaction.channel.name].includes(wannadelete)) {
-					await interaction.reply("その名言は存在しません。");
-					return;
-				}
-
-				allQuotes[interaction.channel.name].filter(item => item !== wannadelete);
-				fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
-				await interaction.reply("名言の削除が完了しました。");
+				await interaction.reply("このチャンネルにはタグが存在しません。");
 				return;
 			}
 
 			if (interaction.commandName == "quotecount") {
+				const tagName = interaction.options.get('name').value;
 				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
-				if (!allQuotes[interaction.channel.name]) {
+				if (!allQuotes[tagName]) {
 					await interaction.reply("このタグは存在しません。");
 					return;
 				}
-				
-				if (allQuotes[interaction.channel.name].length == 0) {
+				if (allQuotes[tagName].quotes.length == 0) {
 					await interaction.reply("このタグには名言がないみたいです。");
+					return;
 				}
-
-				await interaction.reply(`今まで${interaction.channel.name}タグに追加した名言の合計枚数は${allQuotes[interaction.channel.name].length}個です。`);
+				await interaction.reply(`今まで${interaction.channel.name}タグに追加した名言の合計枚数は${allQuotes[interaction.channel.name].quotes.length}個です。`);
+				return;
 			}
 
 			if (interaction.commandName == "allquotetags") {
-				const tags = fs.readdirSync(`./quotetag`);
-				if (tags.length == 0) {
-					await interaction.reply("タグが存在しません。");
+				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
+				let taglist = [];
+				let i = 0;
+				for (const key in allQuotes) {
+					taglist.push(`${i + 1}: ${key}\n`);
+					i++;
+				}
+				if (taglist.length == 0) {
+					await interaction.reply("まだ１つもタグが存在しません。");
 					return;
 				}
-
-				let taglist = [];
-				for (let i = 0; i < tags.length; i++ ) {
-					taglist.push(`${i + 1}: ${tags[i].name}\n`);
-				}
 				await interaction.reply(`現在登録されているタグは以下の通りです。\n${taglist.join("")}`);
+				return;
 			}
 
 			if (interaction.commandName == "link") {
@@ -620,69 +622,29 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				await interaction.reply("マップ情報を取得し、計算しています...");
+				await interaction.reply("計算中です...");
 				new osuLibrary.CheckMapData(maplink).check()
 					.then(async data => {
-						function mode(array) {
-							if (array.length === 0){
-								return "?";
-							}
-							let counter = {};
-							let nativeValues = {};
-							let maxCounter = 0;
-							let maxValue = null;
-						
-							for (const element of array) {
-								if (!counter[element + "_" + typeof element]) {
-									counter[element + "_" + typeof element] = 0;
-								}
-								counter[element + "_" + typeof element]++;
-								nativeValues[element + "_" + typeof element] = element;
-							}
-
-							for (const element of Object.keys(counter)) {
-								const key = element;
-								if (counter[key] > maxCounter) {
-									maxCounter = counter[key];
-									maxValue = nativeValues[key];
-								}
-							}
-							return maxValue;
-						}
 						const mapData = await new osuLibrary.GetMapData(maplink, apikey).getDataWithoutMode();
 						const mapperData = await new osuLibrary.GetUserData(mapData.creator, apikey).getData();
 						const mapperIconURL = osuLibrary.URLBuilder.iconURL(mapperData?.user_id);
 						const mapperUserURL = osuLibrary.URLBuilder.userURL(mapperData?.user_id);
 						const backgroundURL = osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id);
-						const bpmMin = isNaN(Math.min(...data.BPMarray)) ? 0 : Math.min(...data.BPMarray);
-						const bpmMax = isNaN(Math.max(...data.BPMarray)) ? 0 : Math.max(...data.BPMarray);
+						const bpmMin = isNaNwithNumber(Math.min(...data.BPMarray));
+						const bpmMax = isNaNwithNumber(Math.max(...data.BPMarray));
 						const bpmStr = bpmMin == bpmMax ? bpmMax.toFixed(1) : `${bpmMin.toFixed(1)} ~ ${bpmMax.toFixed(1)}`;
 						const hitTotal = data["1/3 times"] + data["1/4 times"] + data["1/6 times"] + data["1/8 times"];
 						const streamTotal = data.streamCount + data.techStreamCount;
-						const hitPercentData = [Math.round(data["1/3 times"] / hitTotal * 100), Math.round(data["1/4 times"] / hitTotal * 100), Math.round(data["1/6 times"] / hitTotal * 100), Math.round(data["1/8 times"] / hitTotal * 100)] ;
-						const streamPercentData = [Math.round(data.streamCount / streamTotal * 100), Math.round(data.techStreamCount / streamTotal * 100)];
-
-						let mapInfoPrediction = "通常の譜面かと思われます。";
-						if (streamPercentData[0] > streamPercentData[1]) {
-							mapInfoPrediction = "ストリーム譜面かと思われます。";
-						} else if (hitPercentData[2] > 70) {
-							mapInfoPrediction = "1/6譜面かと思われます。";
-						} else if (hitPercentData[3] > 70) {
-							mapInfoPrediction = "倍取り譜面かと思われます。(BPMが2倍の可能性もあります)";
-						} else if (Math.abs(hitPercentData[2] - hitPercentData[3]) < 15) {
-							mapInfoPrediction = "1/6、1/8~譜面かと思われます。";
-						} else if (streamTotal[5] > streamTotal[0]) {
-							mapInfoPrediction = "Tech譜面かと思われます。";
-						}
+						const hitPercentData = [isNaNwithNumber(Math.round(data["1/3 times"] / hitTotal * 100)), isNaNwithNumber(Math.round(data["1/4 times"] / hitTotal * 100)), isNaNwithNumber(Math.round(data["1/6 times"] / hitTotal * 100)), isNaNwithNumber(Math.round(data["1/8 times"] / hitTotal * 100))] ;
+						const streamPercentData = [isNaNwithNumber(Math.round(data.streamCount / streamTotal * 100)), isNaNwithNumber(Math.round(data.techStreamCount / streamTotal * 100))];
 						const embed = new EmbedBuilder()
 							.setColor("Blue")
 							.setTitle(`${mapData.artist} - ${mapData.title} [${mapData.version}]`)
 							.setURL(maplink)
 							.setAuthor({ name: `Mapped by ${mapperData.username}`, iconURL: mapperIconURL, url: mapperUserURL })
-							.addFields({ name: "**BPM**", value: `**${bpmStr}** (最頻値: **${mode(data.BPMarray).toFixed(1)}**)`, inline: false })
-							.addFields({ name: "**Streams** (>100 combo)", value: `**1/4 Streams**: **${data.streamCount}**回 [最大**${data.maxStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageStreamLength)}**コンボ] (${streamPercentData[0]}%)\n**Tech Streams**: **${data.techStreamCount}**回 [最大**${data.techStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageTechStreamLength)}**コンボ] (${streamPercentData[1]}%)`, inline: false })
+							.addFields({ name: "**BPM**", value: `**${bpmStr}** (最頻値: **${data.BPMMode.toFixed(1)}**)`, inline: false })
+							.addFields({ name: "**Streams**", value: `**1/4 Streams**: **${data.streamCount}**回 [最大**${data.maxStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageStreamLength)}**コンボ] (${streamPercentData[0]}%)\n**Tech Streams**: **${data.techStreamCount}**回 [最大**${data.techStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageTechStreamLength)}**コンボ] (${streamPercentData[1]}%)`, inline: false })
 							.addFields({ name: "**Hit Objects**", value: `**1/3**: **${data["1/3 times"]}**回 [最大**${data["max1/3Length"]}**コンボ] (${hitPercentData[0]}%)\n**1/4**: **${data["1/4 times"]}**回 [最大**${data["max1/4Length"]}**コンボ] (${hitPercentData[1]}%)\n**1/6**: **${data["1/6 times"]}**回 [最大**${data["max1/6Length"]}**コンボ] (${hitPercentData[2]}%)\n**1/8**: **${data["1/8 times"]}**回 [最大**${data["max1/8Length"]}**コンボ] (${hitPercentData[3]}%)`, inline: false })
-							.addFields({ name: "**Map Prediction**", value: `結果: **${mapInfoPrediction}**`, inline: false })
 							.setImage(backgroundURL);
 						await interaction.channel.send({ embeds: [embed] });
 					});
@@ -2144,119 +2106,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				return;
 			}
 
-			if (interaction.commandName == "update") {
-				if (interaction.user.id != BotadminId) {
-					await interaction.reply("このコマンドはBOT管理者のみ実行できます。");
-					return;
-				}
-
-				await interaction.reply("更新中です。");
-
-				const fileUrl = Githuburl;
-				const savePath = botfilepath;
-
-				const message = await interaction.channel.send("ファイルのダウンロード中です。");
-				downloadHoshinobotFile(fileUrl, savePath, async (error) => {
-					if (error) {
-						await interaction.channel.send("ファイルのダウンロードに失敗しました。");
-					} else {
-						getCommitDiffofHoshinobot(owner, repo, file, async (error, diff) => {
-							if (error) {
-								console.log(error);
-								await message.edit("ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
-							} else {
-								await message.edit(`ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
-							}
-						});
-					}
-				});
-				return;
-			}
-
-			if (interaction.commandName == "allupdate") {
-				if (interaction.user.id != BotadminId) {
-					await interaction.reply("このコマンドはBOT管理者のみ実行できます。");
-					return;
-				}
-
-				await interaction.reply("更新中です。");
-
-				await interaction.channel.send("Updateフォルダをリセットしています。");
-				await fs.remove('./updatetemp');
-				await interaction.channel.send("Updateフォルダのリセットが完了しました。");
-				await interaction.channel.send("リポジトリのクローン中です。");
-				git(`https://github.com/${owner}/${repo}.git`, './updatetemp', {}, async (error) => {
-					if (error) {
-						console.log(error);
-						await interaction.channel.send("リポジトリのクローン時に失敗しました");
-						return;
-					}
-
-					await interaction.channel.send("リポジトリのクローンが完了しました。");
-
-					const sourceDir = './updatetemp';
-					const destinationDir = './';
-					const excludedFiles = ['(dotenv).env', 'talkcount.json', 'usermessage.json'];
-					fs.readdir(sourceDir, async (err, files) => {
-						await interaction.channel.send("ディリクトリを読み込んでいます。")
-						if (err) {
-							console.log(err);
-							await interaction.channel.send("ディレクトリの読み込み中にエラーが発生しました");
-							return;
-						}
-						await interaction.channel.send("ディリクトリの読み込みが完了しました。")
-
-						const copyFile = (src, dest) => {
-							if (!excludedFiles.includes(path.basename(src))) {
-								fs.copy(src, dest)
-								.catch((err) => {
-									throw err;
-								});
-							}
-						};
-
-						const copyFolder = (src, dest) => {
-							if (!excludedFolders.includes(path.basename(src))) {
-								fs.copy(src, dest)
-								.catch((err) => {
-									throw err;
-								});
-							}
-						};
-
-						await interaction.channel.send("ファイルのコピー中です。")
-
-						files.forEach(async (file) => {
-							const srcPath = path.join(sourceDir, file);
-							const destPath = path.join(destinationDir, file);
-							try {
-								if (fs.lstatSync(srcPath).isDirectory()) {
-									if (srcPath == "./updatetemp/src") {
-										copyFolder(srcPath, destPath);
-									}
-								} else {
-									copyFile(srcPath, destPath);
-								}
-							} catch (err) {
-								console.log(err);
-								await interaction.channel.send("ファイルのコピー中にエラーが発生しました。")
-								return;
-							}
-						});
-
-						getCommitDiffofHoshinobot(owner, repo, file, async (error, diff) => {
-							if (error) {
-								console.log(error);
-								await interaction.channel.send("全ファイルのアップデートに成功しました。\nアップデート内容: 取得できませんでした。");
-							} else {
-								await interaction.channel.send(`全ファイルのアップデートに成功しました。\n最新のアップデート内容: **${diff}**\n※アップデート後はPM2上でサーバーの再起動をしてください。`);
-							}
-						});
-					});
-				});
-				return;
-			}
-
 			if (interaction.commandName == "echo") {
 				const message = interaction.options.get('message').value;
 				await interaction.reply({ content: '送信しますね！', ephemeral: true });
@@ -2341,7 +2190,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("このサーバーでは、まだ誰も喋っていないようです。");
 					return;
 				}
-				let talkranking = []
+				let talkranking = [];
 				for (const [key, value] of Object.entries(serverJSONdata[interaction.guildId])) {
 					talkranking.push([key, value]);
 				}
@@ -2375,15 +2224,15 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				await interaction.channel.send("マップが見つかりませんでした。")
 					.catch(async () => {
 						await client.users.cache.get(interaction.user.id).send('こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！')
-							.catch(() => {
-								console.log("エラーメッセージの送信に失敗しました。");
-							})
 							.then(() => {
 								console.log("DMに権限に関するメッセージを送信しました。");
+							})
+							.catch(() => {
+								console.log("エラーメッセージの送信に失敗しました。");
 							});
 					});
 			} else {
-				asciify("Error", { font: "larry3d" }, (err, msg) =>{
+				asciify("Error", { font: "larry3d" }, (err, msg) => {
 					if(err) return;
 					console.log(msg);
 				});
@@ -2391,11 +2240,11 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				await interaction.channel.send(`${interaction.user.username}さんのコマンドの実行中にエラーが発生しました。`)
 					.catch(async () => {
 						await client.users.cache.get(interaction.user.id).send('こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！')
-							.catch(() => {
-								console.log("エラーメッセージの送信に失敗しました。");
-							})
 							.then(() => {
 								console.log("DMに権限に関するメッセージを送信しました。");
+							})
+							.catch(() => {
+								console.log("エラーメッセージの送信に失敗しました。");
 							});
 					});
 			}
@@ -2421,75 +2270,10 @@ client.on(Events.MessageCreate, async (message) =>
 			} catch (e) {
 				console.log(e);
 			}
-			
-			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif')) && message.channel.id == Furrychannel) {
-				if (message.author.bot) return;
-				const dataBase = JSON.parse(fs.readFileSync("./Furry/DataBase.json", "utf-8"));
-
-				for (const attachment of message.attachments.values()) {
-					const imageURL = attachment.url;
-					const imageFile = await axios.get(imageURL, { responseType: 'arraybuffer' });
-					const extention = imageURL.split(".")[imageURL.split(".").length - 1].split("?")[0];
-					let filename = 1;
-					while (!dataBase.PhotoDataBase.includes(filename + "." + extention)) {
-						filename++;
-					}
-					fs.writeFileSync(`./Furry/${filename}.${extention}`, imageFile.data);
-					dataBase.PhotoDataBase.push(filename + "." + extention);
-				}
-				fs.writeFileSync("./Furry/DataBase.json", JSON.stringify(dataBase, null, 4));
-
-				if (message.attachments.size == 1) {
-					await message.reply("Furryが保存されました");
-				} else {
-					await message.reply(`${message.attachments.size}個のFurryが保存されました`);
-				}
-				return;
-			}
-
-			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif'))) {
-				if (message.author.bot) return;
-
-				if (!fs.existsSync(`./tag/${message.channel.name}`)) return;
-				const dataBase = JSON.parse(fs.readFileSync(`./tag/${message.channel.name}/DataBase.json`, "utf-8"));
-
-				for (const attachment of message.attachments.values()) {
-					const imageURL = attachment.url;
-					const imageFile = await axios.get(imageURL, { responseType: 'arraybuffer' });
-					const extention = imageURL.split(".")[imageURL.split(".").length - 1].split("?")[0];
-					let filename = 1;
-					while (!dataBase.PhotoDataBase.includes(filename + "." + extention)) {
-						filename++;
-					}
-					dataBase.PhotoDataBase.push(filename + "." + extention);
-					fs.writeFileSync(`./tag/${message.channel.name}/${currentFileCount + 1}.${extention}`, imageFile.data);
-				}
-				fs.writeFileSync(`./tag/${message.channel.name}/DataBase.json`, JSON.stringify(dataBase, null, 4));
-				
-				if (message.attachments.size == 1) {
-					await message.reply("ファイルが保存されました");
-				} else {
-					await message.reply(`${message.attachments.size}個のファイルが保存されました`);
-				}
-				return;
-			}
-
-			if (fs.existsSync(`./quotetag/${message.channel.name}/quote.json`) && !message.content.startsWith("!") && !message.content.startsWith("http")) {
-				//Botが送ったメッセージに対しての処理をブロック
-				if (message.author.bot) return;
-				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
-				if (allQuotes[message.channel.name] == undefined) return;
-				allQuotes[message.channel.name].push(message.content);
-				fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4));
-
-				//画像の保存が完了したことを知らせるメッセージを送信
-				await message.reply(`名言が保存されました`);
-				return;
-			}
 
 			if (message.content.split(" ")[0] == "!map") {
 				if (message.content == "!map") {
-					await message.reply("使い方: !map <マップリンク> <Mods(省略可)> <Acc(省略可)>");
+					await message.reply("使い方: !map [マップリンク] (Mods) (Acc)");
 					return;
 				}
 
@@ -2696,7 +2480,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 			if (message.content.split(" ")[0].startsWith("!r")) {
 				if (message.content == "!r") {
-					await message.reply("使い方: !r(o, t, c, m) <osu!ユーザーネーム(省略可)>");
+					await message.reply("使い方: !r[o, t, c, m] (osu!ユーザーネーム)");
 					return;
 				}
 
@@ -2877,9 +2661,8 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 				let mapRanking = mapScores.length + 1;
 
-				if (mapScores.includes(userRecentData.score) && Number(userRecentData.score) >= mapScores[mapScores.length - 1]) {
+				if (Number(userRecentData.score) >= mapScores[mapScores.length - 1]) {
 					mapScores.sort((a, b) => a - b);
-					mapRanking = mapScores.length + 1;
 					const score = Number(userRecentData.score);
 					for (const element of mapScores) {
 						if (score >= element) {
@@ -2888,10 +2671,6 @@ client.on(Events.MessageCreate, async (message) =>
 							break;
 						}
 					}
-				} else if (Number(userRecentData.score) >= mapScores[mapScores.length - 1]) {
-					mapScores.push(userRecentData.score);
-					mapScores.sort((a, b) => b - a);
-					mapRanking = mapScores.indexOf(Number(userRecentData.score)) + 1;
 				}
 
 				const response = await axios.get(
@@ -2956,7 +2735,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.addFields({ name: "`Combo`", value: `**${userRecentData.maxcombo}**x / ${mapData.max_combo}x`,inline: true })
 					.addFields({ name: "`Hits`", value: formattedHits, inline: true });
 				
-				if (currentMode == 3) {
+				if (currentMode == 3 || userRecentData.maxcombo == mapData.max_combo) {
 					embed
 						.addFields({ name: "`Map Info`", value: `Length:\`${formattedTotalLength}(${formattedHitLength})\` BPM:\`${BPM}\` Objects:\`${objectCount}\` \n  CS:\`${Cs}\` AR:\`${Ar}\` OD:\`${Od}\` HP:\`${Hp}\` Stars:\`${ssPp.sr.toFixed(2)}\``, inline: true })
 						.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
@@ -2973,6 +2752,10 @@ client.on(Events.MessageCreate, async (message) =>
 						.setFooter({ text: `${mapStatus} mapset of ${mapData.creator}`, iconURL: mapperIconUrl });
 				}
 
+				let ifFCMessage = `(**${ifFCPP.toFixed(2)}**pp for ${ifFCAcc}% FC)`;
+				if (currentMode == 3) ifFCMessage = "";
+				if (userRecentData.maxcombo == mapData.max_combo) ifFCMessage = "**Full Combo!! Congrats!!**";
+
 				await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
 					setTimeout(async () => {
 						const embednew = new EmbedBuilder()
@@ -2981,7 +2764,7 @@ client.on(Events.MessageCreate, async (message) =>
 							.setThumbnail(osuLibrary.URLBuilder.thumbnailURL(mapData.beatmapset_id))
 							.setURL(maplink)
 							.setAuthor({ name: `${playersdata.username}: ${Number(playersdata.pp_raw).toLocaleString()}pp (#${Number(playersdata.pp_rank).toLocaleString()} ${playersdata.country}${Number(playersdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconUrl, url: playerUrl })
-							.addFields({ name: rankingString, value: `${rankconverter(userRecentData.rank)} + **${mods.str}**　**Score**: ${Number(userRecentData.score).toLocaleString()}　**Acc**: ${recentAcc}% \n **PP**: **${recentPp}** / ${ssPp.pp.toFixed(2)}pp　(**${ifFCPP.toFixed(2)}**pp for ${ifFCAcc}% FC)  \n **Combo**: **${userRecentData.maxcombo}**x / ${mapData.max_combo}x　**Hits**: ${formattedHits}`, inline: true });
+							.addFields({ name: rankingString, value: `${rankconverter(userRecentData.rank)} + **${mods.str}**　**Score**: ${Number(userRecentData.score).toLocaleString()}　**Acc**: ${recentAcc}% \n **PP**: **${recentPp}** / ${ssPp.pp.toFixed(2)}pp　${ifFCMessage} \n **Combo**: **${userRecentData.maxcombo}**x / ${mapData.max_combo}x　**Hits**: ${formattedHits}`, inline: true });
 						await sentMessage.edit({ embeds: [embednew] });
 					}, 20000);
 				});
@@ -2990,7 +2773,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 			if (message.content.split(" ")[0] == "!score") {
 				if (message.content == "!score") {
-					await message.reply("使い方: !score <マップリンク> <osu!ユーザーネーム(省略可)>");
+					await message.reply("使い方: !score [マップリンク] (osu!ユーザーネーム)");
 					return;
 				}
 
@@ -3206,7 +2989,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 			if (message.content.split(" ")[0] == "!m") {
 				if (message.content == "!m") {
-					await message.reply("使い方: !m <Mods>");
+					await message.reply("使い方: !m [Mods]");
 					return;
 				}
 
@@ -3326,9 +3109,12 @@ client.on(Events.MessageCreate, async (message) =>
 
 			if (message.content.startsWith("!wi")) {
 				if (message.content == "!wi") {
-					await message.reply("使い方: !wi◯<モード(o, t, c, m)> <PPの値> <osu!ユーザーネーム(省略可)>");
+					await message.reply("使い方: !wi[o, t, c, m] [PP] (osu!ユーザーネーム)");
 					return;
 				}
+
+				await message.reply("現在、この機能は開発中です。完成までお待ち下さい！");
+				return;
 
 				let enteredpp;
 				if (message.content.split(" ")[1] == undefined) {
@@ -3824,8 +3610,8 @@ client.on(Events.MessageCreate, async (message) =>
 					"h!help": "コマンドのヘルプを表示します。",
 					"!map [maplink] (mods) (acc)": "指定した譜面の情報を表示します。modsとaccは省略可能です。",
 					"!score [maplink] (username)": "ユーザーのそのマップでの全ての記録(最大10個)を表示します。usernameは登録していれば省略可能です。",
-					"!r(o, t, c, m) (username)": "ユーザーの最新のosu!std、taiko、catch、maniaの記録を表示します。usernameは登録していれば省略可能です。",
-					"!wi(o, t, c, m) [pp] (username)": "ユーザーが指定したppを新しく取得したときのppとランキングを表示します。usernameは省略可能です。",
+					"!r[o, t, c, m] (username)": "ユーザーの最新のosu!std、taiko、catch、maniaの記録を表示します。usernameは登録していれば省略可能です。",
+					"!wi[o, t, c, m] [pp] (username)": "ユーザーが指定したppを新しく取得したときのppとランキングを表示します。usernameは省略可能です。",
 					"!m [mods]": "直近に送信された譜面にmodsをつけてppを表示します。/linkコマンドで有効になります。",
 					"!skip": "osubgquiz、osubgquizpf、osuquiz、osuquizpfコマンドで使用できます。現在の問題をスキップします。",
 					"!hint": "osubgquiz、osubgquizpf、osuquiz、osuquizpfコマンドで使用できます。現在の問題のヒントを表示します。",
@@ -3893,20 +3679,84 @@ client.on(Events.MessageCreate, async (message) =>
 				if (!message.content.split("分")[0].includes(".")) return;
 				await message.reply(`${Math.floor(totalminutes)}分 ${Math.round((totalminutes - Math.floor(totalminutes)) * 60)}秒`);
 			}
+
+			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif')) && message.channel.id == Furrychannel) {
+				if (message.author.bot) return;
+				const dataBase = JSON.parse(fs.readFileSync("./Pictures/Furry/DataBase.json", "utf-8"));
+				for (const attachment of message.attachments.values()) {
+					const imageURL = attachment.url;
+					const imageFile = await axios.get(imageURL, { responseType: 'arraybuffer' });
+					const extention = imageURL.split(".")[imageURL.split(".").length - 1].split("?")[0];
+					const fileNameWithoutExtention = dataBase.PhotoDataBase.map((x) => Number(x.split(".")[0]));
+					let filename = 0;
+					while (fileNameWithoutExtention.includes(filename)) {
+						filename++;
+					}
+					dataBase.PhotoDataBase.push(filename + "." + extention);
+					dataBase.FileCount++;
+					fs.writeFileSync(`./Pictures/Furry/${filename}.${extention}`, imageFile.data);
+				}
+				fs.writeFileSync("./Pictures/Furry/DataBase.json", JSON.stringify(dataBase, null, 4));
+				if (message.attachments.size == 1) {
+					await message.reply("Furryが保存されました");
+				} else {
+					await message.reply(`${message.attachments.size}個のFurryが保存されました`);
+				}
+				return;
+			}
+
+			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif'))) {
+				if (message.author.bot) return;
+				if (fs.existsSync(`./Pictures/tag/${message.channel.name}/DataBase.json`)) {
+					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${message.channel.name}/DataBase.json`, "utf-8"));
+					for (const attachment of message.attachments.values()) {
+						const imageURL = attachment.url;
+						const imageFile = await axios.get(imageURL, { responseType: 'arraybuffer' });
+						const extention = imageURL.split(".")[imageURL.split(".").length - 1].split("?")[0];
+						const fileNameWithoutExtention = dataBase.PhotoDataBase.map((x) => Number(x.split(".")[0]));
+						let filename = 0;
+						while (fileNameWithoutExtention.includes(filename)) {
+							filename++;
+						}
+						dataBase.PhotoDataBase.push(filename + "." + extention);
+						dataBase.FileCount++;
+						fs.writeFileSync(`./Pictures/tag/${message.channel.name}/${filename}.${extention}`, imageFile.data);
+					}
+					fs.writeFileSync(`./Pictures/tag/${message.channel.name}/DataBase.json`, JSON.stringify(dataBase, null, 4));
+					if (message.attachments.size == 1) {
+						await message.reply("ファイルが保存されました");
+					} else {
+						await message.reply(`${message.attachments.size}個のファイルが保存されました`);
+					}
+				}
+			}
+
+			if (!message.content.startsWith("!")) {
+				if (message.author.bot) return;
+				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
+				for (const key in allQuotes) {
+					if (allQuotes[key].id == message.channel.id) {
+						allQuotes[key].quotes.push(message.content);
+						fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4));
+						await message.reply(`名言が保存されました`);
+						return;
+					}
+				}
+			}
 		} catch (e) {
 			if (e.message == "No data found") {
 				await message.reply("マップが見つかりませんでした。")
 					.catch(async () => {
 						await client.users.cache.get(message.author.id).send('こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！')
-							.catch(() => {
-								console.log("エラーメッセージの送信に失敗しました。");
-							})
 							.then(() => {
 								console.log("DMに権限に関するメッセージを送信しました。");
+							})
+							.catch(() => {
+								console.log("エラーメッセージの送信に失敗しました。");
 							});
 					});
 			} else {
-				asciify("Error", { font: "larry3d" }, (err, msg) =>{
+				asciify("Error", { font: "larry3d" }, (err, msg) => {
 					if(err) return;
 					console.log(msg);
 				});
@@ -3914,11 +3764,11 @@ client.on(Events.MessageCreate, async (message) =>
 				await message.reply(`${message.author.username}さんのコマンドの実行中にエラーが発生しました。`)
 					.catch(async () => {
 						await client.users.cache.get(message.author.id).send('こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！')
-							.catch(() => {
-								console.log("エラーメッセージの送信に失敗しました。");
-							})
 							.then(() => {
 								console.log("DMに権限に関するメッセージを送信しました。");
+							})
+							.catch(() => {
+								console.log("エラーメッセージの送信に失敗しました。");
 							});
 					});
 			}
@@ -4165,6 +4015,10 @@ function rankconverter(rank) {
 		default:
 			return "";
 	}
+}
+
+function isNaNwithNumber(num) {
+	return isNaN(num) ? 0 : num;
 }
 
 function checkqualified() {
@@ -4626,6 +4480,11 @@ async function rankedintheday() {
 	}
 }
 
+/**
+ * Formats a number by adding a leading zero if it is less than 10.
+ * @param {number} num - The number to be formatted.
+ * @returns {string} The formatted number.
+ */
 function formatNumber(num) {
     return num < 10 ? '0' + num : num.toString();
 }
@@ -4662,12 +4521,17 @@ function modeConvertAcc(num) {
 	}
 }
 
+/**
+ * Creates a progress bar based on the given percentage.
+ * @param {number} percent - The percentage value (0-100) to represent the progress.
+ * @returns {string} The progress bar string.
+ */
 function createProgressBar(percent) {
 	const progress = parseInt((20 * percent / 100).toFixed(0));
 	const emptyProgress = parseInt((20 * (100 - percent) / 100).toFixed(0));
 	const progressText = "#".repeat(progress);
 	const emptyProgressText = "-".repeat(emptyProgress);
-	return `[${progressText}${emptyProgressText}]`
+	return `[${progressText}${emptyProgressText}]`;
 }
 
 async function makeBackup() {
@@ -4682,6 +4546,13 @@ async function makeBackup() {
 	await fs.copy("./ServerDatas", `./Backups/${dateString}`);
 }
 
+/**
+ * Calculates the match percentage between two strings.
+ *
+ * @param {string} current - The current string.
+ * @param {string} total - The total string.
+ * @returns {number} The match percentage between the two strings.
+ */
 function matchPercentage(current, total) {
 	let data = [current.split('').map((_, index) => current.slice(0, index + 1))];
 	for (let i = 0; i < current.length; i++) {
