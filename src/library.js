@@ -1,6 +1,10 @@
 const axios = require("../node_modules/axios");
-const { Beatmap, Calculator } = require("../node_modules/rosu-pp");
+const { Beatmap, Calculator } = require("../node_modules/rosu-pp-nodev");
 
+/**
+ * Represents a class for retrieving user data.
+ * @class
+ */
 class User {
     constructor(name, apikey, mode, endpoint) {
         this.name = name;
@@ -9,6 +13,10 @@ class User {
         this.endpoint = endpoint;
     }
 
+    /**
+     * Retrieves data from an API endpoint.
+     * @returns {Promise<any>} A promise that resolves with the retrieved data.
+     */
     getData() {
         return new Promise(async (resolve, reject) => {
             await axios.get(`https://osu.ppy.sh/api/${this.endpoint}?&k=${this.apikey}&type=string&m=${this.mode}&u=${this.name}`)
@@ -21,6 +29,10 @@ class User {
         });
     }
 
+    /**
+     * Retrieves data without mode from the specified endpoint using the provided API key and name.
+     * @returns {Promise<any>} A promise that resolves with the retrieved data or rejects with an error.
+     */
     getDataWithoutMode() {
         return new Promise(async (resolve, reject) => {
             await axios.get(`https://osu.ppy.sh/api/${this.endpoint}?&k=${this.apikey}&type=string&u=${this.name}`)
@@ -33,6 +45,12 @@ class User {
         });
     }
 
+    /**
+     * Retrieves score data for a specific beatmap.
+     * @param {string} beatmapId - The ID of the beatmap.
+     * @param {number} [mods=0] - The mods applied to the score (default: 0).
+     * @returns {Promise<Object>} - A promise that resolves with the score data.
+     */
     getScoreData(beatmapId, mods = 0) {
         return new Promise(async (resolve, reject) => {
             await axios.get(`https://osu.ppy.sh/api/${this.endpoint}?&k=${this.apikey}&b=${beatmapId}&type=string&m=${this.mode}&u=${this.name}&mods=${mods}`)
@@ -53,6 +71,11 @@ class User {
         });
     }
 
+    /**
+     * Retrieves score data for a beatmap without mods.
+     * @param {string} beatmapId - The ID of the beatmap.
+     * @returns {Promise} A promise that resolves with the score data or rejects with an error.
+     */
     getScoreDataWithoutMods(beatmapId) {
         return new Promise(async (resolve, reject) => {
             await axios.get(`https://osu.ppy.sh/api/${this.endpoint}?&k=${this.apikey}&b=${beatmapId}&type=string&m=${this.mode}&u=${this.name}`)
@@ -66,31 +89,61 @@ class User {
     }
 }
 
+/**
+ * Represents a class for retrieving user data.
+ * @class
+ * @extends User
+ */
 class GetUserData extends User {
     constructor(name, apikey, mode = 0) {
         super(name, apikey, mode, 'get_user');
     }
 }
 
+/**
+ * Represents a class for retrieving a user's recent data.
+ * @class
+ * @extends User
+ */
 class GetUserRecent extends User {
     constructor(name, apikey, mode = 0) {
         super(name, apikey, mode, 'get_user_recent');
     }
 }
 
+/**
+ * Represents a user's score retrieval.
+ * @class
+ * @extends User
+ */
 class GetUserScore extends User {
     constructor(name, apikey, mode = 0) {
         super(name, apikey, mode, 'get_scores');
     }
 }
 
+/**
+ * Represents a class for retrieving map data from the osu! API.
+ * @class
+ */
 class GetMapData {
+    /**
+     * Creates an instance of GetMapData.
+     * @param {string} maplink - The map link or ID.
+     * @param {string} apikey - The API key for accessing the osu! API.
+     * @param {number} [mode=0] - The game mode (0 = osu!, 1 = Taiko, 2 = Catch the Beat, 3 = osu!mania).
+     */
     constructor(maplink, apikey, mode = 0) {
         this.maplink = /^\d+$/.test(maplink) ? maplink : maplink.split("/")[5];
         this.apikey = apikey;
         this.mode = mode;
     }
 
+    /**
+     * Retrieves map data from the osu! API.
+     * @returns {Promise<object>} A promise that resolves to the map data.
+     * @throws {Error} If no data is found.
+     */
     getData() {
         return new Promise(async (resolve, reject) => {
             await axios.get(`https://osu.ppy.sh/api/get_beatmaps?k=${this.apikey}&m=${this.mode}&b=${this.maplink}&a=1`)
@@ -106,6 +159,11 @@ class GetMapData {
         });
     }
 
+    /**
+     * Retrieves map data from the osu! API without specifying the game mode.
+     * @returns {Promise<object>} A promise that resolves to the map data.
+     * @throws {Error} If no data is found.
+     */
     getDataWithoutMode() {
         return new Promise(async (resolve, reject) => {
             await axios.get(`https://osu.ppy.sh/api/get_beatmaps?k=${this.apikey}&b=${this.maplink}`)
@@ -122,7 +180,18 @@ class GetMapData {
     }
 }
 
+/**
+ * Represents a class for retrieving map data from the osu! API.
+ * @class
+ */
 class CalculatePPSR {
+    /**
+     * Represents a Library object.
+     * @constructor
+     * @param {string} maplink - The map link or map ID.
+     * @param {number} [mods=0] - The mods applied to the beatmap.
+     * @param {number} [mode=0] - The game mode.
+     */
     constructor(maplink, mods = 0, mode = 0) {
         this.maplink = /^\d+$/.test(maplink) ? maplink : maplink.split("/")[5];
         this.beatmapData = null;
@@ -131,6 +200,11 @@ class CalculatePPSR {
         this.acc = 100;
     }
 
+    /**
+     * Retrieves the map data from the specified URL.
+     * @returns {Promise<void>} A promise that resolves when the map data is successfully retrieved.
+     * @throws {Error} If there is an error while retrieving the map data.
+     */
     async getMapData() {
         return new Promise(async (resolve, reject) => {
             this.beatmapdata = await axios(`https://osu.ppy.sh/osu/${this.maplink}`, { responseType: "arrayBuffer" })
@@ -144,7 +218,11 @@ class CalculatePPSR {
         });
     }
 
-    async getMap () {
+    /**
+     * Retrieves the beatmap data.
+     * @returns {Promise<Object>} A promise that resolves with the beatmap data.
+     */
+    async getMap() {
         if (this.beatmapData === null) {
             await this.getMapData()
             .catch(error => {
@@ -154,7 +232,12 @@ class CalculatePPSR {
         return this.beatmapData;
     }
 
-    async calcObject () {
+    /**
+     * Calculates the object based on the beatmap data and mode.
+     * @returns {Promise<Object>} A promise that resolves to the calculated object.
+     * @throws {Error} If there is an error during the calculation process.
+     */
+    async calcObject() {
         return new Promise(async (resolve, reject) => {
             try {
                 if (this.beatmapData === null) {
@@ -182,16 +265,30 @@ class CalculatePPSR {
         })
     }
 
-    acc (num) {
+    /**
+     * Sets the value of the accumulator.
+     * @param {number} num - The value to set the accumulator to.
+     * @returns {Object} - The current object instance.
+     */
+    acc(num) {
         this.acc = num;
         return this;
     }
 
-    mods (num) {
+    /**
+     * Sets the mods value.
+     * @param {number} num - The number to set as the mods value.
+     * @returns {Object} - The modified object.
+     */
+    mods(num) {
         this.mods = num;
         return this;
     }
 
+    /**
+     * Calculates the SR (Star Rating) and PP (Performance Points) for the beatmap.
+     * @returns {Promise<{sr: number, pp: number}>} The calculated SR and PP values.
+     */
     calculateSR() {
         return new Promise(async (resolve, reject) => {
             try {
@@ -223,6 +320,10 @@ class CalculatePPSR {
         });
     }
 
+    /**
+     * Calculates the difficulty and performance points (PP) of a beatmap.
+     * @returns {Promise<{sr: number, pp: number}>} The calculated difficulty (SR) and performance points (PP).
+     */
     calculateDT() {
         return new Promise(async (resolve, reject) => {
             try {
@@ -254,6 +355,12 @@ class CalculatePPSR {
         });
     }
 
+    /**
+     * Calculates the score PP (Performance Points).
+     * @param {Object} params - The parameters for calculating the PP.
+     * @returns {Promise<number>} - A promise that resolves with the calculated PP.
+     * @throws {Error} - If an error occurs during the calculation.
+     */
     calculateScorePP(params) {
         return new Promise(async (resolve, reject) => {
             try {
@@ -320,8 +427,24 @@ class CheckMapData {
                     "1/6 times": 0,
                     "max1/6Length": 0,
                     "1/8 times": 0,
-                    "max1/8Length": 0
+                    "max1/8Length": 0,
+                    "BPMMode": 0
                 };
+
+                function mode(BPMarray) {
+                    if (BPMarray.length == 0) return 0;
+                    if (BPMarray.length == 1) return BPMarray[0][0];
+                    let maxInterval = 0;
+                    let maxIntervalIndex = 0;
+                    for (let i = 0; i < BPMarray.length - 1; i++) {
+                        const interval = BPMarray[i + 1][0] - BPMarray[i][0];
+                        if (interval > maxInterval) {
+                            maxInterval = interval;
+                            maxIntervalIndex = i;
+                        }
+                    }
+                    return BPMarray[maxIntervalIndex][1];
+                }
 
                 lineReader.on('line', (line) => {
                     if (timingpointflag) {
@@ -642,6 +765,7 @@ class CheckMapData {
                     stream = 0;
                     threeStream = 0;
                     tempTechStream = 0;
+                    mapData.BPMMode = mode(BPMarray);
                     mapData["over100ComboAverageStreamLength"] = streamArray.length == 0 ? 0 : streamArray.reduce((acc, cur) => acc + cur, 0) / streamArray.length;
                     mapData["over100ComboAverageTechStreamLength"] = techStreamArray.length == 0 ? 0 : techStreamArray.reduce((acc, cur) => acc + cur, 0) / techStreamArray.length;
                     resolve(mapData);
@@ -671,7 +795,7 @@ const ModStrings = {
 	1024: "FL",
 	2048: "Autoplay",
 	8192: "Relax2",
-	16384: "PF",
+	16384: "PF"
 };
 
 const ModtoStrings = {
@@ -688,10 +812,19 @@ const ModtoStrings = {
 	"FL": 1024,
 	"Autoplay": 2048,
 	"Relax2": 8192,
-	"PF": 16384,
+	"PF": 16384
 };
 
+/**
+ * Represents a Library object.
+ * @class
+ */
 class Mod {
+    /**
+     * Represents a Library object.
+     * @constructor
+     * @param {Array} mods - The array of mods.
+     */
     constructor(mods) {
         this.mods = mods;
     }
@@ -794,12 +927,15 @@ class Mod {
     }
 }
 
+/**
+ * Utility class for building URLs related to osu!.
+ * @class
+ */
 class URLBuilder {
-
     /**
-     *
-     * @param {*} userId
-     * @returns icon URL
+     * Returns the icon URL for a given user ID.
+     * @param {string} userId - The user ID.
+     * @returns {string} The icon URL.
      */
     static iconURL(userId) {
         if (!userId) return "https://a.ppy.sh/2";
@@ -807,20 +943,21 @@ class URLBuilder {
     }
 
     /**
-     *
-     * @param {*} beatmapSetId
-     * @param {*} mode: 0 = osu!, 1 = taiko, 2 = fruits, 3 = mania
-     * @param {*} beatmapId
-     * @returns beatmap URL
+     * Generates a beatmap URL based on the provided parameters.
+     * @param {string} beatmapSetId - The ID of the beatmap set.
+     * @param {string} mode - The mode of the beatmap.
+     * @param {string} beatmapId - The ID of the specific beatmap.
+     * @returns {string} The generated beatmap URL.
      */
     static beatmapURL(beatmapSetId, mode, beatmapId) {
         return `https://osu.ppy.sh/beatmapsets/${beatmapSetId}#${modeconvertforlinks(mode)}/${beatmapId}`;
     }
 
     /**
-     *
-     * @param {*} userId
-     * @returns user URL
+     * Returns the URL of a user's profile on osu! based on their user ID.
+     * If no user ID is provided, the default URL for the osu! homepage is returned.
+     * @param {string} userId - The user ID of the osu! user.
+     * @returns {string} The URL of the user's profile on osu!.
      */
     static userURL(userId) {
         if (!userId) return "https://osu.ppy.sh/home";
@@ -828,9 +965,9 @@ class URLBuilder {
     }
 
     /**
-     *
-     * @param {*} beatmapSetId or beatmap Link
-     * @returns background URL
+     * Returns the URL of the background image for a given beatmap set ID.
+     * @param {string} beatmapSetId - The ID of the beatmap set.
+     * @returns {string} The URL of the background image.
      */
     static backgroundURL(beatmapSetId) {
         beatmapSetId = /^\d+$/.test(beatmapSetId) ? beatmapSetId : beatmapSetId.split("/")[4].split("#")[0];
@@ -838,16 +975,25 @@ class URLBuilder {
     }
 
     /**
-     *
-     * @param {*} beatmapSetId
-     * @returns thumbnail URL
+     * Returns the URL of the thumbnail image for a given beatmap set ID.
+     * @param {number} beatmapSetId - The ID of the beatmap set.
+     * @returns {string} The URL of the thumbnail image.
      */
     static thumbnailURL(beatmapSetId) {
         return `https://b.ppy.sh/thumb/${beatmapSetId}l.jpg`;
     }
 }
 
+/**
+ * A utility class that provides various tools and functions.
+ * @class
+ */
 class Tools {
+    /**
+     * Maps the status code to its corresponding status string.
+     * @param {number} approved - The status code to be mapped.
+     * @returns {string} - The corresponding status string.
+     */
     static mapstatus(approved) {
         switch (Number(approved)) {
             case -2:
@@ -870,7 +1016,17 @@ class Tools {
     }
 }
 
+/**
+ * Calculates the global performance points (PP) based on the given scores and user play count.
+ * @class
+ */
 class CalculateGlobalPP {
+    /**
+     * Calculates the global performance points (PP) based on the given scores and user play count.
+     * @param {number[]} scores - The scores achieved by the user.
+     * @param {number} userplaycount - The play count of the user.
+     * @returns {number} The calculated global performance points (PP).
+     */
     static calculate(scores, userplaycount) {
         let scorepp = 0.0;
         for (let i = 0; i < scores.length; i++) {
@@ -880,7 +1036,18 @@ class CalculateGlobalPP {
     }
 }
 
+/**
+ * Represents a class for calculating and generating SR (Star Rating) chart.
+ * @class
+ */
 class SRChart {
+    /**
+     * Calculates the SR (Star Rating) chart for a given beatmap ID and mode.
+     * @param {string} beatmapId - The ID of the beatmap.
+     * @param {string} mode - The mode of the beatmap (e.g., "osu", "taiko", "catch", "mania").
+     * @returns {Promise<ArrayBuffer>} - The SR chart as an ArrayBuffer.
+     * @throws {Error} - If the object count is too high.
+     */
     static async calculate(beatmapId, mode) {
         return new Promise(async (resolve, reject) => {
             try {
@@ -984,7 +1151,6 @@ function calculateStarRating (beatmap, Mode, objectCount) {
             }
             resolve(srdata);
         } catch(e) {
-            console.log(e);
             reject(e);
         }
     })
