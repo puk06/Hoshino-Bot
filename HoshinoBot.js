@@ -670,8 +670,10 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "check") {
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
 				const maplink = interaction.options.get("beatmaplink").value;
-				if (!regex.test(maplink)) {
+				if (!(regex.test(maplink) || regex2.test(maplink) || regex3.test(maplink))) {
 					await interaction.reply("ビートマップリンクの形式が間違っています。");
 					return;
 				}
@@ -691,10 +693,11 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						const streamTotal = data.streamCount + data.techStreamCount;
 						const hitPercentData = [isNaNwithNumber(Math.round(data["1/3 times"] / hitTotal * 100)), isNaNwithNumber(Math.round(data["1/4 times"] / hitTotal * 100)), isNaNwithNumber(Math.round(data["1/6 times"] / hitTotal * 100)), isNaNwithNumber(Math.round(data["1/8 times"] / hitTotal * 100))] ;
 						const streamPercentData = [isNaNwithNumber(Math.round(data.streamCount / streamTotal * 100)), isNaNwithNumber(Math.round(data.techStreamCount / streamTotal * 100))];
+						const mapUrl = osuLibrary.URLBuilder.beatmapURL(mapData.beatmapset_id, Number(mapData.mode), mapData.beatmap_id);
 						const embed = new EmbedBuilder()
 							.setColor("Blue")
 							.setTitle(`${mapData.artist} - ${mapData.title} [${mapData.version}]`)
-							.setURL(maplink)
+							.setURL(mapUrl)
 							.setAuthor({ name: `Mapped by ${mapData.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 							.addFields({ name: "**BPM**", value: `**${bpmStr}** (最頻値: **${data.BPMMode.toFixed(1)}**)`, inline: false })
 							.addFields({ name: "**Streams**", value: `**1/4 Streams**: **${data.streamCount}**回 [最大**${data.maxStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageStreamLength)}**コンボ] (${streamPercentData[0]}%)\n**Tech Streams**: **${data.techStreamCount}**回 [最大**${data.techStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageTechStreamLength)}**コンボ] (${streamPercentData[1]}%)`, inline: false })
@@ -709,7 +712,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const maplink = interaction.options.get("beatmaplink").value;
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
-				if (!regex.test(maplink) || !regex2.test(maplink)) {
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
+				if (!(regex.test(maplink) || regex2.test(maplink) || regex3.test(maplink))) {
 					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -761,7 +765,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const maplink = interaction.options.get("beatmaplink").value;
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
-				if (!regex.test(maplink) || !regex2.test(maplink)) {
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
+				if (!(regex.test(maplink) || regex2.test(maplink) || regex3.test(maplink))) {
 					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -1040,7 +1045,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
-				if (!regex.test(maplink) || !regex2.test(maplink)) {
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
+				if (!(regex.test(maplink) || regex2.test(maplink) || regex3.test(maplink))) {
 					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -1257,7 +1263,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const maplink = interaction.options.get("beatmaplink").value;
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
-				if (!regex.test(maplink) || !regex2.test(maplink)) {
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
+				if (!(regex.test(maplink) || regex2.test(maplink) || regex3.test(maplink))) {
 					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -1310,7 +1317,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
-				if (!regex.test(maplink) || !regex2.test(maplink)) {
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
+				if (!(regex.test(maplink) || regex2.test(maplink) || regex3.test(maplink))) {
 					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -2384,8 +2392,9 @@ client.on(Events.MessageCreate, async (message) =>
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
 
-				if (!regex.test(maplink) || !regex2.test(maplink)) {
+				if (!(regex.test(maplink) || regex2.test(maplink) || regex3.test(maplink))) {
 					await message.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -2914,7 +2923,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
-				if (!regex.test(maplink) || !regex2.test(maplink)) {
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
+				if (!(regex.test(maplink) || regex2.test(maplink) || regex3.test(maplink))) {
 					await message.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -3050,9 +3060,14 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 			
 			if (/^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content) || /^https:\/\/osu\.ppy\.sh\/b\/\d+$/.test(message.content)) {
+				const channelid = message.channel.id;
+				const allchannels = JSON.parse(fs.readFileSync("./ServerDatas/BeatmapLinkChannels.json", "utf-8"));
+				if (!allchannels.Channels.includes(channelid)) return;
+
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
-				if (!regex.test(message.content) || !regex2.test(message.content)) {
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
+				if (!(regex.test(message.content) || regex2.test(message.content) || regex3.test(message.content))) {
 					await message.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -3117,19 +3132,15 @@ client.on(Events.MessageCreate, async (message) =>
 					return;
 				}
 
-				const channelid = message.channel.id;
-
-				const allchannels = JSON.parse(fs.readFileSync("./ServerDatas/BeatmapLinkChannels.json", "utf-8"));
-				if (!allchannels.Channels.includes(channelid)) return;
-
 				const messageData = await message.channel.messages.fetch();
 				const messages = Array.from(messageData.values());
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
 				let maplinks = messages.map(message => {
-					if (regex.test(message.content) || regex2.test(message.content)) return message.content;
-					if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
-					if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url)) return message.embeds[0].data.author.url;
+					if (regex.test(message.content) || regex2.test(message.content) || regex3.test(message.content)) return message.content;
+					if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
+					if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url) || regex3.test(message.embeds[0]?.author?.url)) return message.embeds[0].data.author.url;
 				});
 				maplinks = maplinks.filter(link => link != undefined);
 				if (maplinks[0] == undefined) {
@@ -3245,17 +3256,12 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (message.content.split(" ")[0] == "!c") {
-				if (message.content == "!m") {
-					await message.reply("使い方: !c (マップリンク) (ユーザー名)");
-					return;
-				}
-
-				//マップリンクとユーザー名を分ける。
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
 				let playername;
 				let maplink;
-				if (regex.test(message.content.split(" ")[1]) || regex2.test(message.content.split(" ")[1])) {
+				if (regex.test(message.content.split(" ")[1]) || regex2.test(message.content.split(" ")[1]) || regex3.test(message.content.split(" ")[1])) {
 					maplink = message.content.split(" ")[1];
 					if (message.content.split(" ")[2] == undefined) {
 						const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
@@ -3279,9 +3285,9 @@ client.on(Events.MessageCreate, async (message) =>
 					const messageData = await message.channel.messages.fetch();
 					const messages = Array.from(messageData.values());
 					let maplinks = messages.map(message => {
-						if (regex.test(message.content) || regex2.test(message.content)) return message.content;
-						if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
-						if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url)) return message.embeds[0].data.author.url;
+						if (regex.test(message.content) || regex2.test(message.content) || regex3.test(message.content)) return message.content;
+						if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
+						if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.author.url;
 					});
 					maplinks = maplinks.filter(link => link != undefined);
 					if (maplinks[0] == undefined) {
@@ -3294,11 +3300,12 @@ client.on(Events.MessageCreate, async (message) =>
 					const messageData = await message.channel.messages.fetch();
 					const messages = Array.from(messageData.values());
 					let maplinks = messages.map(message => {
-						if (regex.test(message.content) || regex2.test(message.content)) return message.content;
-						if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
-						if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url)) return message.embeds[0].data.author.url;
+						if (regex.test(message.content) || regex2.test(message.content) || regex3.test(message.content)) return message.content;
+						if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
+						if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url) || regex3.test(message.embeds[0]?.author?.url)) return message.embeds[0].data.author.url;
+						return "No Link";
 					});
-					maplinks = maplinks.filter(link => link != undefined);
+					maplinks = maplinks.filter(link => link != "No Link");
 					if (maplinks[0] == undefined) {
 						await message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。");
 						return;
@@ -3406,13 +3413,13 @@ client.on(Events.MessageCreate, async (message) =>
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapRanking}__**`;
 					}
-				} else if (mapRanking == 51 && BPranking <= 50 && userRecentData.rank != "F") {
+				} else if (mapRanking == 51 && BPranking <= 50 && userPlays[0].rank != "F") {
 					if (mapStatus == "Ranked" || mapStatus == "Approved") {
 						rankingString = `**__Personal Best #${BPranking}__**`;
 					} else {
 						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`;
 					}
-				} else if (mapRanking <= 50 && BPranking > 50 && userRecentData.rank != "F" && (mapStatus == "Ranked" || mapStatus == "Qualified" || mapStatus == "Loved" || mapStatus == "Approved")) {
+				} else if (mapRanking <= 50 && BPranking > 50 && userPlays[0].rank != "F" && (mapStatus == "Ranked" || mapStatus == "Qualified" || mapStatus == "Loved" || mapStatus == "Approved")) {
 					rankingString = `**__Global Top #${mapRanking}__**`;
 				} else {
 					rankingString = "`Result`";
