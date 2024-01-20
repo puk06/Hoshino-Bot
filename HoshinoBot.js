@@ -2592,11 +2592,6 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (message.content.split(" ")[0].startsWith("!r")) {
-				if (message.content == "!r") {
-					await message.reply("使い方: !r[o, t, c, m] (osu!ユーザーネーム)");
-					return;
-				}
-
 				let playername;
 				if (message.content.split(" ")[1] == undefined) {
 					const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
@@ -2617,6 +2612,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				let currentMode;
 				switch (message.content.split(" ")[0]) {
+					case "!r":
 					case "!ro":
 						currentMode = 0;
 						break;
@@ -2634,6 +2630,7 @@ client.on(Events.MessageCreate, async (message) =>
 						break;
 
 					default:
+						await message.reply("使い方: !r[o, t, c, m] (osu!ユーザーネーム)");
 						return;
 				}
 
@@ -3059,7 +3056,7 @@ client.on(Events.MessageCreate, async (message) =>
 				return;
 			}
 			
-			if (/^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content) || /^https:\/\/osu\.ppy\.sh\/b\/\d+$/.test(message.content)) {
+			if (/^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content) || /^https:\/\/osu\.ppy\.sh\/b\/\d+$/.test(message.content) || /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/.test(message.content)) {
 				const channelid = message.channel.id;
 				const allchannels = JSON.parse(fs.readFileSync("./ServerDatas/BeatmapLinkChannels.json", "utf-8"));
 				if (!allchannels.Channels.includes(channelid)) return;
@@ -3117,8 +3114,8 @@ client.on(Events.MessageCreate, async (message) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: mapUrl })
-					.setDescription(`**Length**: ${formatTime(Number(mapData.total_length))}　**BPM**: ${mapData.bpm}　**Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
-					.addFields({ name: `**[__${mapData.version}__]**`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★　▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${mapData.diff_overall}　▸**CS:** ${mapData.diff_size}　▸**AR:** ${mapData.diff_approach}　▸**HP:** ${mapData.diff_drain}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)}　○ **99**%-${sr[99].pp.toFixed(2)}　○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
+					.setDescription(`**Length**: ${formatTime(Number(mapData.total_length))} **BPM**: ${mapData.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
+					.addFields({ name: `**[__${mapData.version}__]**`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★ ▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${mapData.diff_overall} ▸**CS:** ${mapData.diff_size} ▸**AR:** ${mapData.diff_approach} ▸**HP:** ${mapData.diff_drain}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)} ○ **99**%-${sr[99].pp.toFixed(2)} ○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
 					.setTimestamp()
 					.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
 					.setFooter({ text: `${osuLibrary.Tools.mapstatus(mapData.approved)} mapset of ${mapData.creator}` });
@@ -3247,8 +3244,8 @@ client.on(Events.MessageCreate, async (message) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: mapUrl })
-					.setDescription(`**Length**: ${formatTime(totalLength)}　**BPM**: ${BPM}　**Mods**: ${Mods.str}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
-					.addFields({ name: `**[__${mapData.version}__]**`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★　▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${Od}　▸**CS:** ${Cs}　▸**AR:** ${Ar}　▸**HP:** ${Hp}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)}　○ **99**%-${sr[99].pp.toFixed(2)}　○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
+					.setDescription(`**Length**: ${formatTime(totalLength)} **BPM**: ${BPM} **Mods**: ${Mods.str}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
+					.addFields({ name: `**[__${mapData.version}__]**`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★ ▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${Od} ▸**CS:** ${Cs} ▸**AR:** ${Ar} ▸**HP:** ${Hp}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)} ○ **99**%-${sr[99].pp.toFixed(2)} ○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
 					.setTimestamp()
 					.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
 					.setFooter({ text: `${osuLibrary.Tools.mapstatus(mapData.approved)} mapset of ${mapData.creator}` });
