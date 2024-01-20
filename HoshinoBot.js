@@ -74,17 +74,6 @@ client.on(Events.ClientReady, async () =>
 			const nextExecutionTime = new Date(randomTime);
 			const currentTime = new Date();
 			const timeUntilNextExecution = nextExecutionTime - currentTime;
-			await webHookClient.send({
-				content: "daily bread"
-			})
-				.then(() => {
-					console.log("WebHookの送信に成功しました。");
-					webHookData.lastDate = new Date().getDate();
-					fs.writeFileSync("./ServerDatas/WebHookData.json", JSON.stringify(webHookData, null, 4), "utf-8");
-				})
-				.catch(() => {
-					console.log("WebHookの送信に失敗しました。");
-				});
 			if (timeUntilNextExecution > 0) {
 				setTimeout(async () => {
 					if (webHookData.lastDate == new Date().getDate()) return;
@@ -755,14 +744,14 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				}
 				const ppdata = await new osuLibrary.CalculatePPSR(maplink, Mods.calc, mode).calculateSR();
 				const Mapstatus = osuLibrary.Tools.mapstatus(data.approved);
-				const FP = Math.round(Number(ppdata.pp) / Number(data.total_length) * 1000) / 10;
-				const ppdevidetotallength = Math.round(Number(ppdata.pp) / Number(data.total_length) * 10) / 10;
+				const FP = Math.round(Number(ppdata.pp) / Number(data.hit_length) * 1000) / 10;
+				const ppdevidetotallength = Math.round(Number(ppdata.pp) / Number(data.hit_length) * 10) / 10;
 				await interaction.reply(`Totalpp : **${ppdata.pp.toFixed(2)}** (**${Mapstatus}**)　Farmscore : **${isNaN(FP) ? 0 : FP}**　${isNaN(ppdevidetotallength) ? 0 : ppdevidetotallength} pp/s`);
 				return;
 			}
 
 			if (interaction.commandName == "lb") {
-				const maplink = interaction.options.get("beatmaplink").value;
+				let maplink = interaction.options.get("beatmaplink").value;
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
 				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
@@ -807,6 +796,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				} else {
 					Mapinfo = await new osuLibrary.GetMapData(maplink, apikey).getDataWithoutMode();
 					mode = Number(Mapinfo.mode);
+					maplink = osuLibrary.URLBuilder.beatmapURL(Mapinfo.beatmapset_id, mode, Mapinfo.beatmap_id);
 				}
 
 				const mapperinfo = await new osuLibrary.GetUserData(Mapinfo.creator, apikey, mode).getData();
@@ -870,6 +860,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				}
 				embed.addFields(rankingdata);
 				await interaction.channel.send({ embeds: [embed] });
+				return;
 			}
 
 			if (interaction.commandName == "qf" || interaction.commandName == "deqf" || interaction.commandName == "loved" || interaction.commandName == "deloved") {
@@ -1358,7 +1349,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(`${mapInfo.artist} - ${mapInfo.title} [${mapInfo.version}]`)
-					.setDescription(`Combo: \`${mapInfo.max_combo}\` Stars: \`${sr.sr.toFixed(2)}\` \n Length: \`${formatTime(Number(mapInfo.total_length))}\` BPM: \`${mapInfo.bpm}\` Objects: \`${objectCount}\` \n CS: \`${mapInfo.diff_size}\` AR: \`${mapInfo.diff_approach}\` OD: \`${mapInfo.diff_overall}\` HP: \`${mapInfo.diff_drain}\` Spinners: \`${mapInfo.count_spinner}\``)
+					.setDescription(`Combo: \`${mapInfo.max_combo}x\` Stars: \`${sr.sr.toFixed(2)}★\` \n Length: \`${formatTime(Number(mapInfo.total_length))} (${formatTime(Number(mapInfo.hit_length))})\` BPM: \`${mapInfo.bpm}\` Objects: \`${objectCount}\` \n CS: \`${mapInfo.diff_size}\` AR: \`${mapInfo.diff_approach}\` OD: \`${mapInfo.diff_overall}\` HP: \`${mapInfo.diff_drain}\` Spinners: \`${mapInfo.count_spinner}\``)
 					.setURL(mapUrl)
 					.setAuthor({ name: `Mapped by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 					.addFields({ name: "Preview link", value: `[Preview this map!](${previewlink})`, inline: true })
@@ -1368,12 +1359,30 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "calculatepp") {
-				const mode = interaction.options.get('mode').value;
+				let mode = interaction.options.get('mode').value;
 				const osufile = interaction.options.get('beatmapfile').attachment.attachment;
 
 				if (!osufile.includes(".osu")) {
 					await interaction.reply("ファイルの形式が間違っています。〇〇.osuファイルを送信してください。");
 					return;
+				}
+
+				switch (mode) {
+					case "osu":
+						mode = 0;
+						break;
+
+					case "taiko":
+						mode = 1;
+						break;
+
+					case "catch":
+						mode = 2;
+						break;
+
+					case "mania":
+						mode = 3;
+						break;
 				}
 
 				let mod = new osuLibrary.Mod(interaction.options.get('mods')?.value).get();
@@ -1388,14 +1397,10 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 				await interaction.reply("計算中です。");
 				const map = new Beatmap({ bytes: new Uint8Array(Buffer.from(beatmapdata)) });
-				let score = {
-					mode: mode,
-					mods: mod.calc
-				};
-
 				const beatmapDataStream = Readable.from(Buffer.from(beatmapdata));
 				const lineReader = require('readline').createInterface({ input: beatmapDataStream });
 				let Mapinfo = {
+					Mode: 0,
 					Artist: "",
 					Title: "",
 					Creator: "",
@@ -1430,7 +1435,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						hitobjectflag = true;
 					}
 					
-					if (hitobjectflag && !isNaN(parseInt(line.split(",")[2]))) {
+					if (hitobjectflag && !isNaN(Number(line.split(",")[2]))) {
 						const ms = Number(line.split(",")[2]);
 						const totalSeconds = Math.floor(ms / 1000);
 						Mapinfo.TotalLength = formatTime(totalSeconds);
@@ -1438,19 +1443,25 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 					if (line.startsWith("[")) return;
 					const key = line.split(":")[0];
-					const value = line.split(":")[1];
+					const value = line.split(":")?.slice(1)?.join(":");
 
-					if (key === 'Artist') Mapinfo.Artist = value.replace("\r", "");
-					if (key === 'Title') Mapinfo.Title = value.replace("\r", "");
-					if (key === 'Creator') Mapinfo.Creator = value.replace("\r", "");
-					if (key === 'Version') Mapinfo.Version = value.replace("\r", "");
-					if (key === 'HPDrainRate') Mapinfo.HPDrainRate = parseFloat(value);
-					if (key === 'CircleSize') Mapinfo.CircleSize = parseFloat(value);
-					if (key === 'OverallDifficulty') Mapinfo.OverallDifficulty = parseFloat(value);
-					if (key === 'ApproachRate') Mapinfo.ApproachRate = parseFloat(value);
+					if (key === 'Mode') Mapinfo.Mode = Number(value);
+					if (key === 'Artist') Mapinfo.Artist = value;
+					if (key === 'Title') Mapinfo.Title = value;
+					if (key === 'Creator') Mapinfo.Creator = value;
+					if (key === 'Version') Mapinfo.Version = value;
+					if (key === 'HPDrainRate') Mapinfo.HPDrainRate = Number(value);
+					if (key === 'CircleSize') Mapinfo.CircleSize = Number(value);
+					if (key === 'OverallDifficulty') Mapinfo.OverallDifficulty = Number(value);
+					if (key === 'ApproachRate') Mapinfo.ApproachRate = Number(value);
 				});
 
 				lineReader.on('close', async () => {
+					if (Mapinfo.Mode != mode && Mapinfo.Mode != 0) mode = Mapinfo.Mode;
+					let score = {
+						mode: mode,
+						mods: mod.calc
+					};
 					let calc = new Calculator(score);
 					const Calculated = calc.performance(map);
 					const PP98 = ppDigits(calc.acc(98).performance(map).pp.toFixed(2));
@@ -1460,22 +1471,22 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					const maxcombo = Calculated.difficulty.maxCombo;
 					function calcObject(mode) {
 						switch (mode) {
-							case "osu": {
+							case 0: {
 								const object = new Calculator(score).performance(map).difficulty;
 								return object.nCircles + object.nSliders + object.nSpinners;
 							}
 
-							case "taiko": {
+							case 1: {
 								const object = new Calculator(score).mapAttributes(map);
 								return object.nCircles + object.nSpinners;
 							}
 
-							case "catch": {
+							case 2: {
 								const object = new Calculator(score).performance(map).difficulty;
 								return object.maxCombo;
 							}
 
-							case "mania": {
+							case 3: {
 								const object = new Calculator(score).mapAttributes(map);
 								return object.nCircles + object.nSliders + object.nSpinners;
 							}
@@ -1483,22 +1494,16 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					}
 					Mapinfo.BPM = Math.max(...BPM) == Math.min(...BPM) ? Math.max(...BPM).toString() : `${Math.min(...BPM)} - ${Math.max(...BPM)}`;
 					function ppDigits(ppstring) {
-						let result = "";
 						switch (ppstring.length) {
 							case 7:
-								result = `  ${ppstring} `;
-								break;
+								return  `  ${ppstring} `;
 							case 6:
-								result = `  ${ppstring}  `;
-								break;
+								return  `  ${ppstring}  `;
 							case 5:
-								result = `  ${ppstring}   `;
-								break;
+								return  `  ${ppstring}   `;
 							case 4:
-								result = `   ${ppstring}   `;
-								break;
+								return  `   ${ppstring}   `;
 						}
-						return result;
 					}
 
 					if (mod.array.includes("NC") || mod.array.includes("DT")) {
@@ -1536,7 +1541,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						.setAuthor({ name: `Mapped by ${Mapinfo.Creator}` })
 						.setTitle(`${Mapinfo.Artist} - ${Mapinfo.Title}`)
 						.setURL(osufile)
-						.addFields({ name: `**[${Mapinfo.Version}]** **+ ${mod.str}**`, value: `Combo: \`${maxcombo}\` Stars: \`${Calculated.difficulty.stars.toFixed(2)}\` \n Length: \`${Mapinfo.TotalLength}\` BPM: \`${Mapinfo.BPM}\` Objects: \`${objectCount}\` \n CS: \`${Mapinfo.CircleSize}\` AR: \`${Mapinfo.ApproachRate}\` OD: \`${Mapinfo.OverallDifficulty}\`  HP: \`${Mapinfo.HPDrainRate}\` `, inline: false })
+						.addFields({ name: `${osuLibrary.Tools.modeEmojiConvert(mode)} [**__${Mapinfo.Version}__**] **+ ${mod.str}**`, value: `Combo: \`${maxcombo}x\` Stars: \`${Calculated.difficulty.stars.toFixed(2)}★\` \n Length: \`${Mapinfo.TotalLength}\` BPM: \`${Mapinfo.BPM}\` Objects: \`${objectCount}\` \n CS: \`${Mapinfo.CircleSize}\` AR: \`${Mapinfo.ApproachRate}\` OD: \`${Mapinfo.OverallDifficulty}\`  HP: \`${Mapinfo.HPDrainRate}\` `, inline: false })
 						.addFields({ name: `**__PP__**`, value: `\`\`\` Acc |    98%   |    99%   |   99.5%  |   100%   | \n ----+----------+----------+----------+----------+  \n  PP |${PP98}|${PP99}|${PP995}|${PP100}|\`\`\``, inline: true });
 					await interaction.channel.send({ embeds: [embed] });
 				});
@@ -2472,13 +2477,16 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let totalLength = Number(mapInfo.total_length);
+				let totalHitLength = Number(mapInfo.hit_length);
 				let BPM = Number(mapInfo.bpm);
 				if (Mods.array.includes("DT") || Mods.array.includes("NC")) {
 					BPM *= 1.5;
 					totalLength /= 1.5;
+					totalHitLength /= 1.5;
 				} else if (Mods.array.includes("HT")) {
 					BPM *= 0.75;
 					totalLength /= 0.75;
+					totalHitLength /= 0.75;
 				}
 
 				let Ar = Number(mapInfo.diff_approach);
@@ -2572,7 +2580,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setURL(mapUrl)
 					.addFields({ name: "Music and Backgroud", value: `:musical_note:[Song Preview](https://b.ppy.sh/preview/${mapInfo.beatmapset_id}.mp3)　:frame_photo:[Full background](https://assets.ppy.sh/beatmaps/${mapInfo.beatmapset_id}/covers/raw.jpg)` })
 					.setAuthor({ name: `Created by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
-					.addFields({ name: `[**__${mapInfo.version}__**] **+${Mods.str}**`, value: `Combo: \`${mapInfo.max_combo}\` Stars: \`${sr[100].sr.toFixed(2)}\` \n Length: \`${formatTime(totalLength)}\` BPM: \`${BPM}\` Objects: \`${objectCount}\` \n CS: \`${Cs}\` AR: \`${Ar}\` OD: \`${Od}\` HP: \`${Hp}\` Spinners: \`${mapInfo.count_spinner}\``, inline: true })
+					.addFields({ name: `${osuLibrary.Tools.modeEmojiConvert(mode)} [**__${mapInfo.version}__**] **+${Mods.str}**`, value: `Combo: \`${mapInfo.max_combo}x\` Stars: \`${sr[100].sr.toFixed(2)}★\` \n Length: \`${formatTime(Number(totalLength))} (${formatTime(Number(totalHitLength))})\` BPM: \`${BPM}\` Objects: \`${objectCount}\` \n CS: \`${Cs}\` AR: \`${Ar}\` OD: \`${Od}\` HP: \`${Hp}\` Spinners: \`${mapInfo.count_spinner}\``, inline: true })
 					.addFields({ name: "**Download**", value: `[Official](https://osu.ppy.sh/beatmapsets/${mapInfo.beatmapset_id}/download)\n[Nerinyan(no video)](https://api.nerinyan.moe/d/${mapInfo.beatmapset_id}?nv=1)\n[Beatconnect](https://beatconnect.io/b/${mapInfo.beatmapset_id})\n[chimu.moe](https://api.chimu.moe/v1/download/${mapInfo.beatmapset_id}?n=1)`, inline: true })
 					.addFields({ name: `:heart: ${Number(mapInfo.favourite_count).toLocaleString()}　:play_pause: ${Number(mapInfo.playcount).toLocaleString()}`, value: `\`\`\` Acc |    98%   |    99%   |   99.5%  |   100%   | \n ----+----------+----------+----------+----------+  \n  PP |${formatPPStr(sr[98].pp.toFixed(2))}|${formatPPStr(sr[99].pp.toFixed(2))}|${formatPPStr(sr[99.5].pp.toFixed(2))}|${formatPPStr(sr[100].pp.toFixed(2))}|\`\`\``, inline: false })
 					.setImage(backgroundURL)
@@ -2756,7 +2764,7 @@ client.on(Events.MessageCreate, async (message) =>
 				Cs = Math.round(Cs * 10) / 10;
 				Hp = Math.round(Hp * 10) / 10;
 				Ar = Math.round(Ar * 10) / 10;
-				const formattedTotalLength = formatTime(totalLength);
+				const formattedLength = formatTime(totalLength);
 				const formattedHitLength = formatTime(hitLength);
 				const formattedHits = formatHits(recentScore, currentMode);
 				const formattedIfFCHits = formatHits(ifFCHits, currentMode);
@@ -2847,7 +2855,7 @@ client.on(Events.MessageCreate, async (message) =>
 				
 				if (currentMode == 3 || userRecentData.maxcombo == mapData.max_combo) {
 					embed
-						.addFields({ name: "`Map Info`", value: `Length:\`${formattedTotalLength}(${formattedHitLength})\` BPM:\`${BPM}\` Objects:\`${objectCount}\` \n  CS:\`${Cs}\` AR:\`${Ar}\` OD:\`${Od}\` HP:\`${Hp}\` Stars:\`${ssPp.sr.toFixed(2)}\``, inline: true })
+						.addFields({ name: "`Map Info`", value: `Length:\`${formattedLength} (${formattedHitLength})\` BPM:\`${BPM}\` Objects:\`${objectCount}\` \n  CS:\`${Cs}\` AR:\`${Ar}\` OD:\`${Od}\` HP:\`${Hp}\` Stars:\`${ssPp.sr.toFixed(2)}\``, inline: true })
 						.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
 						.setTimestamp()
 						.setFooter({ text: `${mapStatus} mapset of ${mapData.creator}`, iconURL: mapperIconUrl });
@@ -2856,7 +2864,7 @@ client.on(Events.MessageCreate, async (message) =>
 						.addFields({ name: "`If FC`", value: `**${ifFCPP.toFixed(2)}** / ${ssPp.pp.toFixed(2)}PP`, inline: true })
 						.addFields({ name: "`Acc`", value: `${ifFCAcc}%`, inline: true })
 						.addFields({ name: "`Hits`", value: formattedIfFCHits, inline: true })
-						.addFields({ name: "`Map Info`", value: `Length:\`${formattedTotalLength}(${formattedHitLength})\` BPM:\`${BPM}\` Objects:\`${objectCount}\` \n  CS:\`${Cs}\` AR:\`${Ar}\` OD:\`${Od}\` HP:\`${Hp}\` Stars:\`${ssPp.sr.toFixed(2)}\``, inline: true })
+						.addFields({ name: "`Map Info`", value: `Length:\`${formattedLength} (${formattedHitLength})\` BPM:\`${BPM}\` Objects:\`${objectCount}\` \n  CS:\`${Cs}\` AR:\`${Ar}\` OD:\`${Od}\` HP:\`${Hp}\` Stars:\`${ssPp.sr.toFixed(2)}\``, inline: true })
 						.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
 						.setTimestamp()
 						.setFooter({ text: `${mapStatus} mapset of ${mapData.creator}`, iconURL: mapperIconUrl });
@@ -2879,180 +2887,6 @@ client.on(Events.MessageCreate, async (message) =>
 						await sentMessage.edit({ embeds: [embednew] });
 					}, 20000);
 				});
-				return;
-			}
-
-			if (message.content.split(" ")[0] == "!score") {
-				if (message.content == "!score") {
-					await message.reply("使い方: !score [マップリンク] (osu!ユーザーネーム)");
-					return;
-				}
-
-				let playername;
-				if (message.content.split(" ")[2] == undefined) {
-					const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
-					const username = allUser["Bancho"][message.author.id]?.name;
-					if (username == undefined) {
-						await message.reply("ユーザー名が登録されていません。/osuregで登録するか、ユーザー名を入力してください。");
-						return;
-					}
-					playername = username;
-				} else {
-					playername = message.content.split(" ")?.slice(2)?.join(" ");
-				}
-
-				if (playername == "") {
-					await message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
-					return;
-				}
-
-				const maplink = message.content.split(" ")[1];
-
-				if (maplink == undefined) {
-					await message.reply("マップリンクを入力してください。");
-					return;
-				}
-
-				if (maplink == "") {
-					await message.reply("マップリンクの前の空白が1つ多い可能性があります。");
-					return;
-				}
-
-				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
-				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
-				if (!(regex.test(maplink) || regex2.test(maplink) || regex3.test(maplink))) {
-					await message.reply(`ビートマップリンクの形式が間違っています。`);
-					return;
-				}
-
-				let mode;
-				let Mapinfo;
-				let mapUrl;
-				if (regex.test(maplink)) {
-					switch (maplink.split("/")[4].split("#")[1]) {
-						case "osu":
-							mode = 0;
-							break;
-
-						case "taiko":
-							mode = 1;
-							break;
-
-						case "fruits":
-							mode = 2;
-							break;
-
-						case "mania":
-							mode = 3;
-							break;
-							
-						default:
-							await message.reply("リンク内のモードが不正です。");
-							return;
-					}
-					Mapinfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
-					mapUrl = maplink;
-				} else {
-					Mapinfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getDataWithoutMode();
-					mode = Number(Mapinfo.mode);
-					mapUrl = osuLibrary.URLBuilder.beatmapURL(Mapinfo.beatmapset_id, mode, Mapinfo.beatmap_id);
-				}
-
-				const playersScore = await new osuLibrary.GetUserScore(playername, apikey, mode).getScoreDataWithoutMods(Mapinfo.beatmap_id);
-
-				if (playersScore.length == 0) {
-					await message.reply(`${playername}さんのスコアが見つかりませんでした。`);
-					return;
-				}
-
-				const playersInfo = await new osuLibrary.GetUserData(playername, apikey, mode).getData();
-				const mapperInfo = await new osuLibrary.GetUserData(Mapinfo.creator, apikey, mode).getData();
-
-				let isHTEnabled = false;
-				let isDTEnabled = false;
-				for (let i = 0; i < Math.min(playersScore.length, 10); i++) {
-					const Mods = new osuLibrary.Mod(playersScore[i].enabled_mods).get();
-					if (Mods.array.includes("DT") || Mods.array.includes("NC")) {
-						isDTEnabled = true;
-						break;
-					}
-
-					if (Mods.array.includes("HT")) {
-						isHTEnabled = true;
-						break;
-					}
-				}
-
-				let BPMstr = "";
-				switch (true) {
-					case isDTEnabled && isHTEnabled:
-						BPMstr = `${(Number(Mapinfo.bpm) * 0.75).toFixed(1)}(HT) → ${(Number(Mapinfo.bpm) * 1.5).toFixed(1)}(DT)`;
-						break;
-
-					case isDTEnabled:
-						BPMstr = `${Number(Mapinfo.bpm).toFixed(1)}(NM) → ${(Number(Mapinfo.bpm) * 1.5).toFixed(1)}(DT)`;
-						break;
-
-					case isHTEnabled:
-						BPMstr = `${(Number(Mapinfo.bpm) * 0.75).toFixed(1)}(HT) → ${Number(Mapinfo.bpm).toFixed(1)}(NM)`;
-						break;
-
-					default:
-						BPMstr = `${Number(Mapinfo.bpm).toFixed(1)}`;
-						break;
-				}
-
-				const playerUserURL = osuLibrary.URLBuilder.userURL(playersInfo?.user_id);
-				const playerIconURL = osuLibrary.URLBuilder.iconURL(playersInfo?.user_id);
-				const mapperUserURL = osuLibrary.URLBuilder.userURL(mapperInfo?.user_id);
-				const mapperIconURL = osuLibrary.URLBuilder.iconURL(mapperInfo?.user_id);
-
-				const embed = new EmbedBuilder()
-					.setColor("Blue")
-					.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-					.setURL(mapUrl)
-					.setAuthor({ name: `Mapped by ${Mapinfo.creator}`,  iconURL: mapperIconURL, url: mapperUserURL })
-					.addFields({ name: "Player name", value: `[${playersInfo.username}](${playerUserURL})`, inline: true })
-					.addFields({ name: "BPM", value: `\`${BPMstr}\``, inline: true });
-
-				let scoreDatas = [];
-				for (let i = 0; i < Math.min(playersScore.length, 10); i++) {
-					const acc = tools.accuracy({
-						300: playersScore[i].count300,
-						100: playersScore[i].count100,
-						50: playersScore[i].count50,
-						0: playersScore[i].countmiss,
-						geki : playersScore[i].countgeki,
-						katu: playersScore[i].countgeki
-					}, modeConvertAcc(mode));
-					
-					const Mods = new osuLibrary.Mod(playersScore[i].enabled_mods).get();
-
-					const srpp = await new osuLibrary.CalculatePPSR(Mapinfo.beatmap_id, Mods.calc, mode).calculateSR();
-					const score = {
-						mode: mode,
-						mods: Mods.calc,
-						n300: Number(playersScore[i].count300),
-						n100: Number(playersScore[i].count100),
-						n50: Number(playersScore[i].count50),
-						nMisses: Number(playersScore[i].countmiss),
-						nGeki: Number(playersScore[i].countgeki),
-						nKatu: Number(playersScore[i].countkatu),
-						combo: Number(playersScore[i].maxcombo)
-					};
-					const scorepp = await new osuLibrary.CalculatePPSR(Mapinfo.beatmap_id, Mods.calc, mode).calculateScorePP(score);
-
-					const Hits = formatHits(score, mode);
-					scoreDatas.push({ name: `\`#${i + 1}\``, value: `**SR**: \`★${srpp.sr.toFixed(2)}\`　**Rank**: ${rankconverter(playersScore[i].rank)}　**Mods**: **${Mods.str}**　**Score**: ${Number(playersScore[i].score).toLocaleString()} \n **Hits** : ${Hits}　**Combo**: **${playersScore[i].maxcombo}**　**Acc**: **${acc}**%　**PP**: **${scorepp.toFixed(2)}**`, inline: false });
-				}
-
-				embed
-					.addFields(scoreDatas)
-					.addFields({ name: "Mirror Download link", value: `[Nerinyan](https://api.nerinyan.moe/d/${Mapinfo.beatmapset_id}?nv=1) \n [Beatconnect](https://beatconnect.io/b/${Mapinfo.beatmapset_id})`, inline: true })
-					.setImage(`https://assets.ppy.sh/beatmaps/${Mapinfo.beatmapset_id}/covers/cover.jpg`)
-					.setFooter({ text: `Played by ${playersInfo.username}  #${Number(playersInfo.pp_rank).toLocaleString()} (${playersInfo.country}${Number(playersInfo.pp_country_rank).toLocaleString()})`, iconURL: playerIconURL });
-				await message.channel.send({ embeds: [embed] });
 				return;
 			}
 			
@@ -3114,8 +2948,8 @@ client.on(Events.MessageCreate, async (message) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: mapUrl })
-					.setDescription(`**Length**: ${formatTime(Number(mapData.total_length))} **BPM**: ${mapData.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
-					.addFields({ name: `**[__${mapData.version}__]**`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★ ▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${mapData.diff_overall} ▸**CS:** ${mapData.diff_size} ▸**AR:** ${mapData.diff_approach} ▸**HP:** ${mapData.diff_drain}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)} ○ **99**%-${sr[99].pp.toFixed(2)} ○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
+					.setDescription(`**Length**: ${formatTime(Number(mapData.total_length))} (${formatTime(Number(mapData.hit_length))}) **BPM**: ${mapData.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
+					.addFields({ name: `${osuLibrary.Tools.modeEmojiConvert(mode)} [**__${mapData.version}__**]`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★ ▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${mapData.diff_overall} ▸**CS:** ${mapData.diff_size} ▸**AR:** ${mapData.diff_approach} ▸**HP:** ${mapData.diff_drain}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)} ○ **99**%-${sr[99].pp.toFixed(2)} ○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
 					.setTimestamp()
 					.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
 					.setFooter({ text: `${osuLibrary.Tools.mapstatus(mapData.approved)} mapset of ${mapData.creator}` });
@@ -3207,13 +3041,16 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let totalLength = Number(mapData.total_length);
+				let totalHitLength = Number(mapData.hit_length);
 				let BPM = Number(mapData.bpm);
 				if (Mods.array.includes("NC") || Mods.array.includes("DT")) {
 					BPM *= 1.5;
 					totalLength /= 1.5;
+					totalHitLength /= 1.5;
 				} else if (Mods.array.includes("HT")) {
 					BPM *= 0.75;
 					totalLength /= 0.75;
+					totalHitLength /= 0.75;
 				}
 
 				let Ar = Number(mapData.diff_approach);
@@ -3244,12 +3081,13 @@ client.on(Events.MessageCreate, async (message) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: mapUrl })
-					.setDescription(`**Length**: ${formatTime(totalLength)} **BPM**: ${BPM} **Mods**: ${Mods.str}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
-					.addFields({ name: `**[__${mapData.version}__]**`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★ ▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${Od} ▸**CS:** ${Cs} ▸**AR:** ${Ar} ▸**HP:** ${Hp}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)} ○ **99**%-${sr[99].pp.toFixed(2)} ○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
+					.setDescription(`**Length**: ${formatTime(totalLength)} (${formatTime(totalHitLength)}) **BPM**: ${BPM} **Mods**: ${Mods.str}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
+					.addFields({ name: `${osuLibrary.Tools.modeEmojiConvert(mode)} [**__${mapData.version}__**]`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★ ▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${Od} ▸**CS:** ${Cs} ▸**AR:** ${Ar} ▸**HP:** ${Hp}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)} ○ **99**%-${sr[99].pp.toFixed(2)} ○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
 					.setTimestamp()
 					.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
 					.setFooter({ text: `${osuLibrary.Tools.mapstatus(mapData.approved)} mapset of ${mapData.creator}` });
 				await message.channel.send({ embeds: [embed] });
+				return;
 			}
 
 			if (message.content.split(" ")[0] == "!c") {
@@ -3977,16 +3815,31 @@ client.on(Events.MessageCreate, async (message) =>
 				return;
 			}
 
+			if (message.content == "!ero") {
+				if (Math.floor(Math.random() * 10) == 0) {
+					let eroVideo = fs.readFileSync("./eroaru.mp4");
+					await message.reply({ files: [{ attachment: eroVideo, name: 'donarudo.mp4' }] });
+					eroVideo = null;
+					return;
+				} else {
+					let eroVideo = fs.readFileSync("./eronai.mp4");
+					await message.reply({ files: [{ attachment: eroVideo, name: 'donarudo.mp4' }] });
+					eroVideo = null;
+					return
+				}
+			}
+
 			if (message.content == "h!help") {
 				const commandInfo = {
 					"h!help": "コマンドのヘルプを表示します。",
 					"!map [maplink] (mods) (acc)": "指定した譜面の情報を表示します。modsとaccは省略可能です。",
-					"!score [maplink] (username)": "ユーザーのそのマップでの全ての記録(最大10個)を表示します。usernameは登録していれば省略可能です。",
-					"!r[o, t, c, m] (username)": "ユーザーの最新のosu!std、taiko、catch、maniaの記録を表示します。usernameは登録していれば省略可能です。",
-					"!wi[o, t, c, m] [pp] (username)": "ユーザーが指定したppを新しく取得したときのppとランキングを表示します。usernameは省略可能です。",
+					"!c (maplink) (username)": "ユーザーのそのマップでの記録(最大5個)を表示します。usernameは登録していれば省略可能です。マップリンクも省略可です。",
+					"!r(o, t, c, m) (username)": "ユーザーの最新のosu!std、taiko、catch、maniaの記録を表示します。usernameは登録していれば省略可能です。stdは!rでも!roでも実行可能です。",
+					"!wi[o, t, c, m] [pp] (username)": "ユーザーが指定したppを新しく取得したときのppとランキングを表示します。usernameは省略可能です。(開発中)",
 					"!m [mods]": "直近に送信された譜面にmodsをつけてppを表示します。/linkコマンドで有効になります。",
 					"!skip": "osubgquiz、osubgquizpf、osuquiz、osuquizpfコマンドで使用できます。現在の問題をスキップします。",
 					"!hint": "osubgquiz、osubgquizpf、osuquiz、osuquizpfコマンドで使用できます。現在の問題のヒントを表示します。",
+					"!ero": "エロあるよ（笑）が10%の確率で出ます。",
 					"〇〇?": "クイズの答えを送信します。クイズが有効になっているときに使用できます。",
 					"四則演算式(1+1, 1-1, 1*1, 1/1, 1^1など)": "計算機です。チャットに書かれると計算します。",
 					"時間計算(123.7時間、123.7分など)": "時間計算機です。チャットに書かれると時間を計算します。"
@@ -4321,7 +4174,7 @@ function calcIfFCPP(score, mode, object, passedObjects, calcmods, mapMaxCombo, m
 function formatTime(sec) {
 	const min = Math.floor(sec / 60);
 	const second = Math.floor(sec % 60);
-	return `${min.toString().padStart(2, "0")}:${second.toString().padStart(2, "0")}`;
+	return `${min}:${second.toString().padStart(2, "0")}`;
 }
 
 function formatHits(score, mode) {
@@ -4469,8 +4322,8 @@ function checkqualified() {
 					const maxCombo = mapMaxInfo.max_combo;
 					const minCombo = mapMinInfo.max_combo;
 					let Objectstring = minCombo == maxCombo ? `${maxCombo}` : `${minCombo} ~ ${maxCombo}`;
-					const lengthsec = mapMaxInfo.total_length;
-					const lengthsecDT = Math.round(Number(mapMaxInfo.total_length) / 1.5);
+					const lengthsec = mapMaxInfo.hit_length;
+					const lengthsecDT = Math.round(Number(mapMaxInfo.hit_length) / 1.5);
 					const maptime = formatTime(lengthsec);
 					const maptimeDT = formatTime(lengthsecDT);
 					const maptimestring = `${maptime} (DT ${maptimeDT})`;
@@ -4625,8 +4478,8 @@ function checkranked() {
 					const maxCombo = mapMaxInfo.max_combo;
 					const minCombo = mapMinInfo.max_combo;
 					let Objectstring = minCombo == maxCombo ? `${maxCombo}` : `${minCombo} ~ ${maxCombo}`;
-					const lengthsec = mapMaxInfo.total_length;
-					const lengthsecDT = Math.round(Number(mapMaxInfo.total_length) / 1.5);
+					const lengthsec = mapMaxInfo.hit_length;
+					const lengthsecDT = Math.round(Number(mapMaxInfo.hit_length) / 1.5);
 					const maptime = formatTime(lengthsec);
 					const maptimeDT = formatTime(lengthsecDT);
 					const maptimestring = `${maptime} (DT ${maptimeDT})`;
@@ -4729,8 +4582,8 @@ function checkloved() {
 					const maxCombo = mapMaxInfo.max_combo;
 					const minCombo = mapMinInfo.max_combo;
 					let Objectstring = minCombo == maxCombo ? `${maxCombo}` : `${minCombo} ~ ${maxCombo}`;
-					const lengthsec = mapMaxInfo.total_length;
-					const lengthsecDT = Math.round(Number(mapMaxInfo.total_length) / 1.5);
+					const lengthsec = mapMaxInfo.hit_length;
+					const lengthsecDT = Math.round(Number(mapMaxInfo.hit_length) / 1.5);
 					const maptime = formatTime(lengthsec);
 					const maptimeDT = formatTime(lengthsecDT);
 					const maptimestring = `${maptime} (DT ${maptimeDT})`;
