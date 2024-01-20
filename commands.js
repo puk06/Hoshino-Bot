@@ -126,7 +126,13 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("settag")
-            .setDescription("このチャンネル名、チャンネルをpicタグに設定します。")
+            .setDescription("このチャンネルをpicタグに設定します。")
+            .addStringOption(option =>
+                option
+                    .setName('name')
+                    .setDescription('タグ名')
+                    .setRequired(true)
+            )
     },
     {
         data: new SlashCommandBuilder()
@@ -147,7 +153,13 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("piccount")
-            .setDescription("送られたチャンネルのタグの総ファイル数を表示します。")
+            .setDescription("送られたタグの総ファイル数を表示します。")
+            .addStringOption(option =>
+                option
+                    .setName('name')
+                    .setDescription('タグ名')
+                    .setRequired(true)
+            )
     },
     {
         data: new SlashCommandBuilder()
@@ -221,7 +233,7 @@ module.exports = [
     {
         data: new SlashCommandBuilder()
             .setName("check")
-            .setDescription("送られたマップの傾向を計算し、予測します。")
+            .setDescription("送られたマップのオブジェクトに関する情報を計算します。")
             .addStringOption(option =>
                 option
                     .setName('beatmaplink')

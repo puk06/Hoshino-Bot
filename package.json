@@ -1,14 +1,14 @@
 {
-    "name": "hoshino-bot-14",
-    "version": "1.0.0",
+    "name": "hoshino-bot",
+    "version": "1.1.0",
     "description": "A funny discord bot made by hoshino",
     "dependencies": {
+        "asciify": "1.3.2",
         "axios": "0.21.4",
-        "discord.js": "^14.12.1",
+        "discord.js": "14.12.1",
         "dotenv": "16.2.0",
-        "fs-extra": "^11.1.1",
-        "git-clone": "^0.2.0",
+        "fs-extra": "11.1.1",
         "osu-api-extended": "2.5.30",
-        "rosu-pp": "0.9.4"
+        "rosu-pp-nodev": "1.0.0"
     }
 }

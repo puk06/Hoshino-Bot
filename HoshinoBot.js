@@ -1,5 +1,5 @@
 //必要となるライブラリ
-const { Client, EmbedBuilder, Events, GatewayIntentBits, ActivityType } = require("./node_modules/discord.js");
+const { Client, EmbedBuilder, Events, GatewayIntentBits, ActivityType, WebhookClient } = require("./node_modules/discord.js");
 require('./node_modules/dotenv').config();
 const fs = require("./node_modules/fs-extra");
 const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
@@ -27,36 +27,83 @@ const client = new Client({
 	]
 });
 
-client.on(Events.ClientReady, async () => {
-	asciify("Hoshino Bot", { font: "larry3d" }, (err, msg) => {
-		if(err) return;
-		console.log(msg);
-	});
-	client.user.setPresence({
-		activities: [{
-			name: `ほしのBot Ver1.1.0を起動中`,
-			type: ActivityType.Playing
-		}]
-	});
-	setInterval(checkMap, 60000);
-	let lastDate = new Date().getDate();
-	setInterval(() => {
-		const currentDate = new Date().getDate();
-		if (currentDate !== lastDate) {
-			rankedintheday();
-			lastDate = currentDate;
-		}
-	}, 1000);
-	setInterval(() => {
+client.on(Events.ClientReady, async () =>
+	{
+		asciify("Hoshino Bot", { font: "larry3d" }, (err, msg) => {
+			if(err) return;
+			console.log(msg);
+		});
 		client.user.setPresence({
 			activities: [{
-				name: `h!help | ping: ${client.ws.ping}`,
+				name: "ほしのBot Ver1.1.0を起動中",
 				type: ActivityType.Playing
 			}]
 		});
-	}, 5000);
-	setInterval(makeBackup, 3600000);
-});
+		setInterval(checkMap, 60000);
+		let lastDate = new Date().getDate();
+		setInterval(async () => {
+			const currentDate = new Date().getDate();
+			if (currentDate !== lastDate) {
+				lastDate = currentDate;
+				await rankedintheday();
+				process.exit(0);
+			}
+		}, 1000);
+
+		setInterval(() => {
+			client.user.setPresence({
+				activities: [{
+					name: `h!help | ping: ${client.ws.ping}`,
+					type: ActivityType.Playing
+				}]
+			});
+		}, 5000);
+		setInterval(makeBackup, 3600000);
+
+		(async () => {
+			const webHookData = JSON.parse(fs.readFileSync("./ServerDatas/WebHookData.json", "utf-8"));
+			if (webHookData.lastDate == new Date().getDate()) return;
+			const webHookClient = new WebhookClient({ url: process.env.WEBHOOKURL });
+			const today = new Date();
+			const sixAM = new Date(today);
+			sixAM.setHours(6, 0, 0, 0);
+			const sixPM = new Date(today);
+			sixPM.setHours(18, 0, 0, 0);
+			const timeDiff = sixPM - sixAM;
+			const randomTime = sixAM.getTime() + Math.random() * timeDiff;
+			const nextExecutionTime = new Date(randomTime);
+			const currentTime = new Date();
+			const timeUntilNextExecution = nextExecutionTime - currentTime;
+			await webHookClient.send({
+				content: "daily bread"
+			})
+				.then(() => {
+					console.log("WebHookの送信に成功しました。");
+					webHookData.lastDate = new Date().getDate();
+					fs.writeFileSync("./ServerDatas/WebHookData.json", JSON.stringify(webHookData, null, 4), "utf-8");
+				})
+				.catch(() => {
+					console.log("WebHookの送信に失敗しました。");
+				});
+			if (timeUntilNextExecution > 0) {
+				setTimeout(async () => {
+					if (webHookData.lastDate == new Date().getDate()) return;
+					await webHookClient.send({
+						content: "daily bread"
+					})
+						.then(() => {
+							console.log("WebHookの送信に成功しました。");
+							webHookData.lastDate = new Date().getDate();
+							fs.writeFileSync("./ServerDatas/WebHookData.json", JSON.stringify(webHookData, null, 4), "utf-8");
+						})
+						.catch(() => {
+							console.log("WebHookの送信に失敗しました。");
+						});
+				}, timeUntilNextExecution);
+			}
+		})();
+	}
+);
 
 const symbols = ['🍒', '🍊', '🍇', '🔔', '💰', '⌚', '⛵'];
 
@@ -376,8 +423,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				return;
 			}
 
-			//ここから修正予定
-
 			if (interaction.commandName == "pic") {
 				const tag = interaction.options.get('tag').value;
 				if (!fs.existsSync(path.join("./Pictures/tag", tag, "DataBase.json"))) {
@@ -398,18 +443,30 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "settag") {
-				if (fs.existsSync(`./Pictures/tag/${interaction.channel.name}`)) {
+				const tagName = interaction.options.get('name').value;
+				if (fs.existsSync(`./Pictures/tag/${tagName}`)) {
 					await interaction.reply("このタグ名は登録できません。");
 					return;
 				}
 
-				if (fs.existsSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`)) {
+				if (fs.existsSync(`./Pictures/tag/${tagName}/DataBase.json`)) {
 					await interaction.reply("このタグは既に存在しています。");
 					return;
 				}
 				
-				await fs.mkdir(`./Pictures/tag/${interaction.channel.name}`);
-				fs.writeFileSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`, JSON.stringify({
+				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
+				for (const folder of currentDir) {
+					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${folder}/DataBase.json`, "utf-8"));
+					if (dataBase.id == interaction.channel.id) {
+						fs.renameSync(`./Pictures/tag/${folder}`, `./Pictures/tag/${tagName}`);
+						await interaction.reply("このチャンネルのタグ名を更新しました。");
+						return;
+					}
+				}
+				
+				await fs.mkdir(`./Pictures/tag/${tagName}`);
+				fs.writeFileSync(`./Pictures/tag/${tagName}/DataBase.json`, JSON.stringify({
+					id: interaction.channel.id,
 					FileCount: 0,
 					PhotoDataBase: []
 				}, null, 4), "utf-8");
@@ -418,58 +475,55 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "deltag") {
-				if (!fs.existsSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`)) {
-					await interaction.reply("このタグは存在しません。");
-					return;
+				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
+				for (const folder of currentDir) {
+					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${folder}/DataBase.json`, "utf-8"));
+					if (dataBase.id == interaction.channel.id) {
+						await fs.remove(`./Pictures/tag/${folder}/DataBase.json`);
+						await interaction.reply("タグの削除が正常に完了しました。");
+						return;
+					}
 				}
-
-				await fs.remove(`./Pictures/tag/${interaction.channel.name}/DataBase.json`);
-				await interaction.reply("タグの削除が正常に完了しました。");
+				await interaction.reply("このチャンネルのタグは存在しません。");
 				return;
 			}
 
 			if (interaction.commandName == "delpic") {
-				if (!fs.existsSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`)) {
-					await interaction.reply("このタグは存在しません。");
-					return;
-				}
-
-				const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`, "utf-8"));
 				const usercount = interaction.options.get('count').value;
-
-				let foundFlag = false;
-				for (const fileName of dataBase.PhotoDataBase) {
-					const file = fileName.split(".")[0];
-					if (file == usercount) {
-						foundFlag = true;
-						await fs.remove(`./Pictures/tag/${interaction.channel.name}/${fileName}`);
-						dataBase.PhotoDataBase.filter(item => item !== fileName);
-						dataBase.FileCount--;
-						fs.writeFileSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`, JSON.stringify(dataBase, null, 4), "utf-8");
-						await interaction.reply("ファイルが正常に削除されました。");
-						break;
+				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
+				for (const folder of currentDir) {
+					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${folder}/DataBase.json`, "utf-8"));
+					if (dataBase.id == interaction.channel.id) {
+						for (const fileName of dataBase.PhotoDataBase) {
+							const file = fileName.split(".")[0];
+							if (file == usercount) {
+								await fs.remove(`./Pictures/tag/${folder}/${fileName}`);
+								dataBase.PhotoDataBase = dataBase.PhotoDataBase.filter(item => item !== fileName);
+								dataBase.FileCount--;
+								fs.writeFileSync(`./Pictures/tag/${folder}/DataBase.json`, JSON.stringify(dataBase, null, 4), "utf-8");
+								await interaction.reply("ファイルが正常に削除されました。");
+								return;
+							}
+						}
+						await interaction.reply("そのファイルは存在しません。");
+						return;
 					}
 				}
-
-				if (!foundFlag) {
-					await interaction.reply("そのファイルは存在しません。");
-					return;
-				}
+				await interaction.reply("このチャンネルのタグは存在しません。");
 				return;
 			}
 
 			if (interaction.commandName == "piccount") {
-				if (!fs.existsSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`)) {
+				const tagName = interaction.options.get('name').value;
+				if (!fs.existsSync(`./Pictures/tag/${tagName}/DataBase.json`)) {
 					await interaction.reply("このタグは登録されていません。");
 					return;
 				}
-				const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${interaction.channel.name}/DataBase.json`, "utf-8"));
+				const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${tagName}/DataBase.json`, "utf-8"));
 				const filecount = dataBase.FileCount;
-				await interaction.reply(`今まで${interaction.channel.name}タグに追加した画像や映像、gifの合計枚数は${filecount}枚です。`);
+				await interaction.reply(`今まで${tagName}タグに追加した画像や映像、gifの合計枚数は${filecount}枚です。`);
 				return;
 			}
-
-			//ここまでが修正予定
 
 			if (interaction.commandName == "alltags") {
 				let tagList = [];
@@ -641,7 +695,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							.setColor("Blue")
 							.setTitle(`${mapData.artist} - ${mapData.title} [${mapData.version}]`)
 							.setURL(maplink)
-							.setAuthor({ name: `Mapped by ${mapperData.username}`, iconURL: mapperIconURL, url: mapperUserURL })
+							.setAuthor({ name: `Mapped by ${mapData.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 							.addFields({ name: "**BPM**", value: `**${bpmStr}** (最頻値: **${data.BPMMode.toFixed(1)}**)`, inline: false })
 							.addFields({ name: "**Streams**", value: `**1/4 Streams**: **${data.streamCount}**回 [最大**${data.maxStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageStreamLength)}**コンボ] (${streamPercentData[0]}%)\n**Tech Streams**: **${data.techStreamCount}**回 [最大**${data.techStream}**コンボ / 平均**${Math.floor(data.over100ComboAverageTechStreamLength)}**コンボ] (${streamPercentData[1]}%)`, inline: false })
 							.addFields({ name: "**Hit Objects**", value: `**1/3**: **${data["1/3 times"]}**回 [最大**${data["max1/3Length"]}**コンボ] (${hitPercentData[0]}%)\n**1/4**: **${data["1/4 times"]}**回 [最大**${data["max1/4Length"]}**コンボ] (${hitPercentData[1]}%)\n**1/6**: **${data["1/6 times"]}**回 [最大**${data["max1/6Length"]}**コンボ] (${hitPercentData[2]}%)\n**1/8**: **${data["1/8 times"]}**回 [最大**${data["max1/8Length"]}**コンボ] (${hitPercentData[3]}%)`, inline: false })
@@ -652,20 +706,23 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "ispp") {
-					const maplink = interaction.options.get("beatmaplink").value;
-					const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-					if (!regex.test(maplink)) {
-						await interaction.reply(`ビートマップリンクの形式が間違っています。`);
-						return;
-					}
-					
-					const Mods = new osuLibrary.Mod(interaction.options?.get("mods")?.value).get();
-					if (!Mods) {
-						await interaction.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。");
-						return;
-					}
+				const maplink = interaction.options.get("beatmaplink").value;
+				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				if (!regex.test(maplink) || !regex2.test(maplink)) {
+					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
+					return;
+				}
+				
+				const Mods = new osuLibrary.Mod(interaction.options?.get("mods")?.value).get();
+				if (!Mods) {
+					await interaction.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。");
+					return;
+				}
 
-					let mode;
+				let mode;
+				let data;
+				if (regex.test(maplink)) {
 					switch (maplink.split("/")[4].split("#")[1]) {
 						case "osu":
 							mode = 0;
@@ -687,19 +744,24 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							await interaction.reply("リンク内のモードが不正です。");
 							return;
 					}
-					const data = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
-					const ppdata = await new osuLibrary.CalculatePPSR(maplink, Mods.calc, mode).calculateSR();
-					const Mapstatus = osuLibrary.Tools.mapstatus(data.approved);
-					const FP = Math.round(Number(ppdata.pp) / Number(data.total_length) * 1000) / 10;
-					const ppdevidetotallength = Math.round(Number(ppdata.pp) / Number(data.total_length) * 10) / 10;
-					await interaction.reply(`Totalpp : **${ppdata.pp.toFixed(2)}** (**${Mapstatus}**)　Farmscore : **${isNaN(FP) ? 0 : FP}**　${isNaN(ppdevidetotallength) ? 0 : ppdevidetotallength} pp/s`);
-					return;
+					data = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
+				} else {
+					data = await new osuLibrary.GetMapData(maplink, apikey).getDataWithoutMode();
+					mode = Number(data.mode);
+				}
+				const ppdata = await new osuLibrary.CalculatePPSR(maplink, Mods.calc, mode).calculateSR();
+				const Mapstatus = osuLibrary.Tools.mapstatus(data.approved);
+				const FP = Math.round(Number(ppdata.pp) / Number(data.total_length) * 1000) / 10;
+				const ppdevidetotallength = Math.round(Number(ppdata.pp) / Number(data.total_length) * 10) / 10;
+				await interaction.reply(`Totalpp : **${ppdata.pp.toFixed(2)}** (**${Mapstatus}**)　Farmscore : **${isNaN(FP) ? 0 : FP}**　${isNaN(ppdevidetotallength) ? 0 : ppdevidetotallength} pp/s`);
+				return;
 			}
 
 			if (interaction.commandName == "lb") {
 				const maplink = interaction.options.get("beatmaplink").value;
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-				if (!regex.test(maplink)) {
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				if (!regex.test(maplink) || !regex2.test(maplink)) {
 					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -711,32 +773,37 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("入力されたModは存在しないか、指定できないModです。存在するMod、AutoなどのMod以外を指定するようにしてください。");
 					return;
 				}
-
-				const mapsetlink = maplink.split("/")[4].split("#")[0];
+				
 				let mode;
-				switch (maplink.split("/")[4].split("#")[1]) {
-					case "osu":
-						mode = 0;
-						break;
-
-					case "taiko":
-						mode = 1;
-						break;
-
-					case "fruits":
-						mode = 2;
-						break;
-
-					case "mania":
-						mode = 3;
-						break;
-
-					default:
-						await interaction.reply("リンク内のモードが不正です。");
-						return;
+				let Mapinfo;
+				if (regex.test(maplink)) {
+					switch (maplink.split("/")[4].split("#")[1]) {
+						case "osu":
+							mode = 0;
+							break;
+	
+						case "taiko":
+							mode = 1;
+							break;
+	
+						case "fruits":
+							mode = 2;
+							break;
+	
+						case "mania":
+							mode = 3;
+							break;
+	
+						default:
+							await interaction.reply("リンク内のモードが不正です。");
+							return;
+					}
+					Mapinfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
+				} else {
+					Mapinfo = await new osuLibrary.GetMapData(maplink, apikey).getDataWithoutMode();
+					mode = Number(Mapinfo.mode);
 				}
 
-				const Mapinfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
 				const mapperinfo = await new osuLibrary.GetUserData(Mapinfo.creator, apikey, mode).getData();
 
 				const srData = new osuLibrary.CalculatePPSR(maplink, mods.calc, mode);
@@ -762,13 +829,13 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 				const mapperIconURL = osuLibrary.URLBuilder.iconURL(mapperinfo?.user_id);
 				const mapperUserURL = osuLibrary.URLBuilder.userURL(mapperinfo?.user_id);
-				const backgroundURL = osuLibrary.URLBuilder.backgroundURL(mapsetlink);
+				const backgroundURL = osuLibrary.URLBuilder.backgroundURL(Mapinfo.beatmapset_id);
 
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(`Map leaderboard: ${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
 					.setURL(maplink)
-					.setAuthor({ name: `Mapped by ${mapperinfo.username}`, iconURL: mapperIconURL, url: mapperUserURL })
+					.setAuthor({ name: `Mapped by ${Mapinfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 					.addFields({ name: "**MapInfo**", value: `\`Mods\`: **${mods.str}** \`SR\`: **${sr.sr.toFixed(2)}** \`BPM\`: **${BPM}**`, inline: true })
 					.setImage(backgroundURL);
 				const rankingdata = [];
@@ -972,7 +1039,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				scoreSearchMode = !scoreSearchMode ? 1 : Number(scoreSearchMode);
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-				if (!regex.test(maplink)) {
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				if (!regex.test(maplink) || !regex2.test(maplink)) {
 					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -985,33 +1053,56 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				}
 
 				let mode;
+				let mapInfo;
 				let modeforranking;
-				switch (maplink.split("/")[4].split("#")[1]) {
-					case "osu":
-						mode = 0;
-						modeforranking = "osu";
-						break;
-					case "taiko":
-						mode = 1;
-						modeforranking = "taiko";
-						break;
-
-					case "fruits":
-						mode = 2;
-						modeforranking = "fruits";
-						break;
-
-					case "mania":
-						mode = 3;
-						modeforranking = "mania";
-						break;
-
-					default:
-						await interaction.reply("リンク内のモードが不正です。");
-						return;
+				let mapUrl;
+				if (!regex.test(maplink)) {
+					switch (maplink.split("/")[4].split("#")[1]) {
+						case "osu":
+							mode = 0;
+							modeforranking = "osu";
+							break;
+						case "taiko":
+							mode = 1;
+							modeforranking = "taiko";
+							break;
+	
+						case "fruits":
+							mode = 2;
+							modeforranking = "fruits";
+							break;
+	
+						case "mania":
+							mode = 3;
+							modeforranking = "mania";
+							break;
+	
+						default:
+							await interaction.reply("リンク内のモードが不正です。");
+							return;
+					}
+					mapInfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
+					mapUrl = maplink;
+				} else {
+					mapInfo = await new osuLibrary.GetMapData(maplink, apikey).getDataWithoutMode();
+					mode = Number(mapInfo.mode);
+					switch (mode) {
+						case 0:
+							modeforranking = "osu";
+							break;
+						case 1:
+							modeforranking = "taiko";
+							break;
+						case 2:
+							modeforranking = "fruits";
+							break;
+						case 3:
+							modeforranking = "mania";
+							break;
+					}
+					mapUrl = osuLibrary.URLBuilder.beatmapURL(mapInfo.beatmapset_id, mode, mapInfo.beatmap_id);
 				}
 
-				const mapInfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
 				let playersScore = await new osuLibrary.GetUserScore(playername, apikey, mode).getScoreDataWithoutMods(mapInfo.beatmap_id);
 
 				if (playersScore.length == 0) {
@@ -1125,7 +1216,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						.setDescription(`Played by [${playersInfo.username}](${playerUserURL})`)
 						.addFields({ name: `Mods: ${modsBefore.str} → ${mods.str} Acc: ${acc}% Miss: ${playersScore.countmiss}`, value: `**PP:** **${PPbefore.toFixed(2)}**/${SSPPbefore.pp.toFixed(2)}pp → **${PPafter.toFixed(2)}**/${SSPPafter.pp.toFixed(2)}pp`, inline: true })
 						.addFields({ name: `Rank`, value: `**${Number(playersInfo.pp_raw).toLocaleString()}**pp → **${(Math.round(globalPP * 10) / 10).toLocaleString()}**pp ${globalPPDiffPrefix + (globalPPDiff).toFixed(1)}`, inline: false })
-						.setURL(maplink)
+						.setURL(mapUrl)
 						.setAuthor({ name: `Mapped by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 						.setImage(backgroundURL);
 					await interaction.channel.send({ embeds: [embed] });
@@ -1139,7 +1230,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						.setDescription(`Played by [${playersInfo.username}](${playerUserURL})`)
 						.addFields({ name: `Mods: ${modsBefore.str} → ${mods.str} Acc: ${acc}% Miss: ${playersScore.countmiss}`, value: `**PP:** **${PPbefore.toFixed(2)}**/${SSPPbefore.pp.toFixed(2)}pp → **${PPafter.toFixed(2)}**/${SSPPafter.pp.toFixed(2)}pp`, inline: true })
 						.addFields({ name: `Rank`, value: `**${Number(playersInfo.pp_raw).toLocaleString()}**pp → **${(Math.round(globalPP * 10) / 10).toLocaleString()}**pp ${globalPPDiffPrefix + (globalPPDiff).toFixed(1)}`, inline: false })
-						.setURL(maplink)
+						.setURL(mapUrl)
 						.setAuthor({ name: `Mapped by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 						.setImage(backgroundURL);
 					await interaction.channel.send({ embeds: [embed] });
@@ -1155,7 +1246,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					.setDescription(`Played by [${playersInfo.username}](${playerUserURL})`)
 					.addFields({ name: `Mods: ${modsBefore.str} → ${mods.str} Acc: ${acc}% Miss: ${playersScore.countmiss}`, value: `**PP:** **${PPbefore.toFixed(2)}**/${SSPPbefore.pp.toFixed(2)}pp → **${PPafter.toFixed(2)}**/${SSPPafter.pp.toFixed(2)}pp`, inline: true })
 					.addFields({ name: `Rank`, value: `**${Number(playersInfo.pp_raw).toLocaleString()}**pp (#${Number(playersInfo.pp_rank).toLocaleString()}) → **${(Math.round(globalPP * 10) / 10).toLocaleString()}**pp ${globalPPDiffPrefix + (globalPPDiff).toFixed(1)} (#${ranking.toLocaleString()} ${rankingDiffPrefix + rankingDiff})`, inline: false })
-					.setURL(maplink)
+					.setURL(mapUrl)
 					.setAuthor({ name: `Mapped by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 					.setImage(backgroundURL);
 				await interaction.channel.send({ embeds: [embed] });
@@ -1164,36 +1255,42 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "srchart") {
 				const maplink = interaction.options.get("beatmaplink").value;
-
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-				if (!regex.test(maplink)) {
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				if (!regex.test(maplink) || !regex2.test(maplink)) {
 					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
 
 				let mode;
-				switch (maplink.split("/")[4].split("#")[1]) {
-					case "osu":
-						mode = 0;
-						break;
-					
-					case "taiko":
-						mode = 1;
-						break;
-
-					case "fruits":
-						mode = 2;
-						break;
-
-					case "mania":
-						mode = 3;
-						break;
-
-					default:
-						await interaction.reply("リンク内のモードが不正です。");
-						return;
+				let mapdata;
+				if (regex.test(maplink)) {
+					switch (maplink.split("/")[4].split("#")[1]) {
+						case "osu":
+							mode = 0;
+							break;
+						
+						case "taiko":
+							mode = 1;
+							break;
+	
+						case "fruits":
+							mode = 2;
+							break;
+	
+						case "mania":
+							mode = 3;
+							break;
+	
+						default:
+							await interaction.reply("リンク内のモードが不正です。");
+							return;
+					}
+					mapdata = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
+				} else {
+					mapdata = await new osuLibrary.GetMapData(maplink, apikey).getDataWithoutMode();
+					mode = Number(mapdata.mode);
 				}
-				const mapdata = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
 				const beatmapId = mapdata.beatmap_id;
 
 				await interaction.reply("SRの計算中です。")
@@ -1212,7 +1309,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const maplink = interaction.options.get("beatmaplink").value;
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-				if (!regex.test(maplink)) {
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				if (!regex.test(maplink) || !regex2.test(maplink)) {
 					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
@@ -1247,12 +1345,13 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const mapperUserURL = osuLibrary.URLBuilder.userURL(mapperdata?.user_id);
 				const mapperIconURL = osuLibrary.URLBuilder.iconURL(mapperdata?.user_id);
 				const backgroundURL = osuLibrary.URLBuilder.backgroundURL(maplink);
+				const mapUrl = osuLibrary.URLBuilder.beatmapURL(mapInfo.beatmapset_id, mode, mapInfo.beatmap_id);
 
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(`${mapInfo.artist} - ${mapInfo.title} [${mapInfo.version}]`)
 					.setDescription(`Combo: \`${mapInfo.max_combo}\` Stars: \`${sr.sr.toFixed(2)}\` \n Length: \`${formatTime(Number(mapInfo.total_length))}\` BPM: \`${mapInfo.bpm}\` Objects: \`${objectCount}\` \n CS: \`${mapInfo.diff_size}\` AR: \`${mapInfo.diff_approach}\` OD: \`${mapInfo.diff_overall}\` HP: \`${mapInfo.diff_drain}\` Spinners: \`${mapInfo.count_spinner}\``)
-					.setURL(maplink)
+					.setURL(mapUrl)
 					.setAuthor({ name: `Mapped by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 					.addFields({ name: "Preview link", value: `[Preview this map!](${previewlink})`, inline: true })
 					.setImage(backgroundURL);
@@ -1271,7 +1370,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 				let mod = new osuLibrary.Mod(interaction.options.get('mods')?.value).get();
 
-				//MODが存在するか、指定できないMODが指定されていないか確認
 				if (!mod) {
 					await interaction.reply("Modが存在しないか、指定できないModです。");
 					return;
@@ -1280,7 +1378,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const beatmapdata = await axios.get(osufile, { responseType: 'arraybuffer' })
 					.then(res => res.data);
 
-				//SR、PPの計算
 				await interaction.reply("計算中です。");
 				const map = new Beatmap({ bytes: new Uint8Array(Buffer.from(beatmapdata)) });
 				let score = {
@@ -1288,11 +1385,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					mods: mod.calc
 				};
 
-				//Arraybufferをstreamに変換
 				const beatmapDataStream = Readable.from(Buffer.from(beatmapdata));
 				const lineReader = require('readline').createInterface({ input: beatmapDataStream });
-
-				//マップ情報を格納するオブジェクトの作成
 				let Mapinfo = {
 					Artist: "",
 					Title: "",
@@ -1338,7 +1432,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					const key = line.split(":")[0];
 					const value = line.split(":")[1];
 
-					// マップ情報を格納
 					if (key === 'Artist') Mapinfo.Artist = value.replace("\r", "");
 					if (key === 'Title') Mapinfo.Title = value.replace("\r", "");
 					if (key === 'Creator') Mapinfo.Creator = value.replace("\r", "");
@@ -1796,7 +1889,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					const dtminppData = await minsrdata.calculateDT();
 					const srstring = nmmaxppData.sr == nmminppData.sr ? `SR: ☆**${nmmaxppData.sr.toFixed(2)}** (DT ☆**${dtmaxppData.sr.toFixed(2)}**)` : `SR: ☆**${nmminppData.sr.toFixed(2)} ~ ${nmmaxppData.sr.toFixed(2)}** (DT ☆**${dtminppData.sr.toFixed(2)} ~ ${dtmaxppData.sr.toFixed(2)}**)`;
 					const ppstring = nmmaxppData.pp == nmminppData.pp ? `PP: **${nmmaxppData.pp.toFixed(2)}**pp (DT **${dtmaxppData.pp.toFixed(2)}**pp)` : `PP: **${nmminppData.pp.toFixed(2)} ~ ${nmmaxppData.pp.toFixed(2)}**pp (DT **${dtminppData.pp.toFixed(2)} ~ ${dtmaxppData.pp.toFixed(2)}**pp)`;
-					data.push({ name: `${i + 1}. ${seracheddata.beatmapsets[i].title} - ${seracheddata.beatmapsets[i].artist}`, value: `▸Mapped by **${seracheddata.beatmapsets[i].creator}**\n▸${srstring}\n▸${ppstring}\n▸**Download**: [map](https://osu.ppy.sh/beatmapsets/${seracheddata.beatmapsets[i].id}) | [osu!direct](https://osu.ppy.sh/d/${seracheddata.beatmapsets[i].id}) | [Nerinyan](https://api.nerinyan.moe/d/${seracheddata.beatmapsets[i].id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${seracheddata.beatmapsets[i].id})` })
+					data.push({ name: `${i + 1}. ${seracheddata.beatmapsets[i].title} - ${seracheddata.beatmapsets[i].artist}`, value: `▸Mapped by **${seracheddata.beatmapsets[i].creator}**\n▸${srstring}\n▸${ppstring}\n▸**Download**: [map](https://osu.ppy.sh/beatmapsets/${seracheddata.beatmapsets[i].id}) | [Nerinyan](https://api.nerinyan.moe/d/${seracheddata.beatmapsets[i].id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${seracheddata.beatmapsets[i].id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${seracheddata.beatmapsets[i].id})` })
 				}
 				embed.addFields(data);
 				await interaction.channel.send({ embeds: [embed] });
@@ -2277,30 +2370,8 @@ client.on(Events.MessageCreate, async (message) =>
 					return;
 				}
 
-				const maplink = message.content.split(" ")[1];;
-				let mode;
-				switch (maplink.split("/")[4].split("#")[1]) {
-					case "osu":
-						mode = 0;
-						break;
-
-					case "taiko":
-						mode = 1;
-						break;
-
-					case "fruits":
-						mode = 2;
-						break;
-
-					case "mania":
-						mode = 3;
-						break;
-						
-					default:
-						await message.reply("リンク内のモードが不正です。");
-						return;
-				}
-
+				const maplink = message.content.split(" ")[1];
+				
 				if (maplink == undefined) {
 					await message.reply("マップリンクを入力してください。");
 					return;
@@ -2312,9 +2383,44 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-				if (!regex.test(maplink)) {
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+
+				if (!regex.test(maplink) || !regex2.test(maplink)) {
 					await message.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
+				}
+
+				let mode;
+				let mapInfo;
+				let mapUrl;
+				if (regex.test(maplink)) {
+					switch (maplink.split("/")[4].split("#")[1]) {
+						case "osu":
+							mode = 0;
+							break;
+
+						case "taiko":
+							mode = 1;
+							break;
+
+						case "fruits":
+							mode = 2;
+							break;
+
+						case "mania":
+							mode = 3;
+							break;
+							
+						default:
+							await message.reply("リンク内のモードが不正です。");
+							return;
+					}
+					mapInfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
+					mapUrl = maplink;
+				} else {
+					mapInfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getDataWithoutMode();
+					mode = Number(mapInfo.mode);
+					mapUrl = osuLibrary.URLBuilder.beatmapURL(mapInfo.beatmapset_id, mode, mapInfo.beatmap_id);
 				}
 
 				let arg2;
@@ -2355,8 +2461,6 @@ client.on(Events.MessageCreate, async (message) =>
 						return;
 					}
 				}
-
-				const mapInfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getData()
 
 				let totalLength = Number(mapInfo.total_length);
 				let BPM = Number(mapInfo.bpm);
@@ -2456,7 +2560,7 @@ client.on(Events.MessageCreate, async (message) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(`${mapInfo.artist} - ${mapInfo.title}`)
-					.setURL(maplink)
+					.setURL(mapUrl)
 					.addFields({ name: "Music and Backgroud", value: `:musical_note:[Song Preview](https://b.ppy.sh/preview/${mapInfo.beatmapset_id}.mp3)　:frame_photo:[Full background](https://assets.ppy.sh/beatmaps/${mapInfo.beatmapset_id}/covers/raw.jpg)` })
 					.setAuthor({ name: `Created by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 					.addFields({ name: `[**__${mapInfo.version}__**] **+${Mods.str}**`, value: `Combo: \`${mapInfo.max_combo}\` Stars: \`${sr[100].sr.toFixed(2)}\` \n Length: \`${formatTime(totalLength)}\` BPM: \`${BPM}\` Objects: \`${objectCount}\` \n CS: \`${Cs}\` AR: \`${Ar}\` OD: \`${Od}\` HP: \`${Hp}\` Spinners: \`${mapInfo.count_spinner}\``, inline: true })
@@ -2755,6 +2859,7 @@ client.on(Events.MessageCreate, async (message) =>
 				let ifFCMessage = `(**${ifFCPP.toFixed(2)}**pp for ${ifFCAcc}% FC)`;
 				if (currentMode == 3) ifFCMessage = "";
 				if (userRecentData.maxcombo == mapData.max_combo) ifFCMessage = "**Full Combo!! Congrats!!**";
+				if (recentPp.toString().replace(".", "").includes("727")) ifFCMessage = "**WYSI!! WYFSI!!!!!**"
 
 				await message.channel.send({ embeds: [embed] }).then((sentMessage) => {
 					setTimeout(async () => {
@@ -2808,38 +2913,46 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-				if (!regex.test(maplink)) {
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				if (!regex.test(maplink) || !regex2.test(maplink)) {
 					await message.reply(`ビートマップリンクの形式が間違っています。`);
 					return;
 				}
-				
-				const beatmapId = message.content.split(" ")[1].split("/")[5];
 
 				let mode;
-				switch (maplink.split("/")[4].split("#")[1]) {
-					case "osu":
-						mode = 0;
-						break;
+				let Mapinfo;
+				let mapUrl;
+				if (regex.test(maplink)) {
+					switch (maplink.split("/")[4].split("#")[1]) {
+						case "osu":
+							mode = 0;
+							break;
 
-					case "taiko":
-						mode = 1;
-						break;
+						case "taiko":
+							mode = 1;
+							break;
 
-					case "fruits":
-						mode = 2;
-						break;
+						case "fruits":
+							mode = 2;
+							break;
 
-					case "mania":
-						mode = 3;
-						break;
-						
-					default:
-						await message.reply("リンク内のモードが不正です。");
-						return;
+						case "mania":
+							mode = 3;
+							break;
+							
+						default:
+							await message.reply("リンク内のモードが不正です。");
+							return;
+					}
+					Mapinfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
+					mapUrl = maplink;
+				} else {
+					Mapinfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getDataWithoutMode();
+					mode = Number(Mapinfo.mode);
+					mapUrl = osuLibrary.URLBuilder.beatmapURL(Mapinfo.beatmapset_id, mode, Mapinfo.beatmap_id);
 				}
 
-				const Mapinfo = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
-				const playersScore = await new osuLibrary.GetUserScore(playername, apikey, mode).getScoreDataWithoutMods(beatmapId);
+				const playersScore = await new osuLibrary.GetUserScore(playername, apikey, mode).getScoreDataWithoutMods(Mapinfo.beatmap_id);
 
 				if (playersScore.length == 0) {
 					await message.reply(`${playername}さんのスコアが見つかりませんでした。`);
@@ -2891,7 +3004,7 @@ client.on(Events.MessageCreate, async (message) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(`${Mapinfo.artist} - ${Mapinfo.title} [${Mapinfo.version}]`)
-					.setURL(maplink)
+					.setURL(mapUrl)
 					.setAuthor({ name: `Mapped by ${Mapinfo.creator}`,  iconURL: mapperIconURL, url: mapperUserURL })
 					.addFields({ name: "Player name", value: `[${playersInfo.username}](${playerUserURL})`, inline: true })
 					.addFields({ name: "BPM", value: `\`${BPMstr}\``, inline: true });
@@ -2909,7 +3022,7 @@ client.on(Events.MessageCreate, async (message) =>
 					
 					const Mods = new osuLibrary.Mod(playersScore[i].enabled_mods).get();
 
-					const srpp = await new osuLibrary.CalculatePPSR(beatmapId, Mods.calc, mode).calculateSR();
+					const srpp = await new osuLibrary.CalculatePPSR(Mapinfo.beatmap_id, Mods.calc, mode).calculateSR();
 					const score = {
 						mode: mode,
 						mods: Mods.calc,
@@ -2921,7 +3034,7 @@ client.on(Events.MessageCreate, async (message) =>
 						nKatu: Number(playersScore[i].countkatu),
 						combo: Number(playersScore[i].maxcombo)
 					};
-					const scorepp = await new osuLibrary.CalculatePPSR(beatmapId, Mods.calc, mode).calculateScorePP(score);
+					const scorepp = await new osuLibrary.CalculatePPSR(Mapinfo.beatmap_id, Mods.calc, mode).calculateScorePP(score);
 
 					const Hits = formatHits(score, mode);
 					scoreDatas.push({ name: `\`#${i + 1}\``, value: `**SR**: \`★${srpp.sr.toFixed(2)}\`　**Rank**: ${rankconverter(playersScore[i].rank)}　**Mods**: **${Mods.str}**　**Score**: ${Number(playersScore[i].score).toLocaleString()} \n **Hits** : ${Hits}　**Combo**: **${playersScore[i].maxcombo}**　**Acc**: **${acc}**%　**PP**: **${scorepp.toFixed(2)}**`, inline: false });
@@ -2936,34 +3049,45 @@ client.on(Events.MessageCreate, async (message) =>
 				return;
 			}
 			
-			if (/^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content)) {
-				const channelid = message.channel.id;
-
-				const allchannels = JSON.parse(fs.readFileSync("./ServerDatas/BeatmapLinkChannels.json", "utf-8"));
-				if (!allchannels.Channels.includes(channelid)) return;
+			if (/^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content) || /^https:\/\/osu\.ppy\.sh\/b\/\d+$/.test(message.content)) {
+				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				if (!regex.test(message.content) || !regex2.test(message.content)) {
+					await message.reply(`ビートマップリンクの形式が間違っています。`);
+					return;
+				}
 
 				let mode;
-				switch (message.content.split("#")[1].split("/")[0]) {
-					case "osu":
-						mode = 0;
-						break;
-
-					case "taiko":
-						mode = 1;
-						break;
-
-					case "fruits":
-						mode = 2;
-						break;
-
-					case "mania":
-						mode = 3;
-						break;
-
-					default:
-						return;
+				let mapData;
+				let mapUrl;
+				if (regex.test(message.content)) {
+					switch (message.content.split("#")[1].split("/")[0]) {
+						case "osu":
+							mode = 0;
+							break;
+	
+						case "taiko":
+							mode = 1;
+							break;
+	
+						case "fruits":
+							mode = 2;
+							break;
+	
+						case "mania":
+							mode = 3;
+							break;
+	
+						default:
+							return;
+					}
+					mapData = await new osuLibrary.GetMapData(message.content, apikey, mode).getData();
+					mapUrl = message.content;
+				} else {
+					mapData = await new osuLibrary.GetMapData(message.content, apikey).getDataWithoutMode();
+					mode = Number(mapData.mode);
+					mapUrl = osuLibrary.URLBuilder.beatmapURL(mapData.beatmapset_id, mode, mapData.beatmap_id);
 				}
-				const mapData = await new osuLibrary.GetMapData(message.content, apikey, mode).getData();
 
 				const mapperData = await new osuLibrary.GetUserData(mapData.creator, apikey, mode).getData();
 				const mapperIconURL = osuLibrary.URLBuilder.iconURL(mapperData?.user_id);
@@ -2977,8 +3101,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
-					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: message.content })
-					.setDescription(`**Length**: ${formatTime(Number(mapData.total_length))}　**BPM**: ${mapData.bpm}　**Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
+					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: mapUrl })
+					.setDescription(`**Length**: ${formatTime(Number(mapData.total_length))}　**BPM**: ${mapData.bpm}　**Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
 					.addFields({ name: `**[__${mapData.version}__]**`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★　▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${mapData.diff_overall}　▸**CS:** ${mapData.diff_size}　▸**AR:** ${mapData.diff_approach}　▸**HP:** ${mapData.diff_drain}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)}　○ **99**%-${sr[99].pp.toFixed(2)}　○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
 					.setTimestamp()
 					.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
@@ -2998,16 +3122,21 @@ client.on(Events.MessageCreate, async (message) =>
 				const allchannels = JSON.parse(fs.readFileSync("./ServerDatas/BeatmapLinkChannels.json", "utf-8"));
 				if (!allchannels.Channels.includes(channelid)) return;
 
-				const messagedata = await message.channel.messages.fetch();
-				const contents = Array.from(messagedata.values()).map(message => message.content);
-				const maplinks = contents.filter((message) => {
-					return /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message)
+				const messageData = await message.channel.messages.fetch();
+				const messages = Array.from(messageData.values());
+				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				let maplinks = messages.map(message => {
+					if (regex.test(message.content) || regex2.test(message.content)) return message.content;
+					if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
+					if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url)) return message.embeds[0].data.author.url;
 				});
+				maplinks = maplinks.filter(link => link != undefined);
 				if (maplinks[0] == undefined) {
-					await message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。")
-					return
+					await message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。");
+					return;
 				}
-				const recentmaplink = maplinks[0];
+				let recentmaplink = maplinks[0];
 
 				if (message.content.split(" ")[1] == undefined) {
 					await message.reply("Modsを入力してください。");
@@ -3025,31 +3154,39 @@ client.on(Events.MessageCreate, async (message) =>
 					await message.reply("Modが存在しないか、指定できないModです。");
 					return;
 				}
-
+				
 				let mode;
-				switch (recentmaplink.split("#")[1].split("/")[0]) {
-					case "osu":
-						mode = 0;
-						break;
-
-					case "taiko":
-						mode = 1;
-						break;
-
-					case "fruits":
-						mode = 2;
-						break;
-
-					case "mania":
-						mode = 3;
-						break;
-
-					default:
-						await message.reply("リンク内のモードが不正です。");
-						return;
+				let mapData;
+				let mapUrl;
+				if (regex.test(recentmaplink)) {
+					switch (recentmaplink.split("#")[1].split("/")[0]) {
+						case "osu":
+							mode = 0;
+							break;
+	
+						case "taiko":
+							mode = 1;
+							break;
+	
+						case "fruits":
+							mode = 2;
+							break;
+	
+						case "mania":
+							mode = 3;
+							break;
+	
+						default:
+							await message.reply("リンク内のモードが不正です。");
+							return;
+					}
+					mapData = await new osuLibrary.GetMapData(recentmaplink, apikey, mode).getData();
+					mapUrl = recentmaplink;
+				} else {
+					mapData = await new osuLibrary.GetMapData(recentmaplink, apikey).getDataWithoutMode();
+					mode = Number(mapData.mode);
+					mapUrl = osuLibrary.URLBuilder.beatmapURL(mapData.beatmapset_id, mode, mapData.beatmap_id);
 				}
-
-				const mapData = await new osuLibrary.GetMapData(recentmaplink, apikey, mode).getData();
 
 				const mapperData = await new osuLibrary.GetUserData(mapData.creator, apikey, mode).getData();
 				const mapperIconURL = osuLibrary.URLBuilder.iconURL(mapperData?.user_id);
@@ -3098,8 +3235,8 @@ client.on(Events.MessageCreate, async (message) =>
 
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
-					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: recentmaplink })
-					.setDescription(`**Length**: ${formatTime(totalLength)}　**BPM**: ${BPM}　**Mods**: ${Mods.str}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
+					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: mapUrl })
+					.setDescription(`**Length**: ${formatTime(totalLength)}　**BPM**: ${BPM}　**Mods**: ${Mods.str}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
 					.addFields({ name: `**[__${mapData.version}__]**`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★　▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${Od}　▸**CS:** ${Cs}　▸**AR:** ${Ar}　▸**HP:** ${Hp}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)}　○ **99**%-${sr[99].pp.toFixed(2)}　○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
 					.setTimestamp()
 					.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
@@ -3107,7 +3244,238 @@ client.on(Events.MessageCreate, async (message) =>
 				await message.channel.send({ embeds: [embed] });
 			}
 
-			if (message.content.startsWith("!wi")) {
+			if (message.content.split(" ")[0] == "!c") {
+				if (message.content == "!m") {
+					await message.reply("使い方: !c (マップリンク) (ユーザー名)");
+					return;
+				}
+
+				//マップリンクとユーザー名を分ける。
+				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				let playername;
+				let maplink;
+				if (regex.test(message.content.split(" ")[1]) || regex2.test(message.content.split(" ")[1])) {
+					maplink = message.content.split(" ")[1];
+					if (message.content.split(" ")[2] == undefined) {
+						const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
+						const username = allUser["Bancho"][message.author.id]?.name;
+						if (username == undefined) {
+							await message.reply("ユーザー名が登録されていません。/osuregで登録するか、ユーザー名を入力してください。");
+							return;
+						}
+						playername = username;
+					} else {
+						playername = message.content.split(" ")?.slice(2)?.join(" ");
+					}
+				} else if (message.content.split(" ")[1] == undefined) {
+					const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
+					const username = allUser["Bancho"][message.author.id]?.name;
+					if (username == undefined) {
+						await message.reply("ユーザー名が登録されていません。/osuregで登録するか、ユーザー名を入力してください。");
+						return;
+					}
+					playername = username;
+					const messageData = await message.channel.messages.fetch();
+					const messages = Array.from(messageData.values());
+					let maplinks = messages.map(message => {
+						if (regex.test(message.content) || regex2.test(message.content)) return message.content;
+						if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
+						if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url)) return message.embeds[0].data.author.url;
+					});
+					maplinks = maplinks.filter(link => link != undefined);
+					if (maplinks[0] == undefined) {
+						await message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。");
+						return;
+					}
+					maplink = maplinks[0];
+				} else {
+					playername = message.content.split(" ")?.slice(1)?.join(" ");
+					const messageData = await message.channel.messages.fetch();
+					const messages = Array.from(messageData.values());
+					let maplinks = messages.map(message => {
+						if (regex.test(message.content) || regex2.test(message.content)) return message.content;
+						if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
+						if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url)) return message.embeds[0].data.author.url;
+					});
+					maplinks = maplinks.filter(link => link != undefined);
+					if (maplinks[0] == undefined) {
+						await message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。");
+						return;
+					}
+					maplink = maplinks[0];
+				}
+				
+				if (playername == "") {
+					await message.reply("ユーザー名の前の空白が1つ多い可能性があります。");
+					return;
+				}
+
+				let mapData;
+				let mode;
+				let mapUrl;
+				if (regex.test(maplink)) {
+					switch (maplink.split("#")[1].split("/")[0]) {
+						case "osu":
+							mode = 0;
+							break;
+							
+						case "taiko":
+							mode = 1;
+							break;
+
+						case "fruits":
+							mode = 2;
+							break;
+
+						case "mania":
+							mode = 3;
+							break;
+
+						default:
+							await message.reply("リンク内のモードが不正です。");
+							return;
+					}
+					mapData = await new osuLibrary.GetMapData(maplink, apikey, mode).getData();
+					mapUrl = maplink;
+				} else {
+					mapData = await new osuLibrary.GetMapData(maplink, apikey).getDataWithoutMode();
+					mode = Number(mapData.mode);
+					mapUrl = osuLibrary.URLBuilder.beatmapURL(mapData.beatmapset_id, mode, mapData.beatmap_id);
+				}
+
+				const userPlays = await new osuLibrary.GetUserScore(playername, apikey, mode).getScoreDataWithoutMods(mapData.beatmap_id);
+				if (userPlays.length == 0) {
+					await message.reply("スコアデータが見つかりませんでした。");
+					return;
+				}
+
+				const mapRankingData = await axios.get(`https://osu.ppy.sh/api/get_scores?k=${apikey}&b=${mapData.beatmap_id}&m=${mode}&limit=50`).then((responce) => {
+					return responce.data;
+				});
+
+				let mapScores = [];
+				for (const element of mapRankingData) {
+					mapScores.push(Number(element.score));
+				}
+				let mapRanking = mapScores.length + 1;
+
+				if (Number(userPlays[0].score) >= mapScores[mapScores.length - 1]) {
+					mapScores.sort((a, b) => a - b);
+					const score = Number(userPlays[0].score);
+					for (const element of mapScores) {
+						if (score >= element) {
+							mapRanking--;
+						} else {
+							break;
+						}
+					}
+				}
+
+				const response = await axios.get(
+					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${mode}&u=${playername}&limit=100`
+				);
+				const userplays = response.data;
+				let BPranking = 1;
+				let foundFlag = false;
+				for (const element of userplays) {
+					if (element.beatmap_id == mapData.beatmap_id && element.score == userPlays[0].score) {
+						foundFlag = true;
+						break;
+					}
+					BPranking++;
+				}
+
+				if (!foundFlag) {
+					userplays.reverse();
+					BPranking = userplays.length + 1;
+					for (const element of userplays) {
+						if (Number(userPlays[0].pp) > Number(element.pp)) {
+							BPranking--;
+						} else {
+							break;
+						}
+					}
+				}
+
+				let rankingString = "";
+				const mapStatus = osuLibrary.Tools.mapstatus(mapData.approved);
+				if (mapRanking <= 50 && BPranking <= 50 && userPlays[0].rank != "F" && (mapStatus == "Ranked" || mapStatus == "Qualified" || mapStatus == "Loved" || mapStatus == "Approved")) {
+					if (mapStatus == "Ranked" || mapStatus == "Approved") {
+						rankingString = `**__Personal Best #${BPranking} and Global Top #${mapRanking}__**`;
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank) and Global Top #${mapRanking}__**`;
+					}
+				} else if (mapRanking == 51 && BPranking <= 50 && userRecentData.rank != "F") {
+					if (mapStatus == "Ranked" || mapStatus == "Approved") {
+						rankingString = `**__Personal Best #${BPranking}__**`;
+					} else {
+						rankingString = `**__Personal Best #${BPranking} (No Rank)__**`;
+					}
+				} else if (mapRanking <= 50 && BPranking > 50 && userRecentData.rank != "F" && (mapStatus == "Ranked" || mapStatus == "Qualified" || mapStatus == "Loved" || mapStatus == "Approved")) {
+					rankingString = `**__Global Top #${mapRanking}__**`;
+				} else {
+					rankingString = "`Result`";
+				}
+
+				const bestMods = new osuLibrary.Mod(userPlays[0].enabled_mods).get();
+				const calculator = new osuLibrary.CalculatePPSR(mapData.beatmap_id, bestMods.calc, mode);
+				const srppData = await calculator.calculateSR();
+				const playersdata = await new osuLibrary.GetUserData(playername, apikey, mode).getData();
+				const mappersdata = await new osuLibrary.GetUserData(mapData.creator, apikey, mode).getData();
+				const playerIconUrl = osuLibrary.URLBuilder.iconURL(playersdata?.user_id);
+				const playerUrl = osuLibrary.URLBuilder.userURL(playersdata?.user_id);
+				const mapperIconUrl = osuLibrary.URLBuilder.iconURL(mappersdata?.user_id);
+				const userBestPlays = {
+					n300: Number(userPlays[0].count300),
+					n100: Number(userPlays[0].count100),
+					n50: Number(userPlays[0].count50),
+					nMisses: Number(userPlays[0].countmiss),
+					nGeki: Number(userPlays[0].countgeki),
+					nKatu: Number(userPlays[0].countkatu)
+				};
+				const recentAcc = tools.accuracy({
+					300: userPlays[0].count300,
+					100: userPlays[0].count100,
+					50: userPlays[0].count50,
+					0: userPlays[0].countmiss,
+					geki : userPlays[0].countgeki,
+					katu: userPlays[0].countgeki
+				}, modeConvertAcc(mode));
+				const userPlaysHit = formatHits(userBestPlays, mode);
+				const embed = new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle(`${mapData.artist} - ${mapData.title} [${mapData.version}]`)
+					.setThumbnail(osuLibrary.URLBuilder.thumbnailURL(mapData.beatmapset_id))
+					.setURL(mapUrl)
+					.setAuthor({ name: `${playersdata.username}: ${Number(playersdata.pp_raw).toLocaleString()}pp (#${Number(playersdata.pp_rank).toLocaleString()} ${playersdata.country}${Number(playersdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconUrl, url: playerUrl })
+					.addFields({ name: rankingString, value: `${rankconverter(userPlays[0].rank)} **+ ${bestMods.str}** [${srppData.sr.toFixed(2)}★] **Score**: ${Number(userPlays[0].score).toLocaleString()} **Acc**: ${recentAcc}% \n **PP**: **${Number(userPlays[0].pp).toFixed(2)}** / ${srppData.pp.toFixed(2)}PP **Combo**: **${userPlays[0].maxcombo}x** / ${mapData.max_combo}x \n${userPlaysHit}`, inline: false })
+				if (userPlays.length > 1) {
+					let valueString = "";
+					for (let i = 1; i < Math.min(userPlays.length, 5); i++) {
+						const Mods = new osuLibrary.Mod(userPlays[i].enabled_mods).get();
+						calculator.mods = Mods.calc;
+						const srppData = await calculator.calculateSR();
+						const acc = tools.accuracy({
+							300: userPlays[i].count300,
+							100: userPlays[i].count100,
+							50: userPlays[i].count50,
+							0: userPlays[i].countmiss,
+							geki : userPlays[i].countgeki,
+							katu: userPlays[i].countgeki
+						}, modeConvertAcc(mode));
+						valueString += `${rankconverter(userPlays[i].rank)} + **${Mods.str}** [${srppData.sr.toFixed(2)}★] ${Number(userPlays[i].pp).toFixed(2)}pp (${acc}%) ${userPlays[i].maxcombo}x Miss: ${userPlays[i].countmiss}\n`;
+					}
+					embed
+						.addFields({ name: "__Other scores on the beatmap:__", value: valueString, inline: false });
+				}
+				embed
+					.setTimestamp()
+					.setFooter({ text: `${mapStatus} mapset of ${mapData.creator}`, iconURL: mapperIconUrl });
+				await message.channel.send({ embeds: [embed] });
+			}
+
+			if (message.content.split(" ")[0].startsWith("!wi")) {
 				if (message.content == "!wi") {
 					await message.reply("使い方: !wi[o, t, c, m] [PP] (osu!ユーザーネーム)");
 					return;
@@ -3707,32 +4075,38 @@ client.on(Events.MessageCreate, async (message) =>
 
 			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif'))) {
 				if (message.author.bot) return;
-				if (fs.existsSync(`./Pictures/tag/${message.channel.name}/DataBase.json`)) {
-					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${message.channel.name}/DataBase.json`, "utf-8"));
-					for (const attachment of message.attachments.values()) {
-						const imageURL = attachment.url;
-						const imageFile = await axios.get(imageURL, { responseType: 'arraybuffer' });
-						const extention = imageURL.split(".")[imageURL.split(".").length - 1].split("?")[0];
-						const fileNameWithoutExtention = dataBase.PhotoDataBase.map((x) => Number(x.split(".")[0]));
-						let filename = 0;
-						while (fileNameWithoutExtention.includes(filename)) {
-							filename++;
+				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
+				for (const folder of currentDir) {
+					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${folder}/DataBase.json`, "utf-8"));
+					if (dataBase.id == message.channel.id) {
+						let fileNameArray = [];
+						for (const attachment of message.attachments.values()) {
+							const imageURL = attachment.url;
+							const imageFile = await axios.get(imageURL, { responseType: 'arraybuffer' });
+							const extention = imageURL.split(".")[imageURL.split(".").length - 1].split("?")[0];
+							const fileNameWithoutExtention = dataBase.PhotoDataBase.map((x) => Number(x.split(".")[0]));
+							let filename = 0;
+							while (fileNameWithoutExtention.includes(filename)) {
+								filename++;
+							}
+							dataBase.PhotoDataBase.push(filename + "." + extention);
+							fileNameArray.push(filename + "." + extention);
+							dataBase.FileCount++;
+							fs.writeFileSync(`./Pictures/tag/${folder}/${filename}.${extention}`, imageFile.data);
 						}
-						dataBase.PhotoDataBase.push(filename + "." + extention);
-						dataBase.FileCount++;
-						fs.writeFileSync(`./Pictures/tag/${message.channel.name}/${filename}.${extention}`, imageFile.data);
-					}
-					fs.writeFileSync(`./Pictures/tag/${message.channel.name}/DataBase.json`, JSON.stringify(dataBase, null, 4));
-					if (message.attachments.size == 1) {
-						await message.reply("ファイルが保存されました");
-					} else {
-						await message.reply(`${message.attachments.size}個のファイルが保存されました`);
+						fs.writeFileSync(`./Pictures/tag/${folder}/DataBase.json`, JSON.stringify(dataBase, null, 4));
+						if (message.attachments.size == 1) {
+							await message.reply(`ファイルが保存されました(${fileNameArray[0]})`);
+						} else {
+							await message.reply(`${message.attachments.size}個のファイルが保存されました\nファイル名: ${fileNameArray.join(", ")}`);
+						}
+						return;
 					}
 				}
 			}
 
 			if (!message.content.startsWith("!")) {
-				if (message.author.bot) return;
+				if (message.author.bot || message.content == "") return;
 				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
 				for (const key in allQuotes) {
 					if (allQuotes[key].id == message.channel.id) {
@@ -4131,7 +4505,7 @@ function checkqualified() {
 						.setColor("Blue")
 						.setAuthor({ name: `🎉New Qualified ${mode} Map🎉` })
 						.setTitle(`${mapMaxInfo.artist} - ${mapMaxInfo.title} by ${mapMaxInfo.creator}`)
-						.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapMaxInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapMaxInfo.beatmapset_id})`)
+						.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapMaxInfo.beatmapset_id})`)
 						.setThumbnail(`https://b.ppy.sh/thumb/${mapMaxInfo.beatmapset_id}l.jpg`)
 						.setURL(`https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}`)
 						.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -4266,7 +4640,7 @@ function checkranked() {
 						.setColor("Yellow")
 						.setAuthor({ name: `🎉New Ranked ${mode} Map🎉` })
 						.setTitle(`${mapMaxInfo.artist} - ${mapMaxInfo.title} by ${mapMaxInfo.creator}`)
-						.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapMaxInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapMaxInfo.beatmapset_id})`)
+						.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapMaxInfo.beatmapset_id})`)
 						.setThumbnail(`https://b.ppy.sh/thumb/${mapMaxInfo.beatmapset_id}l.jpg`)
 						.setURL(`https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}`)
 						.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -4370,7 +4744,7 @@ function checkloved() {
 						.setColor("Blue")
 						.setAuthor({ name: `💓New Loved ${mode} Map💓` })
 						.setTitle(`${mapMaxInfo.artist} - ${mapMaxInfo.title} by ${mapMaxInfo.creator}`)
-						.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}) | [osu!direct](https://osu.ppy.sh/d/${mapMaxInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapMaxInfo.beatmapset_id})`)
+						.setDescription(`**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapMaxInfo.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapMaxInfo.beatmapset_id})`)
 						.setThumbnail(`https://b.ppy.sh/thumb/${mapMaxInfo.beatmapset_id}l.jpg`)
 						.setURL(`https://osu.ppy.sh/beatmapsets/${mapMaxInfo.beatmapset_id}`)
 						.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
@@ -4453,7 +4827,7 @@ async function rankedintheday() {
 					const mindtpp = await minCalculator.calculateDT();
 					let srstring = maxsrpp.sr == minsrpp.sr ? `★${maxsrpp.sr.toFixed(2)} (DT ★${maxdtpp.sr.toFixed(2)})` : `★${minsrpp.sr.toFixed(2)} ~ ${maxsrpp.sr.toFixed(2)} (DT ★${mindtpp.sr.toFixed(2)} ~ ${maxdtpp.sr.toFixed(2)})`;
 					let ppstring = maxsrpp.pp == minsrpp.pp ? `${maxsrpp.pp.toFixed(2)}pp (DT ${maxdtpp.pp.toFixed(2)}pp)` : `${minsrpp.pp.toFixed(2)} ~ ${maxsrpp.pp.toFixed(2)}pp (DT ${mindtpp.pp.toFixed(2)} ~ ${maxdtpp.pp.toFixed(2)}pp)`;
-					sevenDayAgoQf.push({ name : `${count}. **${mapInfo.title} - ${mapInfo.artist}**`, value : `▸Mapped by **${mapInfo.creator}**\n▸SR: ${srstring}\n▸PP: ${ppstring}\n▸**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [osu!direct](https://osu.ppy.sh/d/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualified**: ${year}年 ${month}月 ${day}日 ${hours}:${minutes}\n` });
+					sevenDayAgoQf.push({ name : `${count}. **${mapInfo.title} - ${mapInfo.artist}**`, value : `▸Mapped by **${mapInfo.creator}**\n▸SR: ${srstring}\n▸PP: ${ppstring}\n▸**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualified**: ${year}年 ${month}月 ${day}日 ${formatNumber(hours)}:${formatNumber(minutes)}\n` });
 				}
 			} catch (e) {
 				console.log(e);
@@ -4489,7 +4863,7 @@ function formatNumber(num) {
     return num < 10 ? '0' + num : num.toString();
 }
 
-async function checkMap () {
+async function checkMap() {
 	await checkqualified();
 	await checkranked();
 	await checkloved();
@@ -4561,7 +4935,7 @@ function matchPercentage(current, total) {
 	data = data.flat().filter((x, i, self) => self.indexOf(x) === i);
 	let matchPercentage = 0;
 	for (const element of data) {
-		const matchdata = total.replace(element, "")
+		const matchdata = total.replace(element, "");
 		if ((total.length - matchdata.length) / total.length * 100 >= matchPercentage) {
 			matchPercentage = (total.length - matchdata.length) / total.length * 100;
 		}
