@@ -79,12 +79,12 @@ class User {
     getScoreDataWithoutMods(beatmapId) {
         return new Promise(async (resolve, reject) => {
             await axios.get(`https://osu.ppy.sh/api/${this.endpoint}?&k=${this.apikey}&b=${beatmapId}&type=string&m=${this.mode}&u=${this.name}`)
-            .then(res => {
-                resolve(res.data);
-            })
-            .catch(error => {
-                reject(error);
-            });
+                .then(res => {
+                    resolve(res.data);
+                })
+                .catch(error => {
+                    reject(error);
+                });
         });
     }
 }
@@ -134,7 +134,7 @@ class GetMapData {
      * @param {number} [mode=0] - The game mode (0 = osu!, 1 = Taiko, 2 = Catch the Beat, 3 = osu!mania).
      */
     constructor(maplink, apikey, mode = 0) {
-        this.maplink = /^\d+$/.test(maplink) ? maplink : maplink.split("/")[5];
+        this.maplink = /^\d+$/.test(maplink) ? maplink : maplink.split("/")[maplink.split("/").length - 1];
         this.apikey = apikey;
         this.mode = mode;
     }
@@ -385,7 +385,7 @@ class CalculatePPSR {
 class CheckMapData {
     constructor(maplink) {
         this.maplink = maplink;
-        this.beatmapID = this.maplink.split("/")[5];
+        this.beatmapID = this.maplink.split("/")[maplink.split("/").length - 1];
     }
 
     check() {
@@ -433,7 +433,7 @@ class CheckMapData {
 
                 function mode(BPMarray) {
                     if (BPMarray.length == 0) return 0;
-                    if (BPMarray.length == 1) return BPMarray[0][0];
+                    if (BPMarray.length == 1) return BPMarray[0][1];
                     let maxInterval = 0;
                     let maxIntervalIndex = 0;
                     for (let i = 0; i < BPMarray.length - 1; i++) {
