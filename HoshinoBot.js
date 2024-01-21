@@ -8,7 +8,8 @@ const { Beatmap, Calculator } = require("./node_modules/rosu-pp-nodev");
 const asciify = require("./node_modules/asciify");
 const { Readable } = require("node:stream");
 const path = require('node:path');
-const osuLibrary = require("./src/library.js");
+const osuLibrary = require("./src/osuLibrary.js");
+const hoshinoLibrary = require("./src/hoshinoLibrary.js");
 
 const apikey = process.env.APIKEY;
 const token = process.env.TOKEN;
@@ -94,8 +95,6 @@ client.on(Events.ClientReady, async () =>
 	}
 );
 
-const symbols = ['🍒', '🍊', '🍇', '🔔', '💰', '⌚', '⛵'];
-
 client.on(Events.InteractionCreate, async (interaction) =>
 	{
 		try {
@@ -123,11 +122,11 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				const result = generateSlotResult();
-				const rewardMultiplier = evaluateSlotResult(result);
+				const result = hoshinoLibrary.generateSlotResult();
+				const rewardMultiplier = hoshinoLibrary.evaluateSlotResult(result);
 				const reward = betAmount * rewardMultiplier;
 				const resultprefix = reward - betAmount >= 0n ? "+" : "";
-				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
+				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${hoshinoLibrary.formatBigInt(reward)}coin (${resultprefix}${hoshinoLibrary.formatBigInt((reward - betAmount))})`);
 				bankData[interaction.user.id].balance = (newBalance + reward).toString();
 				fs.writeFileSync("./ServerDatas/UserBankData.json", JSON.stringify(bankData, null, 4), "utf-8");
 				return;
@@ -156,11 +155,11 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				const result = generateSlotResult();
-				const rewardMultiplier = evaluateSlotResult(result);
+				const result = hoshinoLibrary.generateSlotResult();
+				const rewardMultiplier = hoshinoLibrary.evaluateSlotResult(result);
 				const reward = rewardMultiplier == 0n ? betAmount * 2n * 10n / 100n : betAmount * rewardMultiplier * 7n * 10n / 100n;
 				const resultPrefix = reward - betAmount >= 0n ? "+" : "";
-				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultPrefix}${formatBigInt((reward - betAmount))})`);
+				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${hoshinoLibrary.formatBigInt(reward)}coin (${resultPrefix}${hoshinoLibrary.formatBigInt((reward - betAmount))})`);
 				bankData[interaction.user.id].balance = (newBalance + reward).toString();
 				fs.writeFileSync("./ServerDatas/UserBankData.json", JSON.stringify(bankData, null, 4), "utf-8");
 				return;
@@ -199,7 +198,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						nextbalance = BigInt(120n ** (i + 1n));
 					}
 				}
-				await interaction.reply(`あなたの現在のレベルは **__${currentrank}lv__** / 300 (次のレベル => **${formatBigInt(nextbalance)}**coins)`);
+				await interaction.reply(`あなたの現在のレベルは **__${currentrank}lv__** / 300 (次のレベル => **${hoshinoLibrary.formatBigInt(nextbalance)}**coins)`);
 				return;
 			}
 
@@ -224,11 +223,11 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 				const betAmount = balance / 15n;
 				const newBalance = balance - betAmount;
-				const result = generateSlotResult();
-				const rewardMultiplier = evaluateSlotResult(result);
+				const result = hoshinoLibrary.generateSlotResult();
+				const rewardMultiplier = hoshinoLibrary.evaluateSlotResult(result);
 				const reward = betAmount * rewardMultiplier * 8n * 10n / 100n;
 				const resultprefix = reward - betAmount >= 0n ? "+" : "";
-				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${formatBigInt(reward)}coin (${resultprefix}${formatBigInt((reward - betAmount))})`);
+				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${hoshinoLibrary.formatBigInt(reward)}coin (${resultprefix}${hoshinoLibrary.formatBigInt((reward - betAmount))})`);
 				bankData[interaction.user.id].balance = (newBalance + reward).toString();
 				fs.writeFileSync("./ServerDatas/UserBankData.json", JSON.stringify(bankData, null, 4), "utf-8");
 				return;
@@ -259,7 +258,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				}
 
 				const currentbank = bankData[interaction.user.id].balance;
-				await interaction.reply(`${interaction.user.username}の現在の銀行口座残高: \n ${formatBigInt(currentbank)} (${toJPUnit(currentbank)}) coins`);
+				await interaction.reply(`${interaction.user.username}の現在の銀行口座残高: \n ${hoshinoLibrary.formatBigInt(currentbank)} (${hoshinoLibrary.toJPUnit(currentbank)}) coins`);
 				return;
 			}
 
@@ -269,7 +268,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("数字のみ入力するようにしてください。");
 					return;
 				}
-				await interaction.reply(toJPUnit(amount));
+				await interaction.reply(hoshinoLibrary.toJPUnit(amount));
 				return;
 			}
 
@@ -389,7 +388,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					const file = fileName.split(".")[0];
 					if (file == usercount) {
 						foundFlag = true;
-						await fs.remove(`./Pictures/Furry/${fileName}`);
+						fs.removeSync(`./Pictures/Furry/${fileName}`);
 						dataBase.PhotoDataBase = dataBase.PhotoDataBase.filter(item => item !== fileName);
 						dataBase.FileCount--;
 						fs.writeFileSync("./Pictures/Furry/DataBase.json", JSON.stringify(dataBase, null, 4), "utf-8");
@@ -468,7 +467,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				for (const folder of currentDir) {
 					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${folder}/DataBase.json`, "utf-8"));
 					if (dataBase.id == interaction.channel.id) {
-						await fs.remove(`./Pictures/tag/${folder}/DataBase.json`);
+						fs.removeSync(`./Pictures/tag/${folder}/DataBase.json`);
 						await interaction.reply("タグの削除が正常に完了しました。");
 						return;
 					}
@@ -486,7 +485,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						for (const fileName of dataBase.PhotoDataBase) {
 							const file = fileName.split(".")[0];
 							if (file == usercount) {
-								await fs.remove(`./Pictures/tag/${folder}/${fileName}`);
+								fs.removeSync(`./Pictures/tag/${folder}/${fileName}`);
 								dataBase.PhotoDataBase = dataBase.PhotoDataBase.filter(item => item !== fileName);
 								dataBase.FileCount--;
 								fs.writeFileSync(`./Pictures/tag/${folder}/DataBase.json`, JSON.stringify(dataBase, null, 4), "utf-8");
@@ -675,13 +674,13 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						const mapperIconURL = osuLibrary.URLBuilder.iconURL(mapperData?.user_id);
 						const mapperUserURL = osuLibrary.URLBuilder.userURL(mapperData?.user_id);
 						const backgroundURL = osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id);
-						const bpmMin = isNaNwithNumber(Math.min(...data.BPMarray));
-						const bpmMax = isNaNwithNumber(Math.max(...data.BPMarray));
+						const bpmMin = hoshinoLibrary.isNaNwithNumber(Math.min(...data.BPMarray));
+						const bpmMax = hoshinoLibrary.isNaNwithNumber(Math.max(...data.BPMarray));
 						const bpmStr = bpmMin == bpmMax ? bpmMax.toFixed(1) : `${bpmMin.toFixed(1)} ~ ${bpmMax.toFixed(1)}`;
 						const hitTotal = data["1/3 times"] + data["1/4 times"] + data["1/6 times"] + data["1/8 times"];
 						const streamTotal = data.streamCount + data.techStreamCount;
-						const hitPercentData = [isNaNwithNumber(Math.round(data["1/3 times"] / hitTotal * 100)), isNaNwithNumber(Math.round(data["1/4 times"] / hitTotal * 100)), isNaNwithNumber(Math.round(data["1/6 times"] / hitTotal * 100)), isNaNwithNumber(Math.round(data["1/8 times"] / hitTotal * 100))] ;
-						const streamPercentData = [isNaNwithNumber(Math.round(data.streamCount / streamTotal * 100)), isNaNwithNumber(Math.round(data.techStreamCount / streamTotal * 100))];
+						const hitPercentData = [hoshinoLibrary.isNaNwithNumber(Math.round(data["1/3 times"] / hitTotal * 100)), hoshinoLibrary.isNaNwithNumber(Math.round(data["1/4 times"] / hitTotal * 100)), hoshinoLibrary.isNaNwithNumber(Math.round(data["1/6 times"] / hitTotal * 100)), hoshinoLibrary.isNaNwithNumber(Math.round(data["1/8 times"] / hitTotal * 100))] ;
+						const streamPercentData = [hoshinoLibrary.isNaNwithNumber(Math.round(data.streamCount / streamTotal * 100)), hoshinoLibrary.isNaNwithNumber(Math.round(data.techStreamCount / streamTotal * 100))];
 						const mapUrl = osuLibrary.URLBuilder.beatmapURL(mapData.beatmapset_id, Number(mapData.mode), mapData.beatmap_id);
 						const embed = new EmbedBuilder()
 							.setColor("Blue")
@@ -842,7 +841,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						0: resulttop5[i].countmiss,
 						geki:  resulttop5[i].countgeki,
 						katu: resulttop5[i].countkatu
-					},  modeConvertAcc(mode));
+					},  hoshinoLibrary.modeConvertAcc(mode));
 
 					const score = {
 						mode: mode,
@@ -856,7 +855,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						combo: Number(resulttop5[i].maxcombo)
 					};
 					const pp = await srData.calculateScorePP(score);
-					rankingdata.push({ name: `\`#${i + 1}\``, value: `**Rank**: ${rankconverter(resulttop5[i].rank)}　Player: **${resulttop5[i].username}**　Score: **${Number(resulttop5[i].score).toLocaleString()}** \n Combo: **${resulttop5[i].maxcombo}**　**Acc**: **${acc}**%　PP: **${pp.toFixed(2)}**pp　Miss:${resulttop5[i].countmiss}`, inline: false });
+					rankingdata.push({ name: `\`#${i + 1}\``, value: `**Rank**: ${hoshinoLibrary.rankconverter(resulttop5[i].rank)}　Player: **${resulttop5[i].username}**　Score: **${Number(resulttop5[i].score).toLocaleString()}** \n Combo: **${resulttop5[i].maxcombo}**　**Acc**: **${acc}**%　PP: **${pp.toFixed(2)}**pp　Miss:${resulttop5[i].countmiss}`, inline: false });
 				}
 				embed.addFields(rankingdata);
 				await interaction.channel.send({ embeds: [embed] });
@@ -1131,7 +1130,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					0: playersScore.countmiss,
 					geki : playersScore.countgeki,
 					katu: playersScore.countkatu
-				}, modeConvertAcc(mode));
+				}, hoshinoLibrary.modeConvertAcc(mode));
 
 				const modsBefore = new osuLibrary.Mod(playersScore.enabled_mods).get();
 
@@ -1349,7 +1348,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(`${mapInfo.artist} - ${mapInfo.title} [${mapInfo.version}]`)
-					.setDescription(`Combo: \`${mapInfo.max_combo}x\` Stars: \`${sr.sr.toFixed(2)}★\` \n Length: \`${formatTime(Number(mapInfo.total_length))} (${formatTime(Number(mapInfo.hit_length))})\` BPM: \`${mapInfo.bpm}\` Objects: \`${objectCount}\` \n CS: \`${mapInfo.diff_size}\` AR: \`${mapInfo.diff_approach}\` OD: \`${mapInfo.diff_overall}\` HP: \`${mapInfo.diff_drain}\` Spinners: \`${mapInfo.count_spinner}\``)
+					.setDescription(`Combo: \`${mapInfo.max_combo}x\` Stars: \`${sr.sr.toFixed(2)}★\` \n Length: \`${hoshinoLibrary.formatTime(Number(mapInfo.total_length))} (${hoshinoLibrary.formatTime(Number(mapInfo.hit_length))})\` BPM: \`${mapInfo.bpm}\` Objects: \`${objectCount}\` \n CS: \`${mapInfo.diff_size}\` AR: \`${mapInfo.diff_approach}\` OD: \`${mapInfo.diff_overall}\` HP: \`${mapInfo.diff_drain}\` Spinners: \`${mapInfo.count_spinner}\``)
 					.setURL(mapUrl)
 					.setAuthor({ name: `Mapped by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 					.addFields({ name: "Preview link", value: `[Preview this map!](${previewlink})`, inline: true })
@@ -1438,7 +1437,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					if (hitobjectflag && !isNaN(Number(line.split(",")[2]))) {
 						const ms = Number(line.split(",")[2]);
 						const totalSeconds = Math.floor(ms / 1000);
-						Mapinfo.TotalLength = formatTime(totalSeconds);
+						Mapinfo.TotalLength = hoshinoLibrary.formatTime(totalSeconds);
 					}
 
 					if (line.startsWith("[")) return;
@@ -1865,7 +1864,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					}
 				}
 				await interaction.reply(`クイズが終了しました！お疲れ様でした！\n${answererstring}`);
-				await fs.remove(`./OsuPreviewquiz/${interaction.channel.id}.json`);
+				fs.removeSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
 				return;
 			}
 
@@ -1894,8 +1893,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					const minRatingObj = array[0];
 					let maxsrobj = maxRatingObj.id;
 					let minsrobj = minRatingObj.id;
-					const maxsrdata = new osuLibrary.CalculatePPSR(maxsrobj, 0, modeConvertMap(interaction.options.get('mode')));
-					const minsrdata = new osuLibrary.CalculatePPSR(minsrobj, 0, modeConvertMap(interaction.options.get('mode')));
+					const maxsrdata = new osuLibrary.CalculatePPSR(maxsrobj, 0, hoshinoLibrary.modeConvertMap(interaction.options.get('mode')));
+					const minsrdata = new osuLibrary.CalculatePPSR(minsrobj, 0, hoshinoLibrary.modeConvertMap(interaction.options.get('mode')));
 					const nmmaxppData = await maxsrdata.calculateSR();
 					const nmminppData = await minsrdata.calculateSR();
 					const dtmaxppData = await maxsrdata.calculateDT();
@@ -2023,39 +2022,39 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						break;
 					case userslayerxp >= 400000:
 						remainxp = 1000000 - userslayerxp;
-						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv8**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1000000 * 100).toFixed(1))}${(userslayerxp / 1000000 * 100).toFixed(1)}%`);
+						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv8**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${hoshinoLibrary.createProgressBar(userslayerxp / 1000000 * 100)}${(userslayerxp / 1000000 * 100).toFixed(1)}%`);
 						break;
 					case userslayerxp >= 100000:
 						remainxp = 400000 - userslayerxp;
-						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv7**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 400000 * 100).toFixed(1))}${(userslayerxp / 400000 * 100).toFixed(1)}%`);
+						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv7**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${hoshinoLibrary.createProgressBar(userslayerxp / 400000 * 100)}${(userslayerxp / 400000 * 100).toFixed(1)}%`);
 						break;
 					case userslayerxp >= 20000:
 						remainxp = 100000 - userslayerxp;
-						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv6**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 100000 * 100).toFixed(1))}${(userslayerxp / 100000 * 100).toFixed(1)}%`);
+						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv6**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${hoshinoLibrary.createProgressBar(userslayerxp / 100000 * 100)}${(userslayerxp / 100000 * 100).toFixed(1)}%`);
 						break;
 					case userslayerxp >= 5000:
 						remainxp = 20000 - userslayerxp;
-						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv5**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 20000 * 100).toFixed(1))}${(userslayerxp / 20000 * 100).toFixed(1)}%`);
+						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv5**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${hoshinoLibrary.createProgressBar(userslayerxp / 20000 * 100)}${(userslayerxp / 20000 * 100).toFixed(1)}%`);
 						break;
 					case ((slayername == "zombie" || slayername == "spider") && userslayerxp >= 1000) || ((slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 1500):
 						remainxp = 5000 - userslayerxp;
-						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv4**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 5000 * 100).toFixed(1))}${(userslayerxp / 5000 * 100).toFixed(1)}%`);
+						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv4**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${hoshinoLibrary.createProgressBar(userslayerxp / 5000 * 100)}${(userslayerxp / 5000 * 100).toFixed(1)}%`);
 						break;
 					case (slayername == "zombie" || slayername == "spider") && userslayerxp >= 200:
 						remainxp = 1000 - userslayerxp;
-						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1000 * 100).toFixed(1))}${(userslayerxp / 1000 * 100).toFixed(1)}%`);
+						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${hoshinoLibrary.createProgressBar(userslayerxp / 1000 * 100)}${(userslayerxp / 1000 * 100).toFixed(1)}%`);
 						break;
 					case (slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 250:
 						remainxp = 1500 - userslayerxp;
-						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 1500 * 100).toFixed(1))}${(userslayerxp / 1500 * 100).toFixed(1)}%`);
+						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv3**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${hoshinoLibrary.createProgressBar(userslayerxp / 1500 * 100)}${(userslayerxp / 1500 * 100).toFixed(1)}%`);
 						break;
 					case (slayername == "zombie" && userslayerxp >= 15) || (slayername == "spider" && userslayerxp >= 25):
 						remainxp = 200 - userslayerxp;
-						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 200 * 100).toFixed(1))}${(userslayerxp / 200 * 100).toFixed(1)}%`);
+						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${hoshinoLibrary.createProgressBar(userslayerxp / 200 * 100)}${(userslayerxp / 200 * 100).toFixed(1)}%`);
 						break;
 					case (slayername == "wolf" || slayername == "enderman" || slayername == "blaze") && userslayerxp >= 30:
 						remainxp = 250 - userslayerxp;
-						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${createProgressBar((userslayerxp / 250 * 100).toFixed(1))}${(userslayerxp / 250 * 100).toFixed(1)}%`);
+						await interaction.reply(`プロファイル:**${responce.data.profiles[i].cute_name}** | 現在の${showonlyslayername}レベルは**Lv2**です。次のレベルまでに必要なXPは${remainxp}です。\n次のレベルまでの周回回数 | T1: ${Math.ceil(remainxp / 5)}回 | T2: ${Math.ceil(remainxp / 25)}回 | T3: ${Math.ceil(remainxp / 100)}回 | T4: ${Math.ceil(remainxp / 500)}回 | T5: ${Math.ceil(remainxp / 1500)}回 |\n${hoshinoLibrary.createProgressBar(userslayerxp / 250 * 100)}${(userslayerxp / 250 * 100).toFixed(1)}%`);
 						break;
 					default:
 						remainxp = 5 - userslayerxp;
@@ -2148,7 +2147,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 				const backuptime = interaction.options.get('backuptime').value;
 				const directory = './Backups';
-				const sortedFiles = getFilesSortedByDate(directory).reverse();
+				const sortedFiles = hoshinoLibrary.getFilesSortedByDate(directory).reverse();
 				const wannabackuptime = backuptime - 1;
 				const wannabackup = sortedFiles[wannabackuptime];
 
@@ -2158,13 +2157,13 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				}
 
 				const allbackupfilescount = fs.readdirSync(`./Backups/${wannabackup}`).length;
-				const message = await interaction.reply(`${wannabackup}のバックアップの復元中です。(${allbackupfilescount}ファイル)\n${createProgressBar(0)}`);
+				const message = await interaction.reply(`${wannabackup}のバックアップの復元中です。(${allbackupfilescount}ファイル)\n${hoshinoLibrary.createProgressBar(0)}`);
 				const percentstep = 100 / allbackupfilescount;
 				let backupfilescount = 0;
 				for (const backupfiles of fs.readdirSync(`./Backups/${wannabackup}`)) {
 					await fs.copy(`./Backups/${wannabackup}/${backupfiles}`,`./${backupfiles}`);
 					backupfilescount++;
-					await message.edit(`バックアップの復元中です。(${backupfilescount}ファイル)\n${createProgressBar(Math.floor(percentstep * backupfilescount))}(${Math.floor(percentstep * backupfilescount)}%)`);
+					await message.edit(`バックアップの復元中です。(${backupfilescount}ファイル)\n${hoshinoLibrary.createProgressBar(Math.floor(percentstep * backupfilescount))}(${Math.floor(percentstep * backupfilescount)}%)`);
 				}
 				await message.edit(`バックアップの復元が完了しました。(${allbackupfilescount}ファイル)`);
 				return;
@@ -2177,7 +2176,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				}
 				
 				const directory = './Backups';
-				const sortedFiles = getFilesSortedByDate(directory).reverse();
+				const sortedFiles = hoshinoLibrary.getFilesSortedByDate(directory).reverse();
 				const backupfileslist = [];
 				for (let i = 0; i < Math.min(10, sortedFiles.length); i++) {
 					const inputString = sortedFiles[i];
@@ -2286,7 +2285,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						}
 					}
 				}
-				await interaction.reply(`あなたのこのサーバーでのレベルは**Lv${level}**です。\n**${(talkcount / nextlevelcount * 100).toFixed(2)}**%${createProgressBar(talkcount / nextlevelcount * 100)}(次のレベル: **${talkcount} / ${nextlevelcount}**)`);
+				await interaction.reply(`あなたのこのサーバーでのレベルは**Lv${level}**です。\n**${(talkcount / nextlevelcount * 100).toFixed(2)}**%${hoshinoLibrary.createProgressBar(talkcount / nextlevelcount * 100)}(次のレベル: **${talkcount} / ${nextlevelcount}**)`);
 				return;
 			}
 
@@ -2580,7 +2579,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setURL(mapUrl)
 					.addFields({ name: "Music and Backgroud", value: `:musical_note:[Song Preview](https://b.ppy.sh/preview/${mapInfo.beatmapset_id}.mp3)　:frame_photo:[Full background](https://assets.ppy.sh/beatmaps/${mapInfo.beatmapset_id}/covers/raw.jpg)` })
 					.setAuthor({ name: `Created by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
-					.addFields({ name: `${osuLibrary.Tools.modeEmojiConvert(mode)} [**__${mapInfo.version}__**] **+${Mods.str}**`, value: `Combo: \`${mapInfo.max_combo}x\` Stars: \`${sr[100].sr.toFixed(2)}★\` \n Length: \`${formatTime(Number(totalLength))} (${formatTime(Number(totalHitLength))})\` BPM: \`${BPM}\` Objects: \`${objectCount}\` \n CS: \`${Cs}\` AR: \`${Ar}\` OD: \`${Od}\` HP: \`${Hp}\` Spinners: \`${mapInfo.count_spinner}\``, inline: true })
+					.addFields({ name: `${osuLibrary.Tools.modeEmojiConvert(mode)} [**__${mapInfo.version}__**] **+${Mods.str}**`, value: `Combo: \`${mapInfo.max_combo}x\` Stars: \`${sr[100].sr.toFixed(2)}★\` \n Length: \`${hoshinoLibrary.formatTime(Number(totalLength))} (${hoshinoLibrary.formatTime(Number(totalHitLength))})\` BPM: \`${BPM}\` Objects: \`${objectCount}\` \n CS: \`${Cs}\` AR: \`${Ar}\` OD: \`${Od}\` HP: \`${Hp}\` Spinners: \`${mapInfo.count_spinner}\``, inline: true })
 					.addFields({ name: "**Download**", value: `[Official](https://osu.ppy.sh/beatmapsets/${mapInfo.beatmapset_id}/download)\n[Nerinyan(no video)](https://api.nerinyan.moe/d/${mapInfo.beatmapset_id}?nv=1)\n[Beatconnect](https://beatconnect.io/b/${mapInfo.beatmapset_id})\n[chimu.moe](https://api.chimu.moe/v1/download/${mapInfo.beatmapset_id}?n=1)`, inline: true })
 					.addFields({ name: `:heart: ${Number(mapInfo.favourite_count).toLocaleString()}　:play_pause: ${Number(mapInfo.playcount).toLocaleString()}`, value: `\`\`\` Acc |    98%   |    99%   |   99.5%  |   100%   | \n ----+----------+----------+----------+----------+  \n  PP |${formatPPStr(sr[98].pp.toFixed(2))}|${formatPPStr(sr[99].pp.toFixed(2))}|${formatPPStr(sr[99.5].pp.toFixed(2))}|${formatPPStr(sr[100].pp.toFixed(2))}|\`\`\``, inline: false })
 					.setImage(backgroundURL)
@@ -2638,7 +2637,7 @@ client.on(Events.MessageCreate, async (message) =>
 						break;
 
 					default:
-						await message.reply("使い方: !r[o, t, c, m] (osu!ユーザーネーム)");
+						await message.reply("使い方: !r(o, t, c, m) (osu!ユーザーネーム)");
 						return;
 				}
 
@@ -2685,7 +2684,7 @@ client.on(Events.MessageCreate, async (message) =>
 					0: userRecentData.countmiss,
 					geki: userRecentData.countgeki,
 					katu: userRecentData.countkatu
-				}, modeConvertAcc(currentMode));
+				}, hoshinoLibrary.modeConvertAcc(currentMode));
 				const recentPpData = new osuLibrary.CalculatePPSR(userRecentData.beatmap_id,  mods.calc, currentMode);
 				await recentPpData.getMapData();
 				const passedObjects = calcPassedObject(userRecentData, currentMode);
@@ -2726,7 +2725,7 @@ client.on(Events.MessageCreate, async (message) =>
 						break;
 				}
 				
-				const { ifFCPP, ifFCHits, ifFCAcc } = calcIfFCPP(recentScore, currentMode, objectData, passedObjects, mods.calc, Number(mapData.max_combo), map);
+				const { ifFCPP, ifFCHits, ifFCAcc } = osuLibrary.CalculateIfFC.calculate(recentScore, currentMode, objectData, passedObjects, mods.calc, Number(mapData.max_combo), map);
 				let totalLength = Number(mapData.total_length);
 				let hitLength = Number(mapData.hit_length);
 				let BPM = Number(mapData.bpm);
@@ -2764,10 +2763,10 @@ client.on(Events.MessageCreate, async (message) =>
 				Cs = Math.round(Cs * 10) / 10;
 				Hp = Math.round(Hp * 10) / 10;
 				Ar = Math.round(Ar * 10) / 10;
-				const formattedLength = formatTime(totalLength);
-				const formattedHitLength = formatTime(hitLength);
-				const formattedHits = formatHits(recentScore, currentMode);
-				const formattedIfFCHits = formatHits(ifFCHits, currentMode);
+				const formattedLength = hoshinoLibrary.formatTime(totalLength);
+				const formattedHitLength = hoshinoLibrary.formatTime(hitLength);
+				const formattedHits = hoshinoLibrary.formatHits(recentScore, currentMode);
+				const formattedIfFCHits = hoshinoLibrary.formatHits(ifFCHits, currentMode);
 
 				const mapRankingData = await axios.get(`https://osu.ppy.sh/api/get_scores?k=${apikey}&b=${mapData.beatmap_id}&m=${currentMode}&limit=50`).then((responce) => {
 					return responce.data;
@@ -2846,7 +2845,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setTitle(`${mapData.artist} - ${mapData.title} [${mapData.version}]`)
 					.setURL(maplink)
 					.setAuthor({ name: `${playersdata.username}: ${Number(playersdata.pp_raw).toLocaleString()}pp (#${Number(playersdata.pp_rank).toLocaleString()} ${playersdata.country}${Number(playersdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconUrl, url: playerUrl })
-					.addFields({ name: "`Grade`", value: `${rankconverter(userRecentData.rank)} + ${mods.str}`, inline: true })
+					.addFields({ name: "`Grade`", value: `${hoshinoLibrary.rankconverter(userRecentData.rank)} + ${mods.str}`, inline: true })
 					.addFields({ name: "`Score`", value: `${Number(userRecentData.score).toLocaleString()}`, inline: true })
 					.addFields({ name: "`Acc`", value: `${recentAcc}%`, inline: true })
 					.addFields({ name: "`PP`", value: `**${recentPp}** / ${ssPp.pp.toFixed(2)}PP`, inline: true })
@@ -2883,7 +2882,7 @@ client.on(Events.MessageCreate, async (message) =>
 							.setThumbnail(osuLibrary.URLBuilder.thumbnailURL(mapData.beatmapset_id))
 							.setURL(maplink)
 							.setAuthor({ name: `${playersdata.username}: ${Number(playersdata.pp_raw).toLocaleString()}pp (#${Number(playersdata.pp_rank).toLocaleString()} ${playersdata.country}${Number(playersdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconUrl, url: playerUrl })
-							.addFields({ name: rankingString, value: `${rankconverter(userRecentData.rank)} + **${mods.str}**　**Score**: ${Number(userRecentData.score).toLocaleString()}　**Acc**: ${recentAcc}% \n **PP**: **${recentPp}** / ${ssPp.pp.toFixed(2)}pp　${ifFCMessage} \n **Combo**: **${userRecentData.maxcombo}**x / ${mapData.max_combo}x　**Hits**: ${formattedHits}`, inline: true });
+							.addFields({ name: rankingString, value: `${hoshinoLibrary.rankconverter(userRecentData.rank)} + **${mods.str}**　**Score**: ${Number(userRecentData.score).toLocaleString()}　**Acc**: ${recentAcc}% \n **PP**: **${recentPp}** / ${ssPp.pp.toFixed(2)}pp　${ifFCMessage} \n **Combo**: **${userRecentData.maxcombo}**x / ${mapData.max_combo}x　**Hits**: ${formattedHits}`, inline: true });
 						await sentMessage.edit({ embeds: [embednew] });
 					}, 20000);
 				});
@@ -2948,7 +2947,7 @@ client.on(Events.MessageCreate, async (message) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: mapUrl })
-					.setDescription(`**Length**: ${formatTime(Number(mapData.total_length))} (${formatTime(Number(mapData.hit_length))}) **BPM**: ${mapData.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
+					.setDescription(`**Length**: ${hoshinoLibrary.formatTime(Number(mapData.total_length))} (${hoshinoLibrary.formatTime(Number(mapData.hit_length))}) **BPM**: ${mapData.bpm} **Mods**: -\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
 					.addFields({ name: `${osuLibrary.Tools.modeEmojiConvert(mode)} [**__${mapData.version}__**]`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★ ▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${mapData.diff_overall} ▸**CS:** ${mapData.diff_size} ▸**AR:** ${mapData.diff_approach} ▸**HP:** ${mapData.diff_drain}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)} ○ **99**%-${sr[99].pp.toFixed(2)} ○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
 					.setTimestamp()
 					.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
@@ -3081,7 +3080,7 @@ client.on(Events.MessageCreate, async (message) =>
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setAuthor({ name: `${mapData.artist} - ${mapData.title} by ${mapData.creator}`, iconURL: mapperIconURL, url: mapUrl })
-					.setDescription(`**Length**: ${formatTime(totalLength)} (${formatTime(totalHitLength)}) **BPM**: ${BPM} **Mods**: ${Mods.str}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
+					.setDescription(`**Length**: ${hoshinoLibrary.formatTime(totalLength)} (${hoshinoLibrary.formatTime(totalHitLength)}) **BPM**: ${BPM} **Mods**: ${Mods.str}\n**Download**: [map](https://osu.ppy.sh/beatmapsets/${mapData.beatmapset_id}) | [Nerinyan](https://api.nerinyan.moe/d/${mapData.beatmapset_id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${mapData.beatmapset_id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${mapData.beatmapset_id})`)
 					.addFields({ name: `${osuLibrary.Tools.modeEmojiConvert(mode)} [**__${mapData.version}__**]`, value: `▸**Difficulty:** ${sr[100].sr.toFixed(2)}★ ▸**Max Combo:** ${mapData.max_combo}x\n▸**OD:** ${Od} ▸**CS:** ${Cs} ▸**AR:** ${Ar} ▸**HP:** ${Hp}\n▸**PP**: ○ **95**%-${sr[95].pp.toFixed(2)} ○ **99**%-${sr[99].pp.toFixed(2)} ○ **100**%-${sr[100].pp.toFixed(2)}`, inline: false })
 					.setTimestamp()
 					.setImage(osuLibrary.URLBuilder.backgroundURL(mapData.beatmapset_id))
@@ -3283,15 +3282,15 @@ client.on(Events.MessageCreate, async (message) =>
 					0: userPlays[0].countmiss,
 					geki : userPlays[0].countgeki,
 					katu: userPlays[0].countgeki
-				}, modeConvertAcc(mode));
-				const userPlaysHit = formatHits(userBestPlays, mode);
+				}, hoshinoLibrary.modeConvertAcc(mode));
+				const userPlaysHit = hoshinoLibrary.formatHits(userBestPlays, mode);
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(`${mapData.artist} - ${mapData.title} [${mapData.version}]`)
 					.setThumbnail(osuLibrary.URLBuilder.thumbnailURL(mapData.beatmapset_id))
 					.setURL(mapUrl)
 					.setAuthor({ name: `${playersdata.username}: ${Number(playersdata.pp_raw).toLocaleString()}pp (#${Number(playersdata.pp_rank).toLocaleString()} ${playersdata.country}${Number(playersdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconUrl, url: playerUrl })
-					.addFields({ name: rankingString, value: `${rankconverter(userPlays[0].rank)} **+ ${bestMods.str}** [${srppData.sr.toFixed(2)}★] **Score**: ${Number(userPlays[0].score).toLocaleString()} **Acc**: ${recentAcc}% \n **PP**: **${Number(userPlays[0].pp).toFixed(2)}** / ${srppData.pp.toFixed(2)}PP **Combo**: **${userPlays[0].maxcombo}x** / ${mapData.max_combo}x \n${userPlaysHit}`, inline: false })
+					.addFields({ name: rankingString, value: `${hoshinoLibrary.rankconverter(userPlays[0].rank)} **+ ${bestMods.str}** [${srppData.sr.toFixed(2)}★] **Score**: ${Number(userPlays[0].score).toLocaleString()} **Acc**: ${recentAcc}% \n **PP**: **${Number(userPlays[0].pp).toFixed(2)}** / ${srppData.pp.toFixed(2)}PP **Combo**: **${userPlays[0].maxcombo}x** / ${mapData.max_combo}x \n${userPlaysHit}`, inline: false })
 				if (userPlays.length > 1) {
 					let valueString = "";
 					for (let i = 1; i < Math.min(userPlays.length, 5); i++) {
@@ -3305,8 +3304,8 @@ client.on(Events.MessageCreate, async (message) =>
 							0: userPlays[i].countmiss,
 							geki : userPlays[i].countgeki,
 							katu: userPlays[i].countgeki
-						}, modeConvertAcc(mode));
-						valueString += `${rankconverter(userPlays[i].rank)} + **${Mods.str}** [${srppData.sr.toFixed(2)}★] ${Number(userPlays[i].pp).toFixed(2)}pp (${acc}%) ${userPlays[i].maxcombo}x Miss: ${userPlays[i].countmiss}\n`;
+						}, hoshinoLibrary.modeConvertAcc(mode));
+						valueString += `${hoshinoLibrary.rankconverter(userPlays[i].rank)} + **${Mods.str}** [${srppData.sr.toFixed(2)}★] ${Number(userPlays[i].pp).toFixed(2)}pp (${acc}%) ${userPlays[i].maxcombo}x Miss: ${userPlays[i].countmiss}\n`;
 					}
 					embed
 						.addFields({ name: "__Other scores on the beatmap:__", value: valueString, inline: false });
@@ -3554,7 +3553,7 @@ client.on(Events.MessageCreate, async (message) =>
 						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 					}
 					return;
-				} else if (matchPercentage(answer, currentanswer) > 90 && !isperfect) {
+				} else if (hoshinoLibrary.matchPercentage(answer, currentanswer) > 90 && !isperfect) {
 					await message.reply(`ほぼ正解です！答え: ${currenttitle}`);
 					let foundflagforans = false;
 					for (let element of parsedjson) {
@@ -3602,7 +3601,7 @@ client.on(Events.MessageCreate, async (message) =>
 						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`)
 					}
 					return;
-				} else if (matchPercentage(answer, currentanswer) > 50 && !isperfect) {
+				} else if (hoshinoLibrary.matchPercentage(answer, currentanswer) > 50 && !isperfect) {
 					await message.reply(`半分正解です！ 答え: ${currenttitle}`);
 					let foundflagforans = false;
 					for (let element of parsedjson) {
@@ -3650,7 +3649,7 @@ client.on(Events.MessageCreate, async (message) =>
 						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 					}
 					return;
-				} else if (matchPercentage(answer, currentanswer) > 35 && !isperfect) {
+				} else if (hoshinoLibrary.matchPercentage(answer, currentanswer) > 35 && !isperfect) {
 					await message.reply(`惜しかったです！ 答え: ${currenttitle}`)
 					let foundflagforans = false;
 					for (let element of parsedjson) {
@@ -3699,7 +3698,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 					return;
 				} else {
-					await message.reply(`不正解です;-; 答えの約${Math.round(matchPercentage(answer, currentanswer))}%を入力しています。`);
+					await message.reply(`不正解です;-; 答えの約${Math.round(hoshinoLibrary.matchPercentage(answer, currentanswer))}%を入力しています。`);
 					return;
 				}
 			}
@@ -4015,246 +4014,15 @@ client.on(Events.Error, (error) => {
 	console.log(`エラー名: ${error.name}\nエラー内容: ${error.message}`);
 });
 
-function generateSlotResult() {
-	const result = [];
-	for (let i = 0; i < 3; i++) {
-		const randomIndex = Math.floor(Math.random() * symbols.length);
-		result.push(symbols[randomIndex]);
-	}
-	return result;
-}
-
-function evaluateSlotResult(result) {
-	switch (true) {
-		case result[0] == result[1] && result[1] == result[2]:
-			return 30n;
-		case result[0] == result[1] || result[1] == result[2]:
-			return 10n;
-		case result[0] == result[2]:
-			return 5n;
-		default:
-			return 0n;
-	}
-}
-
-function toJPUnit(num) {
-	const str = num;
-	if (str.length >= 216) {
-		return "約" + `${formatBigInt(str)}`;
-	} else {
-		let n = "";
-		let count = 0;
-		let ptr = 0;
-		let kName = ["万","億","兆","京","垓","杼","穰","溝","澗","正","載","極","恒河沙","阿僧祇","那由他","不可思議","無量大数","無限超越数","無限超超越数","無限高次超越数","超限大数","超限超越大数","超限高次大数","超超限大数","超超限超越大数","超超限高次大数","超超超限大数","無辺数","無限大数","無限極数","無窮数","無限巨数","無涯数","無辺無数","無窮無数","無限超数","無辺超数","無尽数","無量超数","無辺絶数","無限絶数","イクカン","イガグン","レジギガス","イイググ","イガグググ","イカレジ","イカマニア","イガ","イグ","グイグイ","イクンカ","イカクンガ"]
-		for (let i = str.length - 1; i >= 0; i--) {
-			n = str.charAt(i) + n;
-			count++;
-			if ((count % 4 == 0) && (i != 0)) n = kName[ptr++] + n;
-		}
-		return n;
-	}
-}
-
-function formatBigInt(num) {
-	const str = num.toString();
-	if (str.length >= 216) {
-		const power = str.length - 1;
-		const numstr = str.slice(0, 2) + '.' + str.slice(2, 5).padEnd(3, '0');
-	  	return `${numstr} * 10^${power}`;
-	}
-	return str.toLocaleString();
-}
-
-function calcIfFCPP(score, mode, object, passedObjects, calcmods, mapMaxCombo, map) {
-	let ifFCPP = 0;
-	let ifFCAcc = 100;
-	let ifFCHits = {
-		n300: 0,
-		n100: 0,
-		n50: 0,
-		nMisses: 0
-	};
-
-	switch (mode) {
-		case 0: {
-			const objects = object.nCircles + object.nSliders + object.nSpinners;
-			let n300 = score.n300 + Math.max(0, objects - passedObjects);
-			const countHits = objects - score.nMisses;
-			const ratio = 1.0 - (n300 / countHits);
-			const new100s = Math.ceil(ratio * score.nMisses);
-			n300 += Math.max(0, score.nMisses - new100s);
-			const n100 = score.n100 + new100s;
-			const n50 = score.n50;
-			const calcScore = {
-				mode: 0,
-				mods: calcmods,
-				n300: n300,
-				n100: n100,
-				n50: n50,
-				nMisses: 0,
-				combo: mapMaxCombo
-			};
-
-			ifFCHits.n300 = n300;
-			ifFCHits.n100 = n100;
-			ifFCHits.n50 = n50;
-
-			const calc = new Calculator(calcScore);
-			ifFCPP = calc.performance(map).pp;
-			if (isNaN(ifFCPP)) ifFCPP = 0;
-			ifFCAcc = Math.round((n300 * 300 + n100 * 100 + n50 * 50) / ((n300 + n100 + n50 + 0) * 300) * 10000) / 100;
-			return { ifFCPP, ifFCHits, ifFCAcc };
-		}
-
-		case 1: {
-			const objects = object.nCircles;
-			let n300 = score.n300 + Math.max(0, objects - passedObjects);
-			const countHits = objects - score.nMisses;
-			const ratio = 1.0 - (n300 / countHits);
-			const new100s = Math.ceil(ratio * score.nMisses);
-			n300 += Math.max(0, score.nMisses - new100s);
-			const n100 = score.n100 + new100s;
-			const calcScore = {
-				mode: 1,
-				mods: calcmods,
-				n300: n300,
-				n100: n100,
-				nMisses: 0
-			};
-
-			ifFCHits.n300 = n300;
-			ifFCHits.n100 = n100;
-
-			const calc = new Calculator(calcScore);
-			ifFCPP = calc.performance(map).pp;
-			if (isNaN(ifFCPP)) ifFCPP = 0;
-			ifFCAcc = Math.round((100.0 * (2 * n300 + n100)) / (2 * objects) * 100) / 100;
-			return { ifFCPP, ifFCHits, ifFCAcc };
-		}
-
-		case 2: {
-			const objects = object.maxCombo;
-			const passedObjectsfor = score.n300 + score.n100 + score.nMisses;
-			const missing = objects - passedObjectsfor;
-			const missingFruits = Math.max(0, missing - Math.max(0, object.nDroplets - score.n100));
-			const missingDroplets = missing - missingFruits;
-			const nFruits = score.n300 + missingFruits;
-			const nDroplets = score.n100 + missingDroplets;
-			const nTinyDropletMisses = score.nKatu;
-			const nTinyDroplets = Math.max(0, object.nTinyDroplets - nTinyDropletMisses);
-			const calcScore = {
-				mode: 2,
-				mods: calcmods,
-				n300: nFruits,
-				n100: nDroplets,
-				n50: nTinyDroplets,
-				nGeki: score.nGeki,
-				nKatu: score.nKatu,
-				nMisses: 0,
-				combo: object.maxCombo
-			};
-
-			ifFCHits.n300 = nFruits;
-			ifFCHits.n100 = nDroplets;
-			ifFCHits.n50 = nTinyDroplets;
-
-			const calc = new Calculator(calcScore);
-			ifFCPP = calc.performance(map).pp;
-			if (isNaN(ifFCPP)) ifFCPP = 0;
-			ifFCAcc = Math.round((100.0 * (nFruits + nDroplets + nTinyDroplets)) / (nFruits + nDroplets + nTinyDroplets + score.nKatu) * 100) / 100;
-			return { ifFCPP, ifFCHits, ifFCAcc };
-		}
-
-		case 3: {
-			return { ifFCPP, ifFCHits, ifFCAcc };
-		}
-	}
-}
-
-function formatTime(sec) {
-	const min = Math.floor(sec / 60);
-	const second = Math.floor(sec % 60);
-	return `${min}:${second.toString().padStart(2, "0")}`;
-}
-
-function formatHits(score, mode) {
-	switch (mode) {
-		case 0:
-			return `{${score.n300}/${score.n100}/${score.n50}/${score.nMisses}}`;
-
-		case 1:
-			return `{${score.n300}/${score.n100}/${score.nMisses}}`;
-
-		case 2:
-			return `{${score.n300}/${score.n100}/${score.n50}/${score.nMisses}}`;
-
-		case 3:
-			return `{${score.nGeki}/${score.n300}/${score.nKatu}/${score.n100}/${score.n50}/${score.nMisses}}`;
-	}
-}
-
-function findDifferentElements(array1, array2) {
-	if (array1.length == 0) return array2.length > 0 ? array2 : null;
-	if (array2.length == 0) return null;
-	if (array2.length < 15 || array1.length < 15) {
-		return array2.filter((x) => !array1.includes(x)).length > 0 ? array2.filter((x) => !array1.includes(x)) : null;
-	}
-
-	const diffArray = [];
-	const newCharts = array2.filter(chart => !array1.includes(chart) && !array1.includes(chart - 1));
-	if (newCharts.length > 0) {
-		diffArray.push(...newCharts);
-		const filteredDiffArray = diffArray.filter(chart => !array1.includes(chart) && !array1.includes(chart - 1));
-		const finalDiffArray = filteredDiffArray.filter((chart, index, array) => {
-			return array.indexOf(chart) == index;
-		});
-		return finalDiffArray.length > 0 ? finalDiffArray : null;
-	} else {
-		return null;
-	}
-}
-
-function getFilesSortedByDate(directory) {
-	const fileStats = fs.readdirSync(directory).map(file => ({
-		name: file,
-		stat: fs.statSync(`${directory}/${file}`)
-	}));
-	fileStats.sort((a, b) => a.stat.mtime.getTime() - b.stat.mtime.getTime());
-	return fileStats.map(fileStat => fileStat.name);
-}
-
-function rankconverter(rank) {
-	switch (rank) {
-		case "F":
-			return "<:_F:1150129368765579415>";
-		case "D":
-			return "<:_D:1150129435643756645>";
-		case "C":
-			return "<:_C:1150129490480070797>";
-		case "B":
-			return "<:_B:1150129538752319578>";
-		case "A":
-			return "<:_A:1150129599754277005>";
-		case "S":
-			return "<:_S:1150129649330946108>";
-		case "SH":
-			return "<:_SH:1150129639629525085>";
-		case "X":
-			return "<:_X:1150129643714789417>";
-		case "XH":
-			return "<:_XH:1150129646055211138>";
-		default:
-			return "";
-	}
-}
-
-function isNaNwithNumber(num) {
-	return isNaN(num) ? 0 : num;
+async function checkMap() {
+	await checkqualified();
+	await checkranked();
+	await checkloved();
 }
 
 function checkqualified() {
 	return new Promise (async resolve => {
-		const modeconvertforSearch = (mode) => { return mode == "catch" ? "fruits" : mode; };
+		const modeconvertforSearch = (mode) => mode == "catch" ? "fruits" : mode;
 		const modeArray = ["osu", "taiko", "catch", "mania"];
 		await auth.login(osuclientid, osuclientsecret);
 		for (const mode of modeArray) {
@@ -4269,7 +4037,7 @@ function checkqualified() {
 					qfarray.push(qfdatalist.beatmapsets[i].id);
 				}
 				const allBeatmaps = JSON.parse(fs.readFileSync("./ServerDatas/Beatmaps/Beatmaps.json", "utf-8"));
-				const differentQFarray = findDifferentElements(allBeatmaps.Qualified[mode], qfarray);
+				const differentQFarray = hoshinoLibrary.findDifferentElements(allBeatmaps.Qualified[mode], qfarray);
 				allBeatmaps.Qualified[mode] = qfarray;
 				fs.writeFileSync("./ServerDatas/Beatmaps/Beatmaps.json", JSON.stringify(allBeatmaps, null, 4), "utf-8");
 				if (differentQFarray == null) continue;
@@ -4308,11 +4076,11 @@ function checkqualified() {
 
 					if (QFBeatmapsMaxSrId == undefined || QFBeatmapsMinSrId == undefined) continue;
 
-					const mapMaxInfo = await new osuLibrary.GetMapData(QFBeatmapsMaxSrId, apikey, modeConvertMap(mode)).getData();
-					const mapMinInfo = await new osuLibrary.GetMapData(QFBeatmapsMinSrId, apikey, modeConvertMap(mode)).getData();
+					const mapMaxInfo = await new osuLibrary.GetMapData(QFBeatmapsMaxSrId, apikey, hoshinoLibrary.modeConvertMap(mode)).getData();
+					const mapMinInfo = await new osuLibrary.GetMapData(QFBeatmapsMinSrId, apikey, hoshinoLibrary.modeConvertMap(mode)).getData();
 
-					const maxCalculator = new osuLibrary.CalculatePPSR(QFBeatmapsMaxSrId, 0, modeConvertMap(mode));
-					const minCalculator = new osuLibrary.CalculatePPSR(QFBeatmapsMinSrId, 0, modeConvertMap(mode));
+					const maxCalculator = new osuLibrary.CalculatePPSR(QFBeatmapsMaxSrId, 0, hoshinoLibrary.modeConvertMap(mode));
+					const minCalculator = new osuLibrary.CalculatePPSR(QFBeatmapsMinSrId, 0, hoshinoLibrary.modeConvertMap(mode));
 					const maxsrpp = await maxCalculator.calculateSR();
 					const minsrpp = await minCalculator.calculateSR();
 					const maxdtpp = await maxCalculator.calculateDT();
@@ -4324,8 +4092,8 @@ function checkqualified() {
 					let Objectstring = minCombo == maxCombo ? `${maxCombo}` : `${minCombo} ~ ${maxCombo}`;
 					const lengthsec = mapMaxInfo.hit_length;
 					const lengthsecDT = Math.round(Number(mapMaxInfo.hit_length) / 1.5);
-					const maptime = formatTime(lengthsec);
-					const maptimeDT = formatTime(lengthsecDT);
+					const maptime = hoshinoLibrary.formatTime(lengthsec);
+					const maptimeDT = hoshinoLibrary.formatTime(lengthsecDT);
 					const maptimestring = `${maptime} (DT ${maptimeDT})`;
 
 					const now = new Date();
@@ -4333,7 +4101,7 @@ function checkqualified() {
 					const day = now.getDate();
 					const hours = now.getHours();
 					const minutes = now.getMinutes();
-					const dateString = `${month}月${day}日 ${formatNumber(hours)}時${formatNumber(minutes)}分`;
+					const dateString = `${month}月${day}日 ${hoshinoLibrary.formatNumber(hours)}時${hoshinoLibrary.formatNumber(minutes)}分`;
 
 					const qfparsedjson = JSON.parse(fs.readFileSync(`./ServerDatas/Beatmaps/${mode}.json`, "utf-8"));
 					const averagearray = [];
@@ -4353,7 +4121,7 @@ function checkqualified() {
 					const rankedday = sevenDaysLater.getDate();
 					const rankedhours = sevenDaysLater.getHours();
 					const rankedminutes = sevenDaysLater.getMinutes();
-					const rankeddateString = `${rankedmonth}月${rankedday}日 ${formatNumber(rankedhours)}時${formatNumber(rankedminutes)}分`;
+					const rankeddateString = `${rankedmonth}月${rankedday}日 ${hoshinoLibrary.formatNumber(rankedhours)}時${hoshinoLibrary.formatNumber(rankedminutes)}分`;
 		
 					let srstring = maxsrpp.sr == minsrpp.sr ? `★${maxsrpp.sr.toFixed(2)} (DT ★${maxdtpp.sr.toFixed(2)})` : `★${minsrpp.sr.toFixed(2)} ~ ${maxsrpp.sr.toFixed(2)} (DT ★${mindtpp.sr.toFixed(2)} ~ ${maxdtpp.sr.toFixed(2)})`;
 					let ppstring = maxsrpp.pp == minsrpp.pp ? `${maxsrpp.pp.toFixed(2)}pp (DT ${maxdtpp.pp.toFixed(2)}pp)` : `${minsrpp.pp.toFixed(2)} ~ ${maxsrpp.pp.toFixed(2)}pp (DT ${mindtpp.pp.toFixed(2)} ~ ${maxdtpp.pp.toFixed(2)}pp)`;
@@ -4401,8 +4169,8 @@ function checkqualified() {
 }
 
 function checkranked() {
-	return new Promise (async (resolve) => {
-		const modeconvertforSearch = (mode) => { return mode == "catch" ? "fruits" : mode; };
+	return new Promise (async resolve => {
+		const modeconvertforSearch = (mode) => mode == "catch" ? "fruits" : mode;
 		const modeArray = ["osu", "taiko", "catch", "mania"];
 		await auth.login(osuclientid, osuclientsecret);
 		for (const mode of modeArray) {
@@ -4416,7 +4184,7 @@ function checkranked() {
 				rankedarray.push(rankeddatalist.beatmapsets[i].id);
 			}
 			const allBeatmaps = JSON.parse(fs.readFileSync("./ServerDatas/Beatmaps/Beatmaps.json", "utf-8"));
-			const differentrankedarray = findDifferentElements(allBeatmaps.Ranked[mode], rankedarray);
+			const differentrankedarray = hoshinoLibrary.findDifferentElements(allBeatmaps.Ranked[mode], rankedarray);
 			allBeatmaps.Ranked[mode] = rankedarray;
 			fs.writeFileSync("./ServerDatas/Beatmaps/Beatmaps.json", JSON.stringify(allBeatmaps, null, 4), "utf-8");
 			if (differentrankedarray == null) continue;
@@ -4464,11 +4232,11 @@ function checkranked() {
 					});
 					if (rankedBeatmapsMaxSrId == undefined || rankedBeatmapsMinSrId == undefined) continue;
 
-					const mapMaxInfo = await new osuLibrary.GetMapData(rankedBeatmapsMaxSrId, apikey, modeConvertMap(mode)).getData();
-					const mapMinInfo = await new osuLibrary.GetMapData(rankedBeatmapsMinSrId, apikey, modeConvertMap(mode)).getData();
+					const mapMaxInfo = await new osuLibrary.GetMapData(rankedBeatmapsMaxSrId, apikey, hoshinoLibrary.modeConvertMap(mode)).getData();
+					const mapMinInfo = await new osuLibrary.GetMapData(rankedBeatmapsMinSrId, apikey, hoshinoLibrary.modeConvertMap(mode)).getData();
 
-					const maxCalculator = new osuLibrary.CalculatePPSR(rankedBeatmapsMaxSrId, 0, modeConvertMap(mode));
-					const minCalculator = new osuLibrary.CalculatePPSR(rankedBeatmapsMinSrId, 0, modeConvertMap(mode));
+					const maxCalculator = new osuLibrary.CalculatePPSR(rankedBeatmapsMaxSrId, 0, hoshinoLibrary.modeConvertMap(mode));
+					const minCalculator = new osuLibrary.CalculatePPSR(rankedBeatmapsMinSrId, 0, hoshinoLibrary.modeConvertMap(mode));
 					const maxsrpp = await maxCalculator.calculateSR();
 					const minsrpp = await minCalculator.calculateSR();
 					const maxdtpp = await maxCalculator.calculateDT();
@@ -4480,8 +4248,8 @@ function checkranked() {
 					let Objectstring = minCombo == maxCombo ? `${maxCombo}` : `${minCombo} ~ ${maxCombo}`;
 					const lengthsec = mapMaxInfo.hit_length;
 					const lengthsecDT = Math.round(Number(mapMaxInfo.hit_length) / 1.5);
-					const maptime = formatTime(lengthsec);
-					const maptimeDT = formatTime(lengthsecDT);
+					const maptime = hoshinoLibrary.formatTime(lengthsec);
+					const maptimeDT = hoshinoLibrary.formatTime(lengthsecDT);
 					const maptimestring = `${maptime} (DT ${maptimeDT})`;
 		
 					const now = new Date();
@@ -4489,7 +4257,7 @@ function checkranked() {
 					const day = now.getDate();
 					const hours = now.getHours();
 					const minutes = now.getMinutes();
-					const dateString = `${month}月${day}日 ${formatNumber(hours)}時${formatNumber(minutes)}分`;
+					const dateString = `${month}月${day}日 ${hoshinoLibrary.formatNumber(hours)}時${hoshinoLibrary.formatNumber(minutes)}分`;
 		
 					let srstring = maxsrpp.sr == minsrpp.sr ? `★${maxsrpp.sr.toFixed(2)} (DT ★${maxdtpp.sr.toFixed(2)})` : `★${minsrpp.sr.toFixed(2)} ~ ${maxsrpp.sr.toFixed(2)} (DT ★${mindtpp.sr.toFixed(2)} ~ ${maxdtpp.sr.toFixed(2)})`;
 					let ppstring = maxsrpp.pp == minsrpp.pp ? `${maxsrpp.pp.toFixed(2)}pp (DT ${maxdtpp.pp.toFixed(2)}pp)` : `${minsrpp.pp.toFixed(2)} ~ ${maxsrpp.pp.toFixed(2)}pp (DT ${mindtpp.pp.toFixed(2)} ~ ${maxdtpp.pp.toFixed(2)}pp)`;
@@ -4535,9 +4303,9 @@ function checkranked() {
 }
 
 function checkloved() {
-	return new Promise(async (resolve) => {
-		const modeconvertforSearch = (mode) => { return mode == "catch" ? "fruits" : mode; }
-		const modeArray = ["osu", "taiko", "catch", "mania"]
+	return new Promise(async resolve => {
+		const modeconvertforSearch = (mode) => mode == "catch" ? "fruits" : mode;
+		const modeArray = ["osu", "taiko", "catch", "mania"];
 		await auth.login(osuclientid, osuclientsecret);
 		for (const mode of modeArray) {
 			const loveddatalist = await v2.beatmap.search({
@@ -4550,7 +4318,7 @@ function checkloved() {
 				lovedarray.push(loveddatalist.beatmapsets[i].id);
 			}
 			const allBeatmaps = JSON.parse(fs.readFileSync("./ServerDatas/Beatmaps/Beatmaps.json", "utf-8"));
-			const differentlovedarray = findDifferentElements(allBeatmaps.Loved[mode], lovedarray);
+			const differentlovedarray = hoshinoLibrary.findDifferentElements(allBeatmaps.Loved[mode], lovedarray);
 			allBeatmaps.Loved[mode] = lovedarray;
 			fs.writeFileSync("./ServerDatas/Beatmaps/Beatmaps.json", JSON.stringify(allBeatmaps, null, 4), "utf-8");
 			if (differentlovedarray == null) continue;
@@ -4568,11 +4336,11 @@ function checkloved() {
 					});
 					if (lovedBeatmapsMaxSrId == undefined || lovedBeatmapsMinSrId == undefined) continue;
 
-					const mapMaxInfo = await new osuLibrary.GetMapData(lovedBeatmapsMaxSrId, apikey, modeConvertMap(mode)).getData();
-					const mapMinInfo = await new osuLibrary.GetMapData(lovedBeatmapsMinSrId, apikey, modeConvertMap(mode)).getData();
+					const mapMaxInfo = await new osuLibrary.GetMapData(lovedBeatmapsMaxSrId, apikey, hoshinoLibrary.modeConvertMap(mode)).getData();
+					const mapMinInfo = await new osuLibrary.GetMapData(lovedBeatmapsMinSrId, apikey, hoshinoLibrary.modeConvertMap(mode)).getData();
 
-					const maxCalculator = new osuLibrary.CalculatePPSR(lovedBeatmapsMaxSrId, 0, modeConvertMap(mode));
-					const minCalculator = new osuLibrary.CalculatePPSR(lovedBeatmapsMinSrId, 0, modeConvertMap(mode));
+					const maxCalculator = new osuLibrary.CalculatePPSR(lovedBeatmapsMaxSrId, 0, hoshinoLibrary.modeConvertMap(mode));
+					const minCalculator = new osuLibrary.CalculatePPSR(lovedBeatmapsMinSrId, 0, hoshinoLibrary.modeConvertMap(mode));
 					const maxsrpp = await maxCalculator.calculateSR();
 					const minsrpp = await minCalculator.calculateSR();
 					const maxdtpp = await maxCalculator.calculateDT();
@@ -4584,8 +4352,8 @@ function checkloved() {
 					let Objectstring = minCombo == maxCombo ? `${maxCombo}` : `${minCombo} ~ ${maxCombo}`;
 					const lengthsec = mapMaxInfo.hit_length;
 					const lengthsecDT = Math.round(Number(mapMaxInfo.hit_length) / 1.5);
-					const maptime = formatTime(lengthsec);
-					const maptimeDT = formatTime(lengthsecDT);
+					const maptime = hoshinoLibrary.formatTime(lengthsec);
+					const maptimeDT = hoshinoLibrary.formatTime(lengthsecDT);
 					const maptimestring = `${maptime} (DT ${maptimeDT})`;
 		
 					const now = new Date();
@@ -4593,7 +4361,7 @@ function checkloved() {
 					const day = now.getDate();
 					const hours = now.getHours();
 					const minutes = now.getMinutes();
-					const dateString = `${month}月${day}日 ${formatNumber(hours)}時${formatNumber(minutes)}分`;
+					const dateString = `${month}月${day}日 ${hoshinoLibrary.formatNumber(hours)}時${hoshinoLibrary.formatNumber(minutes)}分`;
 
 					let srstring = maxsrpp.sr == minsrpp.sr ? `★${maxsrpp.sr.toFixed(2)} (DT ★${maxdtpp.sr.toFixed(2)})` : `★${minsrpp.sr.toFixed(2)} ~ ${maxsrpp.sr.toFixed(2)} (DT ★${mindtpp.sr.toFixed(2)} ~ ${maxdtpp.sr.toFixed(2)})`;
 		
@@ -4674,17 +4442,17 @@ async function rankedintheday() {
 					});
 					if (QFBeatmapsMaxSrId == undefined || QFBeatmapsMinSrId == undefined) continue;
 
-					const mapInfo = await new osuLibrary.GetMapData(QFBeatmapsMaxSrId, apikey, modeConvertMap(mode)).getData();
+					const mapInfo = await new osuLibrary.GetMapData(QFBeatmapsMaxSrId, apikey, hoshinoLibrary.modeConvertMap(mode)).getData();
 
-					const maxCalculator = new osuLibrary.CalculatePPSR(QFBeatmapsMaxSrId, 0, modeConvertMap(mode));
-					const minCalculator = new osuLibrary.CalculatePPSR(QFBeatmapsMinSrId, 0, modeConvertMap(mode));
+					const maxCalculator = new osuLibrary.CalculatePPSR(QFBeatmapsMaxSrId, 0, hoshinoLibrary.modeConvertMap(mode));
+					const minCalculator = new osuLibrary.CalculatePPSR(QFBeatmapsMinSrId, 0, hoshinoLibrary.modeConvertMap(mode));
 					const maxsrpp = await maxCalculator.calculateSR();
 					const minsrpp = await minCalculator.calculateSR();
 					const maxdtpp = await maxCalculator.calculateDT();
 					const mindtpp = await minCalculator.calculateDT();
 					let srstring = maxsrpp.sr == minsrpp.sr ? `★${maxsrpp.sr.toFixed(2)} (DT ★${maxdtpp.sr.toFixed(2)})` : `★${minsrpp.sr.toFixed(2)} ~ ${maxsrpp.sr.toFixed(2)} (DT ★${mindtpp.sr.toFixed(2)} ~ ${maxdtpp.sr.toFixed(2)})`;
 					let ppstring = maxsrpp.pp == minsrpp.pp ? `${maxsrpp.pp.toFixed(2)}pp (DT ${maxdtpp.pp.toFixed(2)}pp)` : `${minsrpp.pp.toFixed(2)} ~ ${maxsrpp.pp.toFixed(2)}pp (DT ${mindtpp.pp.toFixed(2)} ~ ${maxdtpp.pp.toFixed(2)}pp)`;
-					sevenDayAgoQf.push({ name : `${count}. **${mapInfo.title} - ${mapInfo.artist}**`, value : `▸Mapped by **${mapInfo.creator}**\n▸SR: ${srstring}\n▸PP: ${ppstring}\n▸**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualified**: ${year}年 ${month}月 ${day}日 ${formatNumber(hours)}:${formatNumber(minutes)}\n` });
+					sevenDayAgoQf.push({ name : `${count}. **${mapInfo.title} - ${mapInfo.artist}**`, value : `▸Mapped by **${mapInfo.creator}**\n▸SR: ${srstring}\n▸PP: ${ppstring}\n▸**Download** | [map](https://osu.ppy.sh/beatmapsets/${element.id}) | [Nerinyan](https://api.nerinyan.moe/d/${element.id}) | [Nerinyan (No Vid)](https://api.nerinyan.moe/d/${element.id}?nv=1) | [Beatconnect](https://beatconnect.io/b/${element.id})\n**Qualified**: ${year}年 ${month}月 ${day}日 ${hoshinoLibrary.formatNumber(hours)}:${hoshinoLibrary.formatNumber(minutes)}\n` });
 				}
 			} catch (e) {
 				console.log(e);
@@ -4692,7 +4460,7 @@ async function rankedintheday() {
 			}
 		}
 
-		if (sevenDayAgoQf.length == 0) sevenDayAgoQf.push({ name : `**今日Ranked予定の${mode}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDate()}日 ${formatNumber(now.getHours())}:${formatNumber(now.getMinutes())}` });
+		if (sevenDayAgoQf.length == 0) sevenDayAgoQf.push({ name : `**今日Ranked予定の${mode}譜面はありません**`, value : `チェック日時: ${now.getFullYear()}年 ${now.getMonth() + 1}月 ${now.getDate()}日 ${hoshinoLibrary.formatNumber(now.getHours())}:${hoshinoLibrary.formatNumber(now.getMinutes())}` });
 
 		const embed = new EmbedBuilder()
 			.setColor("Yellow")
@@ -4711,60 +4479,6 @@ async function rankedintheday() {
 	}
 }
 
-/**
- * Formats a number by adding a leading zero if it is less than 10.
- * @param {number} num - The number to be formatted.
- * @returns {string} The formatted number.
- */
-function formatNumber(num) {
-    return num < 10 ? '0' + num : num.toString();
-}
-
-async function checkMap() {
-	await checkqualified();
-	await checkranked();
-	await checkloved();
-}
-
-function modeConvertMap(str) {
-	switch (str) {
-		case "osu":
-			return 0;
-		case "taiko":
-			return 1;
-		case "catch":
-			return 2;
-		case "mania":
-			return 3;
-	}
-}
-
-function modeConvertAcc(num) {
-	switch (Number(num)) {
-		case 0:
-			return "osu";
-		case 1:
-			return "taiko";
-		case 2:
-			return "fruits";
-		case 3:
-			return "mania";
-	}
-}
-
-/**
- * Creates a progress bar based on the given percentage.
- * @param {number} percent - The percentage value (0-100) to represent the progress.
- * @returns {string} The progress bar string.
- */
-function createProgressBar(percent) {
-	const progress = parseInt((20 * percent / 100).toFixed(0));
-	const emptyProgress = parseInt((20 * (100 - percent) / 100).toFixed(0));
-	const progressText = "#".repeat(progress);
-	const emptyProgressText = "-".repeat(emptyProgress);
-	return `[${progressText}${emptyProgressText}]`;
-}
-
 async function makeBackup() {
 	const now = new Date();
 	const year = now.getFullYear();
@@ -4773,31 +4487,8 @@ async function makeBackup() {
 	const hours = now.getHours();
 	const minutes = now.getMinutes();
 	const dateString = `${year}-${month}-${day} ${hours} ${minutes}`;
-	await fs.mkdir(`./Backups/${dateString}`);
-	await fs.copy("./ServerDatas", `./Backups/${dateString}`);
-}
-
-/**
- * Calculates the match percentage between two strings.
- *
- * @param {string} current - The current string.
- * @param {string} total - The total string.
- * @returns {number} The match percentage between the two strings.
- */
-function matchPercentage(current, total) {
-	let data = [current.split('').map((_, index) => current.slice(0, index + 1))];
-	for (let i = 0; i < current.length; i++) {
-		data.push(current.slice(i));
-	}
-	data = data.flat().filter((x, i, self) => self.indexOf(x) === i);
-	let matchPercentage = 0;
-	for (const element of data) {
-		const matchdata = total.replace(element, "");
-		if ((total.length - matchdata.length) / total.length * 100 >= matchPercentage) {
-			matchPercentage = (total.length - matchdata.length) / total.length * 100;
-		}
-	}
-	return matchPercentage;
+	fs.mkdirSync(`./Backups/${dateString}`);
+	fs.copySync("./ServerDatas", `./Backups/${dateString}`);
 }
 
 client.login(token);
