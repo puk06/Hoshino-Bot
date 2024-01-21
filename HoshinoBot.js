@@ -3895,11 +3895,11 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (/^[0-9.]+時間?$/.test(message.content) && message.content.includes(".") && !/^\.+$/.test(message.content) && message.content.includes("時間")) {
-				const totalHours = parseFloat(message.content.split("時間")[0]);
+				const totalHours = Number(message.content.split("時間")[0]);
 				if (!message.content.split("時間")[0].includes(".")) return;
 				await message.reply(`${Math.floor(totalHours)}時間 ${Math.floor((totalHours - Math.floor(totalHours)) * 60)}分 ${Math.round(((totalHours - Math.floor(totalHours)) * 60 - Math.floor((totalHours - Math.floor(totalHours)) * 60)) * 60)}秒`);
 			} else if (/^[0-9.]+分?$/.test(message.content) && message.content.includes(".") && !/^\.+$/.test(message.content) && message.content.includes("分")) {
-				const totalminutes = parseFloat(message.content.split("分")[0]);
+				const totalminutes = Number(message.content.split("分")[0]);
 				if (!message.content.split("分")[0].includes(".")) return;
 				await message.reply(`${Math.floor(totalminutes)}分 ${Math.round((totalminutes - Math.floor(totalminutes)) * 60)}秒`);
 			}
