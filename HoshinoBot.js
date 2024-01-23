@@ -62,7 +62,7 @@ client.on(Events.ClientReady, async () =>
 		setInterval(makeBackup, 3600000);
 
 		(async () => {
-			const webHookData = JSON.parse(fs.readFileSync("./ServerDatas/WebHookData.json", "utf-8"));
+			const webHookData = fs.readJsonSync("./ServerDatas/WebHookData.json");
 			if (webHookData.lastDate == new Date().getDate()) return;
 			const webHookClient = new WebhookClient({ url: process.env.WEBHOOKURL });
 			const today = new Date();
@@ -84,7 +84,7 @@ client.on(Events.ClientReady, async () =>
 						.then(() => {
 							console.log("WebHookの送信に成功しました。");
 							webHookData.lastDate = new Date().getDate();
-							fs.writeFileSync("./ServerDatas/WebHookData.json", JSON.stringify(webHookData, null, 4), "utf-8");
+							fs.writeJsonSync("./ServerDatas/WebHookData.json", webHookData, { spaces: 4, replacer: null });
 						})
 						.catch(() => {
 							console.log("WebHookの送信に失敗しました。");
@@ -100,7 +100,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 		try {
 			if (!interaction.isCommand()) return;
 			if (interaction.commandName == "slot") {
-				const bankData = JSON.parse(fs.readFileSync("./ServerDatas/UserBankData.json", "utf-8"));
+				const bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				if (!bankData[interaction.user.id]) {
 					await interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。");
 					return;
@@ -128,12 +128,12 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const resultprefix = reward - betAmount >= 0n ? "+" : "";
 				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${hoshinoLibrary.formatBigInt(reward)}coin (${resultprefix}${hoshinoLibrary.formatBigInt((reward - betAmount))})`);
 				bankData[interaction.user.id].balance = (newBalance + reward).toString();
-				fs.writeFileSync("./ServerDatas/UserBankData.json", JSON.stringify(bankData, null, 4), "utf-8");
+				fs.writeJsonSync("./ServerDatas/UserBankData.json", bankData, { spaces: 4, replacer: null });
 				return;
 			}
 
 			if (interaction.commandName == "safeslot") {
-				const bankData = JSON.parse(fs.readFileSync("./ServerDatas/UserBankData.json", "utf-8"));
+				const bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				if (!bankData[interaction.user.id]) {
 					await interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。");
 					return;
@@ -161,12 +161,12 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const resultPrefix = reward - betAmount >= 0n ? "+" : "";
 				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${hoshinoLibrary.formatBigInt(reward)}coin (${resultPrefix}${hoshinoLibrary.formatBigInt((reward - betAmount))})`);
 				bankData[interaction.user.id].balance = (newBalance + reward).toString();
-				fs.writeFileSync("./ServerDatas/UserBankData.json", JSON.stringify(bankData, null, 4), "utf-8");
+				fs.writeJsonSync("./ServerDatas/UserBankData.json", bankData, { spaces: 4, replacer: null });
 				return;
 			}
 
 			if (interaction.commandName == "bankranking") {
-				const bankData = JSON.parse(fs.readFileSync("./ServerDatas/UserBankData.json", "utf-8"));
+				const bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				let bankDataArray = [];
 				for (const key in bankData) {
 					bankDataArray.push(bankData[key]);
@@ -181,7 +181,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "lv") {
-				const bankData = JSON.parse(fs.readFileSync("./ServerDatas/UserBankData.json", "utf-8"));
+				const bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				if (!bankData[interaction.user.id]) {
 					await interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。");
 					return;
@@ -203,7 +203,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "recoshot") {
-				const bankData = JSON.parse(fs.readFileSync("./ServerDatas/UserBankData.json", "utf-8"));
+				const bankData = fs.readJsonSync("./ServerDatas/UserBankData.json", "utf-8");
 				if (!bankData[interaction.user.id]) {
 					await interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。");
 					return;
@@ -229,12 +229,12 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const resultprefix = reward - betAmount >= 0n ? "+" : "";
 				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${hoshinoLibrary.formatBigInt(reward)}coin (${resultprefix}${hoshinoLibrary.formatBigInt((reward - betAmount))})`);
 				bankData[interaction.user.id].balance = (newBalance + reward).toString();
-				fs.writeFileSync("./ServerDatas/UserBankData.json", JSON.stringify(bankData, null, 4), "utf-8");
+				fs.writeJsonSync("./ServerDatas/UserBankData.json", bankData, { spaces: 4, replacer: null });
 				return;
 			}
 
 			if (interaction.commandName == "reco") {
-				const bankData = JSON.parse(fs.readFileSync("./ServerDatas/UserBankData.json", "utf-8"));
+				const bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				if (!bankData[interaction.user.id]) {
 					await interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。");
 					return;
@@ -251,7 +251,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "bank") {
-				const bankData = JSON.parse(fs.readFileSync("./ServerDatas/UserBankData.json", "utf-8"));
+				const bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				if (!bankData[interaction.user.id]) {
 					await interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。");
 					return;
@@ -273,7 +273,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "regcasino") {
-				const bankData = JSON.parse(fs.readFileSync("./ServerDatas/UserBankData.json", "utf-8"));
+				const bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				if (bankData[interaction.user.id]) {
 					await interaction.reply("あなたはもう既にこのカジノに登録されています。");
 					return;
@@ -284,7 +284,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					balance: "1000000"
 				};
 
-				fs.writeFileSync("./ServerDatas/UserBankData.json", JSON.stringify(bankData, null, 4), "utf-8");
+				fs.writeJsonSync("./ServerDatas/UserBankData.json", bankData, { spaces: 4, replacer: null });
 				await interaction.reply(`カジノへようこそ ${interaction.user.username}! 初回なので1000000コインを差し上げます。`);
 				return;
 			}
@@ -296,7 +296,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				const bankData = JSON.parse(fs.readFileSync("./ServerDatas/UserBankData.json", "utf-8"));
+				const bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				if (!bankData[interaction.user.id]) {
 					await interaction.reply("このカジノにユーザー登録されていないようです。/regcasinoで登録してください。");
 					return;
@@ -341,7 +341,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					}
 				}
 
-				fs.writeFileSync("./ServerDatas/UserBankData.json", JSON.stringify(bankData, null, 4), "utf-8");
+				fs.writeJsonSync("./ServerDatas/UserBankData.json", bankData, { spaces: 4, replacer: null });
 				await interaction.reply("送金が完了しました。");
 				return;
 			}
@@ -366,7 +366,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "kemo") {
-				const dataBase = JSON.parse(fs.readFileSync("./Pictures/Furry/DataBase.json", "utf-8"));
+				const dataBase = fs.readJsonSync("./Pictures/Furry/DataBase.json");
 				if (dataBase.FileCount == 0) {
 					await interaction.reply("ファイルが存在しません。");
 					return;
@@ -380,7 +380,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "kemodelete") {
-				const dataBase = JSON.parse(fs.readFileSync("./Pictures/Furry/DataBase.json", "utf-8"));
+				const dataBase = fs.readJsonSync("./Pictures/Furry/DataBase.json");
 				const usercount = interaction.options.get('count').value;
 
 				let foundFlag = false;
@@ -391,7 +391,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						fs.removeSync(`./Pictures/Furry/${fileName}`);
 						dataBase.PhotoDataBase = dataBase.PhotoDataBase.filter(item => item !== fileName);
 						dataBase.FileCount--;
-						fs.writeFileSync("./Pictures/Furry/DataBase.json", JSON.stringify(dataBase, null, 4), "utf-8");
+						fs.writeJsonSync("./Pictures/Furry/DataBase.json", dataBase, { spaces: 4, replacer: null });
 						await interaction.reply("ファイルが正常に削除されました。");
 						break;
 					}
@@ -405,7 +405,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "kemocount") {
-				const dataBase = JSON.parse(fs.readFileSync("./Pictures/Furry/DataBase.json", "utf-8"));
+				const dataBase = fs.readJsonSync("./Pictures/Furry/DataBase.json");
 				const count = dataBase.FileCount;
 				await interaction.reply(`今まで追加した画像や映像、gifの合計枚数は${count}枚です。`);
 				return;
@@ -417,7 +417,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("このタグは存在しません。");
 					return;
 				}
-				const dataBase = JSON.parse(fs.readFileSync(path.join("./Pictures/tag", tag, "DataBase.json"), "utf-8"));
+				const dataBase = fs.readJsonSync(path.join("./Pictures/tag", tag, "DataBase.json"));
 				const filecount = dataBase.FileCount;
 				if (filecount == 0) {
 					await interaction.reply("ファイルが存在しません。");
@@ -444,7 +444,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				
 				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
 				for (const folder of currentDir) {
-					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${folder}/DataBase.json`, "utf-8"));
+					const dataBase = fs.readJsonSync(`./Pictures/tag/${folder}/DataBase.json`);
 					if (dataBase.id == interaction.channel.id) {
 						fs.renameSync(`./Pictures/tag/${folder}`, `./Pictures/tag/${tagName}`);
 						await interaction.reply("このチャンネルのタグ名を更新しました。");
@@ -452,12 +452,12 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					}
 				}
 				
-				await fs.mkdir(`./Pictures/tag/${tagName}`);
-				fs.writeFileSync(`./Pictures/tag/${tagName}/DataBase.json`, JSON.stringify({
+				fs.mkdirSync(`./Pictures/tag/${tagName}`);
+				fs.writeJsonSync(`./Pictures/tag/${tagName}/DataBase.json`, {
 					id: interaction.channel.id,
 					FileCount: 0,
 					PhotoDataBase: []
-				}, null, 4), "utf-8");
+				}, { spaces: 4, replacer: null });
 				await interaction.reply("タグが正常に作成されました。");
 				return;
 			}
@@ -465,7 +465,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			if (interaction.commandName == "deltag") {
 				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
 				for (const folder of currentDir) {
-					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${folder}/DataBase.json`, "utf-8"));
+					const dataBase = fs.readJsonSync(`./Pictures/tag/${folder}/DataBase.json`);
 					if (dataBase.id == interaction.channel.id) {
 						fs.removeSync(`./Pictures/tag/${folder}/DataBase.json`);
 						await interaction.reply("タグの削除が正常に完了しました。");
@@ -480,7 +480,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const usercount = interaction.options.get('count').value;
 				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
 				for (const folder of currentDir) {
-					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${folder}/DataBase.json`, "utf-8"));
+					const dataBase = fs.readJsonSync(`./Pictures/tag/${folder}/DataBase.json`);
 					if (dataBase.id == interaction.channel.id) {
 						for (const fileName of dataBase.PhotoDataBase) {
 							const file = fileName.split(".")[0];
@@ -488,7 +488,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 								fs.removeSync(`./Pictures/tag/${folder}/${fileName}`);
 								dataBase.PhotoDataBase = dataBase.PhotoDataBase.filter(item => item !== fileName);
 								dataBase.FileCount--;
-								fs.writeFileSync(`./Pictures/tag/${folder}/DataBase.json`, JSON.stringify(dataBase, null, 4), "utf-8");
+								fs.writeJsonSync(`./Pictures/tag/${folder}/DataBase.json`, dataBase, { spaces: 4, replacer: null });
 								await interaction.reply("ファイルが正常に削除されました。");
 								return;
 							}
@@ -507,7 +507,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("このタグは登録されていません。");
 					return;
 				}
-				const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${tagName}/DataBase.json`, "utf-8"));
+				const dataBase = fs.readJsonSync(`./Pictures/tag/${tagName}/DataBase.json`);
 				const filecount = dataBase.FileCount;
 				await interaction.reply(`今まで${tagName}タグに追加した画像や映像、gifの合計枚数は${filecount}枚です。`);
 				return;
@@ -523,7 +523,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "quote") {
 				const tag = interaction.options.get('name').value;
-				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
+				const allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				if (!allQuotes[tag]) {
 					await interaction.reply("このタグは存在しません。");
 					return;
@@ -541,7 +541,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "setquotetag") {
 				const tagName = interaction.options.get('name').value;
-				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
+				const allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				if (allQuotes[tagName]) {
 					await interaction.reply("このタグ名は既に存在しています。");
 					return;
@@ -551,7 +551,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						allQuotes[tagName] = allQuotes[key];
 						delete allQuotes[key];
 						await interaction.reply("このチャンネルのタグ名を更新しました。");
-						fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
+						fs.writeJsonSync("./ServerDatas/Quotes.json", allQuotes, { spaces: 4, replacer: null });
 						return;
 					}
 				}
@@ -559,17 +559,17 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					"id": interaction.channel.id,
 					"quotes": []
 				};
-				fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
+				fs.writeJsonSync("./ServerDatas/Quotes.json", allQuotes, { spaces: 4, replacer: null });
 				await interaction.reply("タグが正常に作成されました。");
 				return;
 			}
 
 			if (interaction.commandName == "delquotetag") {
-				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
+				const allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				for (const key in allQuotes) {
 					if (allQuotes[key].id == interaction.channel.id) {
 						delete allQuotes[key];
-						fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
+						fs.writeJsonSync("./ServerDatas/Quotes.json", allQuotes, { spaces: 4, replacer: null });
 						await interaction.reply("タグが正常に削除されました。");
 						return;
 					}
@@ -579,7 +579,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "delquote") {
-				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
+				const allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				for (const key in allQuotes) {
 					if (allQuotes[key].id == interaction.channel.id) {
 						const wannadelete = interaction.options.get('quote').value;
@@ -588,7 +588,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							return;
 						}
 						allQuotes[key].quotes = allQuotes[key].quotes.filter(item => item !== wannadelete );
-						fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4), "utf-8");
+						fs.writeJsonSync("./ServerDatas/Quotes.json", allQuotes, { spaces: 4, replacer: null });
 						await interaction.reply("名言の削除が完了しました。");
 						return;
 					}
@@ -599,7 +599,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "quotecount") {
 				const tagName = interaction.options.get('name').value;
-				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
+				const allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				if (!allQuotes[tagName]) {
 					await interaction.reply("このタグは存在しません。");
 					return;
@@ -613,7 +613,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "allquotetags") {
-				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
+				const allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				let taglist = [];
 				let i = 0;
 				for (const key in allQuotes) {
@@ -630,28 +630,28 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "link") {
 				const channelid = interaction.channel.id;
-				const allchannels = JSON.parse(fs.readFileSync("./ServerDatas/BeatmapLinkChannels.json", "utf-8"));
+				const allchannels = fs.readJsonSync("./ServerDatas/BeatmapLinkChannels.json");
 				if (allchannels.Channels.includes(channelid)) {
 					await interaction.reply("このチャンネルでは既にマップ情報が表示されるようになっています。");
 					return;
 				}
 
 				allchannels.Channels.push(channelid);
-				fs.writeFileSync("./ServerDatas/BeatmapLinkChannels.json", JSON.stringify(allchannels, null, 4));
+				fs.writeJsonSync("./ServerDatas/BeatmapLinkChannels.json", allchannels, { spaces: 4, replacer: null });
 				await interaction.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されるようになりました。解除したい場合は/unlinkコマンドを使用してください。`);
 				return;
 			}
 
 			if (interaction.commandName == "unlink") {
 				const channelid = interaction.channel.id;
-				const allchannels = JSON.parse(fs.readFileSync("./ServerDatas/BeatmapLinkChannels.json", "utf-8"));
+				const allchannels = fs.readJsonSync("./ServerDatas/BeatmapLinkChannels.json");
 				if (!allchannels.Channels.includes(channelid)) {
 					await interaction.reply("このチャンネルでは既にマップ情報が表示されないようになっています。");
 					return;
 				}
 
 				allchannels.Channels = allchannels.Channels.filter(item => item !== channelid);
-				fs.writeFileSync("./ServerDatas/BeatmapLinkChannels.json", JSON.stringify(allchannels, null, 4));
+				fs.writeJsonSync("./ServerDatas/BeatmapLinkChannels.json", allchannels, { spaces: 4, replacer: null });
 				await interaction.reply(`このチャンネルにマップリンクが送信されてもマップ情報が表示されないようになりました。再度表示したい場合は/linkコマンドを使用してください。`);
 				return;
 			}
@@ -865,7 +865,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			if (interaction.commandName == "qf" || interaction.commandName == "deqf" || interaction.commandName == "loved" || interaction.commandName == "deloved") {
 				const mode = interaction.options.get('mode').value;
 				const channelid = interaction.channel.id;
-				const allchannels = JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8"));
+				const allchannels = fs.readJsonSync(`./ServerDatas/MapcheckChannels.json`);
 				switch (interaction.commandName) {
 					case "qf": {
 						if (allchannels["Qualified"][mode].includes(channelid)) {
@@ -873,7 +873,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							return;
 						}
 						allchannels["Qualified"][mode].push(channelid);
-						fs.writeFileSync(`./ServerDatas/MapcheckChannels.json`, JSON.stringify(allchannels, null, 4));
+						fs.writeJsonSync(`./ServerDatas/MapcheckChannels.json`, allchannels, { spaces: 4, replacer: null });
 						await interaction.reply(`このチャンネルを${mode}のQualified、Rankedチェックチャンネルとして登録しました。`);
 						return;
 					}
@@ -881,7 +881,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					case "deqf": {
 						if (allchannels["Qualified"][mode].includes(channelid)) {
 							const newchannels = allchannels["Qualified"][mode].filter(item => item !== channelid);
-							fs.writeFileSync(`./ServerDatas/MapcheckChannels.json`, JSON.stringify(newchannels, null, 4));
+							fs.writeJsonSync(`./ServerDatas/MapcheckChannels.json`, newchannels, { spaces: 4, replacer: null });
 							await interaction.reply(`このチャンネルを${mode}のQualified、Rankedチェックチャンネルから削除しました。`);
 						} else {
 							await interaction.reply("このチャンネルはQualified、Rankedチェックチャンネルとして登録されていません。");
@@ -895,7 +895,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							return;
 						}
 						allchannels["Loved"][mode].push(channelid);
-						fs.writeFileSync(`./ServerDatas/MapcheckChannels.json`, JSON.stringify(allchannels, null, 4));
+						fs.writeJsonSync(`./ServerDatas/MapcheckChannels.json`, allchannels, { spaces: 4, replacer: null });
 						await interaction.reply(`このチャンネルを${mode}のLovedチェックチャンネルとして登録しました。`);
 						return;
 					}
@@ -903,7 +903,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					case "deloved": {
 						if (allchannels["Loved"][mode].includes(channelid)) {
 							const newchannels = allchannels["Loved"][mode].filter(item => item !== channelid);
-							fs.writeFileSync(`./ServerDatas/MapcheckChannels.json`, JSON.stringify(newchannels, null, 4));
+							fs.writeJsonSync(`./ServerDatas/MapcheckChannels.json`, newchannels, { spaces: 4, replacer: null });
 							await interaction.reply(`このチャンネルを${mode}のLovedチェックチャンネルから削除しました。`);
 						} else {
 							await interaction.reply("このチャンネルはLovedチェックチャンネルとして登録されていません。");
@@ -917,7 +917,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const mode = interaction.options.get('mode').value;
 				const userid = interaction.user.id;
 				const serverid = interaction.guild.id;
-				const alluser = JSON.parse(fs.readFileSync(`./ServerDatas/MentionUser.json`, "utf-8"));
+				const alluser = fs.readJsonSync(`./ServerDatas/MentionUser.json`);
 				switch (interaction.commandName) {
 					case "qfmention": {
 						if (alluser["Qualified"][serverid]?.[mode].includes(userid)) {
@@ -931,7 +931,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							"mania": []
 						};
 						alluser["Qualified"][serverid][mode].push(userid);
-						fs.writeFileSync(`./ServerDatas/MentionUser.json`, JSON.stringify(alluser, null, 4));
+						fs.writeJsonSync(`./ServerDatas/MentionUser.json`, alluser, { spaces: 4, replacer: null });
 						await interaction.reply(`今度から${mode}でQualifiedが検出されたらメンションが飛ぶようになりました.`);
 						return;
 					}
@@ -948,7 +948,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							"mania": []
 						};
 						alluser["Loved"][serverid][mode].push(userid);
-						fs.writeFileSync(`./ServerDatas/MentionUser.json`, JSON.stringify(alluser, null, 4));
+						fs.writeJsonSync(`./ServerDatas/MentionUser.json`, alluser, { spaces: 4, replacer: null });
 						await interaction.reply(`今度から${mode}でlovedが検出されたらメンションが飛ぶようになりました。`);
 						return;
 					}
@@ -965,7 +965,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							"mania": []
 						};
 						alluser["Ranked"][serverid][mode].push(userid);
-						fs.writeFileSync(`./ServerDatas/MentionUser.json`, JSON.stringify(alluser, null, 4));
+						fs.writeJsonSync(`./ServerDatas/MentionUser.json`, alluser, { spaces: 4, replacer: null });
 						await interaction.reply(`今度から${mode}でRankedが検出されたらメンションが飛ぶようになりました。`);
 						return;
 					}
@@ -973,7 +973,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					case "deqfmention": {
 						if (alluser["Qualified"][serverid]?.[mode].includes(userid)) {
 							const newuser = alluser["Qualified"][serverid][mode].filter(item => item !== userid);
-							fs.writeFileSync(`./ServerDatas/MentionUser.json`, JSON.stringify(newuser, null, 4));
+							fs.writeJsonSync(`./ServerDatas/MentionUser.json`, newuser, { spaces: 4, replacer: null });
 							await interaction.reply(`今度から${mode}でQualified検出されても、メンションが飛ばないようになりました。`);
 						} else {
 							await interaction.reply("あなたは既にQualifiedチェックチャンネルのメンションを受け取るようになっていません。");
@@ -984,7 +984,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					case "derankedmention": {
 						if (alluser["Ranked"][serverid]?.[mode].includes(userid)) {
 							const newuser = alluser["Ranked"][serverid][mode].filter(item => item !== userid);
-							fs.writeFileSync(`./ServerDatas/MentionUser.json`, JSON.stringify(newuser, null, 4));
+							fs.writeJsonSync(`./ServerDatas/MentionUser.json`, newuser, { spaces: 4, replacer: null });
 							await interaction.reply(`今度から${mode}でRanked検出されても、メンションが飛ばないようになりました。`);
 						} else {
 							await interaction.reply("あなたは既にRankedチェックチャンネルのメンションを受け取るようになっていません。");
@@ -995,7 +995,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					case "delovedmention": {
 						if (alluser["Loved"][serverid]?.[mode].includes(userid)) {
 							const newuser = alluser["Loved"][serverid][mode].filter(item => item !== userid);
-							fs.writeFileSync(`./ServerDatas/MentionUser.json`, JSON.stringify(newuser, null, 4));
+							fs.writeJsonSync(`./ServerDatas/MentionUser.json`, newuser, { spaces: 4, replacer: null });
 							await interaction.reply(`今度から${mode}でLoved検出されても、メンションが飛ばないようになりました。`);
 						} else {
 							await interaction.reply("あなたは既にLovedチェックチャンネルのメンションを受け取るようになっていません。");
@@ -1020,7 +1020,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			if (interaction.commandName == "ifmod") {
 				let playername = interaction.options.get('username')?.value;
 				if (playername == undefined) {
-					const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
+					const allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
 					const username = allUser["Bancho"][interaction.user.id]?.name;
 					if (username == undefined) {
 						await interaction.reply("ユーザー名が登録されていません。/osuregで登録するか、ユーザー名を入力してください。");
@@ -1611,8 +1611,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				for (let i = 0; i < randommap.length; i++) {
 					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false});
 				}
-				fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4));
-				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
+				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
+				const jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
 				await interaction.channel.send(`問題1のBGを表示します。`);
 				await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
 					.then(async res => {
@@ -1686,8 +1686,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				for (let i = 0; i < randommap.length; i++) {
 					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false})
 				}
-				fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4));
-				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
+				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
+				const jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
 				await interaction.channel.send(`問題1のBGを表示します。`);
 				await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
 					.then(async res => {
@@ -1761,8 +1761,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				for (let i = 0; i < randommap.length; i++) {
 					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false});
 				}
-				fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4));
-				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
+				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
+				const jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
 				await interaction.channel.send(`問題1のプレビューを再生します。`);
 				await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' })
 					.then(async res => {
@@ -1837,8 +1837,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				for (let i = 0; i < randommap.length; i++) {
 					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false});
 				}
-				fs.writeFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, JSON.stringify(randomjson, null, 4));
-				const jsondata = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
+				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
+				const jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
 				await interaction.channel.send(`問題1のプレビューを再生します。`);
 				await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' })
 					.then(async res => {
@@ -1853,7 +1853,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("クイズが開始されていません。");
 					return;
 				}
-				const answererarray = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, "utf-8"));
+				const answererarray = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
 				let answererstring = "";
 				for (let i = 0; i < answererarray.length; i++) {
 					if (answererarray[i].Answerer == "") continue;
@@ -1916,7 +1916,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("ユーザーが見つかりませんでした。");
 					return;
 				}
-				const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
+				const allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
 				if (!allUser["Bancho"][username]) {
 					allUser["Bancho"][username] = {
 						"name": osuid
@@ -1924,7 +1924,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				} else {
 					allUser["Bancho"][username].name = osuid;
 				}
-				fs.writeFileSync("./ServerDatas/PlayerData.json", JSON.stringify(allUser, null, 4));
+				fs.writeJsonSync("./ServerDatas/PlayerData.json", allUser, { spaces: 4, replacer: null });
 				await interaction.reply(`${interaction.user.displayName}さんは${osuid}として保存されました!`);
 				return;
 			}
@@ -2161,7 +2161,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const percentstep = 100 / allbackupfilescount;
 				let backupfilescount = 0;
 				for (const backupfiles of fs.readdirSync(`./Backups/${wannabackup}`)) {
-					await fs.copy(`./Backups/${wannabackup}/${backupfiles}`,`./${backupfiles}`);
+					fs.copySync(`./Backups/${wannabackup}/${backupfiles}`,`./${backupfiles}`);
 					backupfilescount++;
 					await message.edit(`バックアップの復元中です。(${backupfilescount}ファイル)\n${hoshinoLibrary.createProgressBar(Math.floor(percentstep * backupfilescount))}(${Math.floor(percentstep * backupfilescount)}%)`);
 				}
@@ -2220,7 +2220,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "talkcount") {
 				const userid = interaction.user.id;
-				let serverJSONdata = JSON.parse(fs.readFileSync(`./ServerDatas/talkcount.json`, "utf-8"));
+				let serverJSONdata = fs.readJsonSync(`./ServerDatas/talkcount.json`);
 				if (serverJSONdata[interaction.guildId] == undefined) {
 					await interaction.reply("このサーバーでは、まだ誰も喋っていないようです。");
 					return;
@@ -2236,31 +2236,32 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "talkranking") {
-				let serverJSONdata = JSON.parse(fs.readFileSync(`./ServerDatas/talkcount.json`, "utf-8"));
+				let serverJSONdata = fs.readJsonSync(`./ServerDatas/talkcount.json`);
 				if (serverJSONdata[interaction.guildId] == undefined) {
 					await interaction.reply("このサーバーでは、まだ誰も喋っていないようです。");
 					return;
 				}
-
+				await interaction.reply("ランキングを取得中です...");
 				let talkranking = [];
 				for (const [key, value] of Object.entries(serverJSONdata[interaction.guildId])) {
 					talkranking.push([key, value]);
 				}
-				talkranking.sort(function(a, b) {
+				talkranking.sort((a, b) => {
 					return b[1] - a[1];
 				});
 				let talkrankingmessage = ["__**話した回数ランキング**__"];
 				for (let i = 0; i < Math.min(talkranking.length, 10); i++) {
-					const username = await client.users.fetch(talkranking[i][0]);
-					talkrankingmessage.push(`**${i + 1}位**: ${username.globalName} | ${talkranking[i][1]}回`);
+					const userdata = await client.users.fetch(talkranking[i][0]);
+					const username = !userdata.globalName ? userdata.username : userdata.globalName;
+					talkrankingmessage.push(`**${i + 1}位**: ${username} | ${talkranking[i][1]}回`);
 				}
-				await interaction.reply(talkrankingmessage.join("\n"));
+				await interaction.channel.send(talkrankingmessage.join("\n"));
 				return;
 			}
 
 			if (interaction.commandName == "talklevel") {
 				const userid = interaction.user.id;
-				let serverJSONdata = JSON.parse(fs.readFileSync(`./ServerDatas/talkcount.json`, "utf-8"));
+				let serverJSONdata = fs.readJsonSync(`./ServerDatas/talkcount.json`);
 				if (serverJSONdata[interaction.guildId] == undefined) {
 					await interaction.reply("このサーバーでは、まだ誰も喋っていないようです。");
 					return;
@@ -2290,11 +2291,13 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "talklevelranking") {
-				let serverJSONdata = JSON.parse(fs.readFileSync(`./ServerDatas/talkcount.json`, "utf-8"));
+				let serverJSONdata = fs.readJsonSync(`./ServerDatas/talkcount.json`);
 				if (serverJSONdata[interaction.guildId] == undefined) {
 					await interaction.reply("このサーバーでは、まだ誰も喋っていないようです。");
 					return;
 				}
+
+				await interaction.reply("ランキングを取得中です...");
 				let talkranking = [];
 				for (const [key, value] of Object.entries(serverJSONdata[interaction.guildId])) {
 					talkranking.push([key, value]);
@@ -2304,7 +2307,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				});
 				let talkrankingmessage = ["__**トークレベルランキング**__"];
 				for (let i = 0; i < Math.min(talkranking.length, 10); i++) {
-					const username = await client.users.fetch(talkranking[i][0]);
+					const userdata = await client.users.fetch(talkranking[i][0]);
+					const username = !userdata.globalName ? userdata.username : userdata.globalName;
 					const talkcount = talkranking[i][1];
 					let level = 0;
 					let count;
@@ -2319,9 +2323,9 @@ client.on(Events.InteractionCreate, async (interaction) =>
 							}
 						}
 					}
-					talkrankingmessage.push(`**${i + 1}位**: ${username.globalName} | Lv. **${level}** | 次のレベル: **${talkcount} / ${nextlevelcount}** (**${(talkcount / nextlevelcount * 100).toFixed(2)}**%)`);
+					talkrankingmessage.push(`**${i + 1}位**: ${username} | Lv. **${level}** | 次のレベル: **${talkcount} / ${nextlevelcount}** (**${(talkcount / nextlevelcount * 100).toFixed(2)}**%)`);
 				}
-				await interaction.reply(talkrankingmessage.join("\n"));
+				await interaction.channel.send(talkrankingmessage.join("\n"));
 				return;
 			}
 		} catch (e) {
@@ -2362,7 +2366,7 @@ client.on(Events.MessageCreate, async (message) =>
 		try {
 			try {
 				if (message.author.bot) return;
-				let serverJSONdata = JSON.parse(fs.readFileSync("./ServerDatas/talkcount.json", "utf-8"));
+				let serverJSONdata = fs.readJsonSync("./ServerDatas/talkcount.json");
 				if (serverJSONdata[message.guildId] == undefined) {
 					serverJSONdata[message.guildId] = {};
 				}
@@ -2371,7 +2375,7 @@ client.on(Events.MessageCreate, async (message) =>
 				} else if (!message.content.startsWith("!")) {
 					serverJSONdata[message.guildId][message.author.id] += 1;
 				}
-				fs.writeFileSync("./ServerDatas/talkcount.json", JSON.stringify(serverJSONdata, null, 4));
+				fs.writeJsonSync("./ServerDatas/talkcount.json", serverJSONdata, { spaces: 4, replacer: null });
 			} catch (e) {
 				console.log(e);
 			}
@@ -2577,7 +2581,7 @@ client.on(Events.MessageCreate, async (message) =>
 					.setColor("Blue")
 					.setTitle(`${mapInfo.artist} - ${mapInfo.title}`)
 					.setURL(mapUrl)
-					.addFields({ name: "Music and Backgroud", value: `:musical_note:[Song Preview](https://b.ppy.sh/preview/${mapInfo.beatmapset_id}.mp3)　:frame_photo:[Full background](https://assets.ppy.sh/beatmaps/${mapInfo.beatmapset_id}/covers/raw.jpg)` })
+					.addFields({ name: "Music and Backgroud", value: `:musical_note: [Song Preview](https://b.ppy.sh/preview/${mapInfo.beatmapset_id}.mp3)　:frame_photo: [Full background](https://assets.ppy.sh/beatmaps/${mapInfo.beatmapset_id}/covers/raw.jpg)` })
 					.setAuthor({ name: `Created by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 					.addFields({ name: `${osuLibrary.Tools.modeEmojiConvert(mode)} [**__${mapInfo.version}__**] **+${Mods.str}**`, value: `Combo: \`${mapInfo.max_combo}x\` Stars: \`${sr[100].sr.toFixed(2)}★\` \n Length: \`${hoshinoLibrary.formatTime(Number(totalLength))} (${hoshinoLibrary.formatTime(Number(totalHitLength))})\` BPM: \`${BPM}\` Objects: \`${objectCount}\` \n CS: \`${Cs}\` AR: \`${Ar}\` OD: \`${Od}\` HP: \`${Hp}\` Spinners: \`${mapInfo.count_spinner}\``, inline: true })
 					.addFields({ name: "**Download**", value: `[Official](https://osu.ppy.sh/beatmapsets/${mapInfo.beatmapset_id}/download)\n[Nerinyan(no video)](https://api.nerinyan.moe/d/${mapInfo.beatmapset_id}?nv=1)\n[Beatconnect](https://beatconnect.io/b/${mapInfo.beatmapset_id})\n[chimu.moe](https://api.chimu.moe/v1/download/${mapInfo.beatmapset_id}?n=1)`, inline: true })
@@ -2601,7 +2605,7 @@ client.on(Events.MessageCreate, async (message) =>
 			if (message.content.split(" ")[0].startsWith("!r")) {
 				let playername;
 				if (message.content.split(" ")[1] == undefined) {
-					const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
+					const allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
 					const username = allUser["Bancho"][message.author.id]?.name;
 					if (username == undefined) {
 						await message.reply("ユーザー名が登録されていません。/osuregで登録するか、ユーザー名を入力してください。");
@@ -2891,7 +2895,7 @@ client.on(Events.MessageCreate, async (message) =>
 			
 			if (/^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/.test(message.content) || /^https:\/\/osu\.ppy\.sh\/b\/\d+$/.test(message.content) || /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/.test(message.content)) {
 				const channelid = message.channel.id;
-				const allchannels = JSON.parse(fs.readFileSync("./ServerDatas/BeatmapLinkChannels.json", "utf-8"));
+				const allchannels = fs.readJsonSync("./ServerDatas/BeatmapLinkChannels.json");
 				if (!allchannels.Channels.includes(channelid)) return;
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
@@ -3098,7 +3102,7 @@ client.on(Events.MessageCreate, async (message) =>
 				if (regex.test(message.content.split(" ")[1]) || regex2.test(message.content.split(" ")[1]) || regex3.test(message.content.split(" ")[1])) {
 					maplink = message.content.split(" ")[1];
 					if (message.content.split(" ")[2] == undefined) {
-						const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
+						const allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
 						const username = allUser["Bancho"][message.author.id]?.name;
 						if (username == undefined) {
 							await message.reply("ユーザー名が登録されていません。/osuregで登録するか、ユーザー名を入力してください。");
@@ -3109,7 +3113,7 @@ client.on(Events.MessageCreate, async (message) =>
 						playername = message.content.split(" ")?.slice(2)?.join(" ");
 					}
 				} else if (message.content.split(" ")[1] == undefined) {
-					const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
+					const allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
 					const username = allUser["Bancho"][message.author.id]?.name;
 					if (username == undefined) {
 						await message.reply("ユーザー名が登録されていません。/osuregで登録するか、ユーザー名を入力してください。");
@@ -3345,7 +3349,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				let playername;
 				if (message.content.split(" ")[2] == undefined) {
-					const allUser = JSON.parse(fs.readFileSync("./ServerDatas/PlayerData.json", "utf-8"));
+					const allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
 					const username = allUser["Bancho"][message.author.id]?.name;
 					if (username == undefined) {
 						await message.reply("ユーザー名が登録されていません。/osuregで登録するか、ユーザー名を入力してください。");
@@ -3489,8 +3493,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				const answer = message.content.replace("?", "").toLowerCase().replace(/ /g, "");
 
-				const rawjson = fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8");
-				const parsedjson = JSON.parse(rawjson);
+				const parsedjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8");
 				let currenttitle = "";
 				let isperfect;
 				let foundflagforjson = false;
@@ -3513,10 +3516,10 @@ client.on(Events.MessageCreate, async (message) =>
 							foundflagforans = true;
 							element.quizstatus = true;
 							element.Answerer = `:o::clap:${message.author.username}`;
-							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(parsedjson, null, 4), "utf-8");
+							fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
 						}
 					}
-					const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+					const afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 					let foundflagforafterjsonanswer = false;
 					for (const element of afterjson) {
 						if (!element.quizstatus && !foundflagforafterjsonanswer) {
@@ -3539,7 +3542,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 
 					if (!foundflagforafterjsonanswer) {
-						const answererarray = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+						const answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 						let answererstring = "";
 						for (let i = 0; i < answererarray.length; i++) {
 							if (answererarray[i].Answerer == "") continue;
@@ -3561,10 +3564,10 @@ client.on(Events.MessageCreate, async (message) =>
 							foundflagforans = true;
 							element.quizstatus = true;
 							element.Answerer = `:o:${message.author.username}`;
-							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(parsedjson, null, 4), "utf-8");
+							fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
 						}
 					}
-					const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+					const afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 					let foundflagforafterjsonanswer = false;
 					for (const element of afterjson) {
 						if (!element.quizstatus && !foundflagforafterjsonanswer) {
@@ -3587,7 +3590,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 
 					if (!foundflagforafterjsonanswer) {
-						const answererarray = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+						const answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 						let answererstring = "";
 						for (let i = 0; i < answererarray.length; i++) {
 							if (answererarray[i].Answerer == "") continue;
@@ -3609,10 +3612,10 @@ client.on(Events.MessageCreate, async (message) =>
 							foundflagforans = true;
 							element.quizstatus = true;
 							element.Answerer = `:o:${message.author.username}`;
-							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(parsedjson, null, 4), "utf-8");
+							fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
 						}
 					}
-					const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+					const afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 					let foundflagforafterjsonanswer = false;
 					for (const element of afterjson) {
 						if (!element.quizstatus && !foundflagforafterjsonanswer) {
@@ -3635,7 +3638,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 
 					if (!foundflagforafterjsonanswer) {
-						const answererarray = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+						const answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 						let answererstring = "";
 						for (let i = 0; i < answererarray.length; i++) {
 							if (answererarray[i].Answerer == "") continue;
@@ -3657,10 +3660,10 @@ client.on(Events.MessageCreate, async (message) =>
 							foundflagforans = true;
 							element.quizstatus = true;
 							element.Answerer = `:o:${message.author.username}`;
-							fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(parsedjson, null, 4), "utf-8");
+							fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
 						}
 					}
-					const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+					const afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 					let foundflagforafterjsonanswer = false;
 					for (const element of afterjson) {
 						if (!element.quizstatus && !foundflagforafterjsonanswer) {
@@ -3683,7 +3686,7 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 
 					if (!foundflagforafterjsonanswer) {
-						const answererarray = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+						const answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 						let answererstring = "";
 						for (let i = 0; i < answererarray.length; i++) {
 							if (answererarray[i].Answerer == "") continue;
@@ -3709,8 +3712,7 @@ client.on(Events.MessageCreate, async (message) =>
 					return;
 				}
 
-				const rawjson = fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8");
-				const parsedjson = JSON.parse(rawjson);
+				const parsedjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8");
 				let currenttitle = "";
 				let foundflagforjson = false;
 				for (const element of parsedjson) {
@@ -3728,11 +3730,11 @@ client.on(Events.MessageCreate, async (message) =>
 						foundflagforans = true;
 						element.quizstatus = true;
 						element.Answerer = `:x:${message.author.username}さんによってスキップされました。`;
-						fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(parsedjson, null, 4), "utf-8");
+						fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
 					}
 				}
 
-				const afterjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+				const afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 				let foundflagforafterjsonanswer = false;
 				for (const element of afterjson) {
 					if (!element.quizstatus && !foundflagforafterjsonanswer) {
@@ -3755,7 +3757,7 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				if (!foundflagforafterjsonanswer) {
-					const answererarray = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+					const answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 					let answererstring = "";
 					for (let i = 0; i < answererarray.length; i++) {
 						if (answererarray[i].Answerer == "") continue;
@@ -3773,7 +3775,7 @@ client.on(Events.MessageCreate, async (message) =>
 					return;
 				}
 
-				const parsedjson = JSON.parse(fs.readFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, "utf-8"));
+				const parsedjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 				let currenttitle = "";
 				let foundflagforjson = false;
 				for (const element of parsedjson) {
@@ -3785,7 +3787,7 @@ client.on(Events.MessageCreate, async (message) =>
 						}
 						currenttitle = element.name;
 						element.hint = true;
-						fs.writeFileSync(`./OsuPreviewquiz/${message.channel.id}.json`, JSON.stringify(parsedjson, null, 4), "utf-8");
+						fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
 					}
 				}
 
@@ -3894,19 +3896,21 @@ client.on(Events.MessageCreate, async (message) =>
 				return;
 			}
 
-			if (/^[0-9.]+時間?$/.test(message.content) && message.content.includes(".") && !/^\.+$/.test(message.content) && message.content.includes("時間")) {
-				const totalHours = Number(message.content.split("時間")[0]);
-				if (!message.content.split("時間")[0].includes(".")) return;
+			if (/^\d+\.\d+時間$/.test(message.content)) {
+				const totalHours = Number(RegExp(/^\d+\.\d+/).exec(message.content)[0]);
+				if (isNaN(totalHours)) return;
 				await message.reply(`${Math.floor(totalHours)}時間 ${Math.floor((totalHours - Math.floor(totalHours)) * 60)}分 ${Math.round(((totalHours - Math.floor(totalHours)) * 60 - Math.floor((totalHours - Math.floor(totalHours)) * 60)) * 60)}秒`);
-			} else if (/^[0-9.]+分?$/.test(message.content) && message.content.includes(".") && !/^\.+$/.test(message.content) && message.content.includes("分")) {
-				const totalminutes = Number(message.content.split("分")[0]);
-				if (!message.content.split("分")[0].includes(".")) return;
+				return;
+			} else if (/^\d+\.\d+分$/.test(message.content)) {
+				const totalminutes = Number(RegExp(/^\d+\.\d+/).exec(message.content)[0]);
+				if (isNaN(totalHours)) return;
 				await message.reply(`${Math.floor(totalminutes)}分 ${Math.round((totalminutes - Math.floor(totalminutes)) * 60)}秒`);
+				return;
 			}
 
 			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif')) && message.channel.id == Furrychannel) {
 				if (message.author.bot) return;
-				const dataBase = JSON.parse(fs.readFileSync("./Pictures/Furry/DataBase.json", "utf-8"));
+				const dataBase = fs.readJsonSync("./Pictures/Furry/DataBase.json");
 				for (const attachment of message.attachments.values()) {
 					const imageURL = attachment.url;
 					const imageFile = await axios.get(imageURL, { responseType: 'arraybuffer' });
@@ -3920,7 +3924,7 @@ client.on(Events.MessageCreate, async (message) =>
 					dataBase.FileCount++;
 					fs.writeFileSync(`./Pictures/Furry/${filename}.${extention}`, imageFile.data);
 				}
-				fs.writeFileSync("./Pictures/Furry/DataBase.json", JSON.stringify(dataBase, null, 4));
+				fs.writeJsonSync("./Pictures/Furry/DataBase.json", dataBase, { spaces: 4, replacer: null });
 				if (message.attachments.size == 1) {
 					await message.reply("Furryが保存されました");
 				} else {
@@ -3933,7 +3937,7 @@ client.on(Events.MessageCreate, async (message) =>
 				if (message.author.bot) return;
 				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
 				for (const folder of currentDir) {
-					const dataBase = JSON.parse(fs.readFileSync(`./Pictures/tag/${folder}/DataBase.json`, "utf-8"));
+					const dataBase = fs.readJsonSync(`./Pictures/tag/${folder}/DataBase.json`);
 					if (dataBase.id == message.channel.id) {
 						let fileNameArray = [];
 						for (const attachment of message.attachments.values()) {
@@ -3950,7 +3954,7 @@ client.on(Events.MessageCreate, async (message) =>
 							dataBase.FileCount++;
 							fs.writeFileSync(`./Pictures/tag/${folder}/${filename}.${extention}`, imageFile.data);
 						}
-						fs.writeFileSync(`./Pictures/tag/${folder}/DataBase.json`, JSON.stringify(dataBase, null, 4));
+						fs.writeJsonSync(`./Pictures/tag/${folder}/DataBase.json`, dataBase, { spaces: 4, replacer: null });
 						if (message.attachments.size == 1) {
 							await message.reply(`ファイルが保存されました(${fileNameArray[0]})`);
 						} else {
@@ -3963,11 +3967,11 @@ client.on(Events.MessageCreate, async (message) =>
 
 			if (!message.content.startsWith("!")) {
 				if (message.author.bot || message.content == "") return;
-				const allQuotes = JSON.parse(fs.readFileSync("./ServerDatas/Quotes.json", "utf-8"));
+				const allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				for (const key in allQuotes) {
 					if (allQuotes[key].id == message.channel.id) {
 						allQuotes[key].quotes.push(message.content);
-						fs.writeFileSync("./ServerDatas/Quotes.json", JSON.stringify(allQuotes, null, 4));
+						fs.writeJsonSync("./ServerDatas/Quotes.json", allQuotes, { spaces: 4, replacer: null });
 						await message.reply(`名言が保存されました`);
 						return;
 					}
@@ -4036,20 +4040,20 @@ function checkqualified() {
 				for (let i = 0; i < Math.min(qfdatalist.beatmapsets.length, 15); i++) {
 					qfarray.push(qfdatalist.beatmapsets[i].id);
 				}
-				const allBeatmaps = JSON.parse(fs.readFileSync("./ServerDatas/Beatmaps/Beatmaps.json", "utf-8"));
+				const allBeatmaps = fs.readJsonSync("./ServerDatas/Beatmaps/Beatmaps.json");
 				const differentQFarray = hoshinoLibrary.findDifferentElements(allBeatmaps.Qualified[mode], qfarray);
 				allBeatmaps.Qualified[mode] = qfarray;
-				fs.writeFileSync("./ServerDatas/Beatmaps/Beatmaps.json", JSON.stringify(allBeatmaps, null, 4), "utf-8");
+				fs.writeJsonSync("./ServerDatas/Beatmaps/Beatmaps.json", allBeatmaps, { spaces: 4, replacer: null });
 				if (differentQFarray == null) continue;
 				for (const differentQF of differentQFarray) {
-					const parsedjson = JSON.parse(fs.readFileSync(`./ServerDatas/Beatmaps/${mode}.json`, "utf-8"));
+					const parsedjson = fs.readJsonSync(`./ServerDatas/Beatmaps/${mode}.json`);
 					let foundflag = false;
 					for (const element of parsedjson) {
 						if (element.id == differentQF && !foundflag) {
 							foundflag = true;
 							element.qfdate = new Date();
 							element.rankeddate = "-";
-							fs.writeFileSync(`./ServerDatas/Beatmaps/${mode}.json`, JSON.stringify(parsedjson, null, 4), "utf-8");
+							fs.writeJsonSync(`./ServerDatas/Beatmaps/${mode}.json`, parsedjson, { spaces: 4, replacer: null });
 							break;
 						}
 					}
@@ -4060,7 +4064,7 @@ function checkqualified() {
 							qfdate: new Date(),
 							rankeddate: "-"
 						});
-						fs.writeFileSync(`./ServerDatas/Beatmaps/${mode}.json`, JSON.stringify(parsedjson, null, 4), "utf-8");
+						fs.writeJsonSync(`./ServerDatas/Beatmaps/${mode}.json`, parsedjson, { spaces: 4, replacer: null });
 					}
 
 					let QFBeatmapsMaxSrId;
@@ -4103,7 +4107,7 @@ function checkqualified() {
 					const minutes = now.getMinutes();
 					const dateString = `${month}月${day}日 ${hoshinoLibrary.formatNumber(hours)}時${hoshinoLibrary.formatNumber(minutes)}分`;
 
-					const qfparsedjson = JSON.parse(fs.readFileSync(`./ServerDatas/Beatmaps/${mode}.json`, "utf-8"));
+					const qfparsedjson = fs.readJsonSync(`./ServerDatas/Beatmaps/${mode}.json`);
 					const averagearray = [];
 					for (const element of qfparsedjson) {
 						const qfdate = new Date(element.qfdate);
@@ -4138,13 +4142,13 @@ function checkqualified() {
 						.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
 						.addFields({ name: "`Qualified 日時`", value: `**${dateString}**`, inline: true })
 						.addFields({ name: "`Ranked 日時(予測)`", value: `**${rankeddateString}**`, inline: true });
-					for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Qualified[mode]) {
+					for (const element of fs.readJsonSync(`./ServerDatas/MapcheckChannels.json`).Qualified[mode]) {
 						try {
 							if (client.channels.cache?.get(element) == undefined) continue;
 							await client.channels.cache.get(element).send({ embeds: [embed] });
 							const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 							let mentionstring = [];
-							const allUser = JSON.parse(fs.readFileSync(`./ServerDatas/MentionUser.json`, "utf-8"));
+							const allUser = fs.readJsonSync(`./ServerDatas/MentionUser.json`);
 							const mentionUser = allUser["Qualified"][element]?.[mode];
 							if (mentionUser == undefined) continue;
 							for (const user of mentionUser) {
@@ -4183,19 +4187,19 @@ function checkranked() {
 			for (let i = 0; i < Math.min(rankeddatalist.beatmapsets.length, 15); i++) {
 				rankedarray.push(rankeddatalist.beatmapsets[i].id);
 			}
-			const allBeatmaps = JSON.parse(fs.readFileSync("./ServerDatas/Beatmaps/Beatmaps.json", "utf-8"));
+			const allBeatmaps = fs.readJsonSync("./ServerDatas/Beatmaps/Beatmaps.json");
 			const differentrankedarray = hoshinoLibrary.findDifferentElements(allBeatmaps.Ranked[mode], rankedarray);
 			allBeatmaps.Ranked[mode] = rankedarray;
-			fs.writeFileSync("./ServerDatas/Beatmaps/Beatmaps.json", JSON.stringify(allBeatmaps, null, 4), "utf-8");
+			fs.writeJsonSync("./ServerDatas/Beatmaps/Beatmaps.json", allBeatmaps, { spaces: 4, replacer: null });
 			if (differentrankedarray == null) continue;
 			for (const differentranked of differentrankedarray) {
 				try {
-					const qfparsedjson = JSON.parse(fs.readFileSync(`./ServerDatas/Beatmaps/${mode}.json`, "utf-8"));
+					const qfparsedjson = fs.readJsonSync(`./ServerDatas/Beatmaps/${mode}.json`);
 					let rankederrorstring = "取得できませんでした";
 					for (const element of qfparsedjson) {
 						if (element.id == differentranked) {
 							element.rankeddate = new Date();
-							fs.writeFileSync(`./ServerDatas/Beatmaps/${mode}.json`, JSON.stringify(qfparsedjson, null, 4), "utf-8");
+							fs.writeJsonSync(`./ServerDatas/Beatmaps/${mode}.json`, qfparsedjson, { spaces: 4, replacer: null });
 							const qfdate = new Date(element.qfdate);
 							const rankeddate = new Date(element.rankeddate);
 							const timeDifference = rankeddate - qfdate;
@@ -4272,13 +4276,13 @@ function checkranked() {
 						.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 						.addFields({ name: "`PP`", value: `**${ppstring}**`, inline: false })
 						.addFields({ name: "`Ranked 日時`", value: `**${dateString}** (誤差: **${rankederrorstring}**)`, inline: true });
-					for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Qualified[mode]) {
+					for (const element of fs.readJsonSync(`./ServerDatas/MapcheckChannels.json`).Qualified[mode]) {
 						try {
 							if (client.channels.cache?.get(element) == undefined) continue;
 							await client.channels.cache.get(element).send({ embeds: [embed] });
 							const membersdata = await client.channels.cache.get(element).guild.members.fetch();
 							let mentionstring = [];
-							const allUser = JSON.parse(fs.readFileSync(`./ServerDatas/MentionUser.json`, "utf-8"));
+							const allUser = fs.readJsonSync(`./ServerDatas/MentionUser.json`);
 							const mentionUser = allUser["Ranked"][element]?.[mode];
 							if (mentionUser == undefined) continue;
 							for (const user of mentionUser) {
@@ -4317,10 +4321,10 @@ function checkloved() {
 			for (let i = 0; i < Math.min(loveddatalist.beatmapsets.length, 15); i++) {
 				lovedarray.push(loveddatalist.beatmapsets[i].id);
 			}
-			const allBeatmaps = JSON.parse(fs.readFileSync("./ServerDatas/Beatmaps/Beatmaps.json", "utf-8"));
+			const allBeatmaps = fs.readJsonSync("./ServerDatas/Beatmaps/Beatmaps.json");
 			const differentlovedarray = hoshinoLibrary.findDifferentElements(allBeatmaps.Loved[mode], lovedarray);
 			allBeatmaps.Loved[mode] = lovedarray;
-			fs.writeFileSync("./ServerDatas/Beatmaps/Beatmaps.json", JSON.stringify(allBeatmaps, null, 4), "utf-8");
+			fs.writeJsonSync("./ServerDatas/Beatmaps/Beatmaps.json", allBeatmaps, { spaces: 4, replacer: null });
 			if (differentlovedarray == null) continue;
 			for (const differentloved of differentlovedarray) {
 				try {
@@ -4375,13 +4379,13 @@ function checkloved() {
 						.addFields({ name: "`Mapinfo`", value: `BPM: **${BPM}**\nLength: **${maptimestring}**\nCombo: **${Objectstring}**`, inline: true })
 						.addFields({ name: "`SR`", value: `**${srstring}**`, inline: false })
 						.addFields({ name: "`loved 日時`", value: `**${dateString}**`, inline: true });
-					for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Loved[mode]) {
+					for (const element of fs.readJsonSync(`./ServerDatas/MapcheckChannels.json`).Loved[mode]) {
 						if (client.channels.cache?.get(element) == undefined) continue;
 						try {
 							await client.channels.cache.get(element).send({ embeds: [embed] })
 							const membersdata = await client.channels.cache.get(element).guild.members.fetch()
 							let mentionstring = [];
-							const allUser = JSON.parse(fs.readFileSync(`./ServerDatas/MentionUser.json`, "utf-8"));
+							const allUser = fs.readJsonSync(`./ServerDatas/MentionUser.json`);
 							const mentionUser = allUser["Loved"][element]?.[mode];
 							if (mentionUser == undefined) continue;
 							for (const user of mentionUser) {
@@ -4409,7 +4413,7 @@ async function rankedintheday() {
 	const modeArray = ["osu", "taiko", "catch", "mania"];
 	await auth.login(osuclientid, osuclientsecret);
 	for (const mode of modeArray) {
-		const qfparsedjson = JSON.parse(fs.readFileSync(`./ServerDatas/Beatmaps/${mode}.json`, "utf-8"));
+		const qfparsedjson = fs.readJsonSync(`./ServerDatas/Beatmaps/${mode}.json`);
 		const now = new Date();
 		const sevenDayAgoDate = new Date();
 		sevenDayAgoDate.setDate(sevenDayAgoDate.getDate() - 7);
@@ -4468,7 +4472,7 @@ async function rankedintheday() {
 			.setTitle(`日付が変わりました！今日Ranked予定の${mode}マップのリストです！`)
 			.addFields(sevenDayAgoQf)
 			.setFooter({ text: `このメッセージは毎日0時に送信されます。既にRankedされた譜面は表示されません。` });
-		for (const element of JSON.parse(fs.readFileSync(`./ServerDatas/MapcheckChannels.json`, "utf-8")).Qualified[mode]) {
+		for (const element of fs.readJsonSync(`./ServerDatas/MapcheckChannels.json`).Qualified[mode]) {
 			try {
 				if (client.channels.cache?.get(element) == undefined) continue;
 				await client.channels.cache.get(element).send({ embeds: [embed] });
