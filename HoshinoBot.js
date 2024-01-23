@@ -2969,8 +2969,6 @@ client.on(Events.MessageCreate, async (message) =>
 				if (!allchannels.Channels.includes(channelid)) return;
 				allchannels = null;
 				commandLogs(message, "マップリンク", 1);
-				console.log(`[${new Date().toLocaleString()}] ${message.author.username}さんがマップリンクを送信しました`);
-
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
 				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
