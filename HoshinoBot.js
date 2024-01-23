@@ -3825,6 +3825,7 @@ client.on(Events.MessageCreate, async (message) =>
 					return;
 				} else {
 					await message.reply(`不正解です;-; 答えの約${Math.round(Utils.matchPercentage(answer, currentanswer))}%を入力しています。`);
+					parsedjson = null;
 					return;
 				}
 			}
