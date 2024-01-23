@@ -100,6 +100,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 	{
 		try {
 			if (!interaction.isCommand()) return;
+			commandLogs(interaction, interaction.commandName, 0);
 			if (interaction.commandName == "slot") {
 				let bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				if (!bankData[interaction.user.id]) {
@@ -393,7 +394,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			if (interaction.commandName == "kemodelete") {
 				let dataBase = fs.readJsonSync("./Pictures/Furry/DataBase.json");
 				const usercount = interaction.options.get('count').value;
-
 				let foundFlag = false;
 				for (const fileName of dataBase.PhotoDataBase) {
 					const file = fileName.split(".")[0];
@@ -407,7 +407,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						break;
 					}
 				}
-
 				if (!foundFlag) {
 					await interaction.reply("そのファイルは存在しません。");
 					dataBase = null;
@@ -469,7 +468,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					}
 					dataBase = null;
 				}
-				
 				fs.mkdirSync(`./Pictures/tag/${tagName}`);
 				fs.writeJsonSync(`./Pictures/tag/${tagName}/DataBase.json`, {
 					id: interaction.channel.id,
@@ -665,7 +663,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("このチャンネルでは既にマップ情報が表示されるようになっています。");
 					return;
 				}
-
 				allchannels.Channels.push(channelid);
 				fs.writeJsonSync("./ServerDatas/BeatmapLinkChannels.json", allchannels, { spaces: 4, replacer: null });
 				await interaction.reply(`このチャンネルにマップリンクが送信されたら自動的にマップ情報が表示されるようになりました。解除したい場合は/unlinkコマンドを使用してください。`);
@@ -681,7 +678,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					allchannels = null;
 					return;
 				}
-
 				allchannels.Channels = allchannels.Channels.filter(item => item !== channelid);
 				fs.writeJsonSync("./ServerDatas/BeatmapLinkChannels.json", allchannels, { spaces: 4, replacer: null });
 				await interaction.reply(`このチャンネルにマップリンクが送信されてもマップ情報が表示されないようになりました。再度表示したい場合は/linkコマンドを使用してください。`);
@@ -2451,6 +2447,7 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (message.content.split(" ")[0] == "!map") {
+				commandLogs(message, "map", 1);
 				if (message.content == "!map") {
 					await message.reply("使い方: !map [マップリンク] (Mods) (Acc)");
 					return;
@@ -2673,6 +2670,7 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (message.content.split(" ")[0].startsWith("!r")) {
+				commandLogs(message, "recent", 1);
 				let playername;
 				if (message.content.split(" ")[1] == undefined) {
 					let allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
@@ -2970,6 +2968,8 @@ client.on(Events.MessageCreate, async (message) =>
 				let allchannels = fs.readJsonSync("./ServerDatas/BeatmapLinkChannels.json");
 				if (!allchannels.Channels.includes(channelid)) return;
 				allchannels = null;
+				commandLogs(message, "マップリンク", 1);
+				console.log(`[${new Date().toLocaleString()}] ${message.author.username}さんがマップリンクを送信しました`);
 
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
@@ -3034,6 +3034,7 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (message.content.split(" ")[0] == "!m") {
+				commandLogs(message, "mods", 1);
 				if (message.content == "!m") {
 					await message.reply("使い方: !m [Mods]");
 					return;
@@ -3167,6 +3168,7 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (message.content.split(" ")[0] == "!c") {
+				commandLogs(message, "compare", 1);
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
 				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
 				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
@@ -3402,6 +3404,7 @@ client.on(Events.MessageCreate, async (message) =>
 					await message.reply("使い方: !wi[o, t, c, m] [PP] (osu!ユーザーネーム)");
 					return;
 				}
+				commandLogs(message, "what if", 1);
 
 				await message.reply("現在、この機能は開発中です。完成までお待ち下さい！");
 				return;
@@ -3569,7 +3572,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 			if (fs.existsSync(`./OsuPreviewquiz/${message.channel.id}.json`) && message.content.endsWith("?")) {
 				if (message.author.bot) return;
-
+				commandLogs(message, "クイズの答え", 1);
 				const answer = message.content.replace("?", "").toLowerCase().replace(/ /g, "");
 
 				let parsedjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
@@ -3835,6 +3838,7 @@ client.on(Events.MessageCreate, async (message) =>
 					await message.reply("クイズが開始されていません。");
 					return;
 				}
+				commandLogs(message, "クイズのスキップ", 1);
 
 				let parsedjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 				let currenttitle = "";
@@ -3909,6 +3913,7 @@ client.on(Events.MessageCreate, async (message) =>
 					await message.reply("クイズが開始されていません。");
 					return;
 				}
+				commandLogs(message, "クイズのヒント", 1);
 
 				let parsedjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
 				let currenttitle = "";
@@ -3953,6 +3958,7 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (message.content == "!ero") {
+				commandLogs(message, "エロあるよ（笑）", 1);
 				if (Math.floor(Math.random() * 10) == 0) {
 					let eroVideo = fs.readFileSync("./eroaru.mp4");
 					await message.reply({ files: [{ attachment: eroVideo, name: 'donarudo.mp4' }] });
@@ -3967,6 +3973,7 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (message.content == "h!help") {
+				commandLogs(message, "ヘルプ", 1);
 				const commandInfo = {
 					"h!help": "コマンドのヘルプを表示します。",
 					"!map [maplink] (mods) (acc)": "指定した譜面の情報を表示します。modsとaccは省略可能です。",
@@ -3985,7 +3992,7 @@ client.on(Events.MessageCreate, async (message) =>
 			
 				let sendMessage = "__\*\*コマンド一覧\*\*\__\n";
 				for (const [key, value] of Object.entries(commandInfo)) {
-					sendMessage += `- \`\`\`${key}\`\`\`: ${value}\n`;
+					sendMessage += `- \`\`\`${key} | ${value}\`\`\`\n`;
 				}
 
 				await message.reply(sendMessage);
@@ -3993,6 +4000,7 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (RegExp(/^\d+([-+*/^])\d+$/).exec(message.content.replace(/ /g, ""))) {
+				commandLogs(message, "計算式", 1);
 				const messageContent = message.content.replace(/ /g, "");
 				switch (true) {
 					case messageContent.includes("+"): {
@@ -4034,6 +4042,7 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 
 			if (/^\d+\.\d+時間$/.test(message.content)) {
+				commandLogs(message, "時間計算", 1);
 				const totalHours = Number(RegExp(/^\d+\.\d+/).exec(message.content)[0]);
 				if (isNaN(totalHours)) return;
 				await message.reply(`${Math.floor(totalHours)}時間 ${Math.floor((totalHours - Math.floor(totalHours)) * 60)}分 ${Math.round(((totalHours - Math.floor(totalHours)) * 60 - Math.floor((totalHours - Math.floor(totalHours)) * 60)) * 60)}秒`);
@@ -4041,6 +4050,7 @@ client.on(Events.MessageCreate, async (message) =>
 			}
 			
 			if (/^\d+\.\d+分$/.test(message.content)) {
+				commandLogs(message, "時間計算", 1);
 				const totalminutes = Number(RegExp(/^\d+\.\d+/).exec(message.content)[0]);
 				if (isNaN(totalminutes)) return;
 				if (totalminutes >= 60) {
@@ -4053,6 +4063,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif')) && message.channel.id == Furrychannel) {
 				if (message.author.bot) return;
+				commandLogs(message, "Furry画像登録", 1);
 				let dataBase = fs.readJsonSync("./Pictures/Furry/DataBase.json");
 				for (const attachment of message.attachments.values()) {
 					const imageURL = attachment.url;
@@ -4083,6 +4094,7 @@ client.on(Events.MessageCreate, async (message) =>
 				for (const folder of currentDir) {
 					let dataBase = fs.readJsonSync(`./Pictures/tag/${folder}/DataBase.json`);
 					if (dataBase.id == message.channel.id) {
+						commandLogs(message, "pic画像登録", 1);
 						let fileNameArray = [];
 						for (const attachment of message.attachments.values()) {
 							const imageURL = attachment.url;
@@ -4116,6 +4128,7 @@ client.on(Events.MessageCreate, async (message) =>
 				let allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				for (const key in allQuotes) {
 					if (allQuotes[key].id == message.channel.id) {
+						commandLogs(message, "名言登録", 1);
 						allQuotes[key].quotes.push(message.content);
 						fs.writeJsonSync("./ServerDatas/Quotes.json", allQuotes, { spaces: 4, replacer: null });
 						await message.reply(`名言が保存されました`);
@@ -4163,6 +4176,19 @@ client.on(Events.Error, async (error) => {
 		.catch(err => console.log(err));
 	console.log(`エラー名: ${error.name}\nエラー内容: ${error.message}`);
 });
+
+function commandLogs(message, command, mode) {
+	let now = new Date();
+	if (mode == 1) {
+		console.log(`[${now.toLocaleString()}] ${message.author.username}さんが${command}コマンドを送信しました`);
+	} else {
+		console.log(`[${now.toLocaleString()}] ${!message.user.globalName ? message.user.username : message.user.globalName}さんが${command}コマンドを送信しました。`);
+	}
+	message = null;
+	command = null;
+	mode = null;
+	now = null;
+}
 
 async function checkMap() {
 	await checkqualified();
