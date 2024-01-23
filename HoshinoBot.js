@@ -3905,7 +3905,7 @@ client.on(Events.MessageCreate, async (message) =>
 			
 			if (/^\d+\.\d+分$/.test(message.content)) {
 				const totalminutes = Number(RegExp(/^\d+\.\d+/).exec(message.content)[0]);
-				if (isNaN(totalHours)) return;
+				if (isNaN(totalminutes)) return;
 				await message.reply(`${Math.floor(totalminutes)}分 ${Math.round((totalminutes - Math.floor(totalminutes)) * 60)}秒`);
 				return;
 			}
