@@ -3842,6 +3842,7 @@ client.on(Events.MessageCreate, async (message) =>
 					"!hint": "osubgquiz、osubgquizpf、osuquiz、osuquizpfコマンドで使用できます。現在の問題のヒントを表示します。",
 					"!ero": "エロあるよ（笑）が10%の確率で出ます。",
 					"〇〇?": "クイズの答えを送信します。クイズが有効になっているときに使用できます。",
+					"osuマップリンク": "マップ情報を計算して表示します。/linkで有効化できます。",
 					"四則演算式(1+1, 1-1, 1*1, 1/1, 1^1など)": "計算機です。チャットに書かれると計算します。",
 					"時間計算(123.7時間、123.7分など)": "時間計算機です。チャットに書かれると時間を計算します。"
 				};
@@ -3906,7 +3907,11 @@ client.on(Events.MessageCreate, async (message) =>
 			if (/^\d+\.\d+分$/.test(message.content)) {
 				const totalminutes = Number(RegExp(/^\d+\.\d+/).exec(message.content)[0]);
 				if (isNaN(totalminutes)) return;
-				await message.reply(`${Math.floor(totalminutes)}分 ${Math.round((totalminutes - Math.floor(totalminutes)) * 60)}秒`);
+				if (totalminutes >= 60) {
+					await message.reply(`${Math.floor(totalminutes / 60)}時間 ${Math.floor(totalminutes % 60)}分 ${Math.round(((totalminutes % 60) - Math.floor(totalminutes % 60)) * 60)}秒`);
+				} else {
+					await message.reply(`${Math.floor(totalminutes)}分 ${Math.round((totalminutes - Math.floor(totalminutes)) * 60)}秒`);
+				}
 				return;
 			}
 
