@@ -3901,7 +3901,9 @@ client.on(Events.MessageCreate, async (message) =>
 				if (isNaN(totalHours)) return;
 				await message.reply(`${Math.floor(totalHours)}時間 ${Math.floor((totalHours - Math.floor(totalHours)) * 60)}分 ${Math.round(((totalHours - Math.floor(totalHours)) * 60 - Math.floor((totalHours - Math.floor(totalHours)) * 60)) * 60)}秒`);
 				return;
-			} else if (/^\d+\.\d+分$/.test(message.content)) {
+			}
+			
+			if (/^\d+\.\d+分$/.test(message.content)) {
 				const totalminutes = Number(RegExp(/^\d+\.\d+/).exec(message.content)[0]);
 				if (isNaN(totalHours)) return;
 				await message.reply(`${Math.floor(totalminutes)}分 ${Math.round((totalminutes - Math.floor(totalminutes)) * 60)}秒`);
