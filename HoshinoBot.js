@@ -3441,6 +3441,7 @@ client.on(Events.MessageCreate, async (message) =>
 						parsedjson = null;
 						return;
 				}
+
 				let foundflagforans = false;
 				for (let element of parsedjson) {
 					if (foundflagforans) break;
@@ -3588,6 +3589,7 @@ client.on(Events.MessageCreate, async (message) =>
 				let currenttitle = "";
 				let foundflagforjson = false;
 				for (const element of parsedjson) {
+					if (foundflagforjson) break;
 					if (!element.quizstatus && !foundflagforjson) {
 						foundflagforjson = true;
 						if (element.hint) {
