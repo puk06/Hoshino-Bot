@@ -64,34 +64,50 @@ client.on(Events.ClientReady, async () =>
 			let webHookData = fs.readJsonSync("./ServerDatas/WebHookData.json");
 			if (webHookData.lastDate == new Date().getDate()) return;
 			const webHookClient = new WebhookClient({ url: process.env.WEBHOOKURL });
-			const today = new Date();
-			const sixAM = new Date(today);
-			sixAM.setHours(6, 0, 0, 0);
-			const sixPM = new Date(today);
-			sixPM.setHours(18, 0, 0, 0);
-			const timeDiff = sixPM - sixAM;
-			const randomTime = sixAM.getTime() + Math.random() * timeDiff;
-			const nextExecutionTime = new Date(randomTime);
+			let timeUntilNextExecution = 0;
 			const currentTime = new Date();
-			const timeUntilNextExecution = nextExecutionTime - currentTime;
-			if (timeUntilNextExecution > 0) {
-				setTimeout(async () => {
-					if (webHookData.lastDate == new Date().getDate()) return;
-					await webHookClient.send({
-						content: "daily bread"
-					})
-						.then(() => {
-							console.log("WebHookの送信に成功しました。");
-							webHookData.lastDate = new Date().getDate();
-							fs.writeJsonSync("./ServerDatas/WebHookData.json", webHookData, { spaces: 4, replacer: null });
-							webHookData = null;
-						})
-						.catch(() => {
-							console.log("WebHookの送信に失敗しました。");
-							webHookData = null;
-						});
-				}, timeUntilNextExecution);
+			if (currentTime.getHours() >= 6 && currentTime.getHours() <= 18) {
+				const sixPM = new Date(currentTime);
+				sixPM.setHours(18, 0, 0, 0);
+				const timeDiff = sixPM - currentTime;
+				const randomTime = currentTime.getTime() + Math.random() * timeDiff;
+				const nextExecutionTime = new Date(randomTime);
+				console.log(`[${currentTime.toLocaleString()}] WebHook送信予定時刻: ${nextExecutionTime.toLocaleString()}`);
+				timeUntilNextExecution = nextExecutionTime - currentTime;
+			} else if (currentTime.getHours() <= 18) {
+				const sixAM = new Date(currentTime);
+				sixAM.setHours(6, 0, 0, 0);
+				const sixPM = new Date(currentTime);
+				sixPM.setHours(18, 0, 0, 0);
+				const timeDiff = sixPM - sixAM;
+				const randomTime = sixAM.getTime() + Math.random() * timeDiff;
+				const nextExecutionTime = new Date(randomTime);
+				console.log(`[${currentTime.toLocaleString()}] WebHook送信予定時刻: ${nextExecutionTime.toLocaleString()}`);
+				timeUntilNextExecution = nextExecutionTime - currentTime;
+			} else {
+				return;
 			}
+			
+			setTimeout(async () => {
+				if (webHookData.lastDate == new Date().getDate()) return;
+				await webHookClient.send({
+					content: "daily bread"
+				})
+					.then(() => {
+						let now = new Date();
+						console.log(`[${now.toLocaleString()}] WebHookの送信に成功しました。`);
+						webHookData.lastDate = now.getDate();
+						fs.writeJsonSync("./ServerDatas/WebHookData.json", webHookData, { spaces: 4, replacer: null });
+						webHookData = null;
+						now = null;
+					})
+					.catch(() => {
+						let now = new Date();
+						console.log(`[${now.toLocaleString()}] WebHookの送信に失敗しました。`);
+						webHookData = null;
+						now = null;
+					});
+			}, timeUntilNextExecution);
 		})();
 	}
 );
@@ -1052,11 +1068,29 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			if (interaction.commandName == "bg") {
 				const maplink = interaction.options.get("beatmaplink").value;
 				const regex = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+#[a-z]+\/\d+$/;
-				if (!regex.test(maplink)) {
-					await interaction.reply(`ビートマップリンクの形式が間違っています。`);
-					return;
+				const regex2 = /^https:\/\/osu\.ppy\.sh\/b\/\d+$/;
+				const regex3 = /^https:\/\/osu\.ppy\.sh\/beatmaps\/\d+$/;
+				const regex4 = /^https:\/\/osu\.ppy\.sh\/beatmapsets\/\d+$/;
+				let BeatmapsetId
+				switch (true) {
+					case regex.test(maplink): {
+						BeatmapsetId = maplink.split("/")[4].split("#")[0];
+						break;
+					}
+					case regex3.test(maplink) || regex2.test(maplink): {
+						const mapInfo = await new osuLibrary.GetMapData(maplink, apikey).getDataWithoutMode();
+						BeatmapsetId = mapInfo.beatmapset_id;
+						break;
+					}
+					case regex4.test(maplink): {
+						BeatmapsetId = maplink.split("/")[maplink.split("/").length - 1];
+						break;
+					}
+					default: {
+						await interaction.reply(`ビートマップリンクの形式が間違っています。`);
+						return;
+					}
 				}
-				const BeatmapsetId = maplink.split("/")[4].split("#")[0];
 				await interaction.reply(`https://assets.ppy.sh/beatmaps/${BeatmapsetId}/covers/raw.jpg`);
 				return;
 			}
@@ -1199,13 +1233,11 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				calculator.mods = mods.calc;
 				const PPafter = await calculator.calculateScorePP(score);
 				const SSPPafter = await calculator.calculateSR();
-
-				await interaction.reply(`${playersInfo.username}さんのランキングを計算中です。`);
-
 				const response = await axios.get(
 					`https://osu.ppy.sh/api/get_user_best?k=${apikey}&type=string&m=${mode}&u=${playername}&limit=100`
 				);
 				const userplays = response.data;
+				await interaction.reply("GlobalPPの計算中です...");
 				let pp = [];
 				let ppForBonusPP = [];
 				for (const element of userplays) {
@@ -1224,8 +1256,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const globalPPwithoutBonusPP = osuLibrary.CalculateGlobalPP.calculate(pp, playcount);
 				const bonusPP = Number(playersInfo.pp_raw) - globalPPOld;
 				const globalPP = globalPPwithoutBonusPP + bonusPP;
-
-				let ranking = 0;
 				const globalPPDiff = globalPP - Number(playersInfo.pp_raw);
 				const globalPPDiffPrefix = globalPPDiff > 0 ? "+" : "";
 				
@@ -1233,61 +1263,13 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const mapperUserURL = osuLibrary.URLBuilder.userURL(mappersInfo?.user_id);
 				const mapperIconURL = osuLibrary.URLBuilder.iconURL(mappersInfo?.user_id);
 				const backgroundURL = osuLibrary.URLBuilder.backgroundURL(maplink);
-				let foundflagforranking = false;
-				try {
-					await auth.login(osuclientid, osuclientsecret);
-					for (let page = 0; page <= 100; page++) {
-						const object = { "cursor[page]": page + 1 };
-						let rankingdata = await v2.ranking.details(modeforranking, "performance", object);
-						if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp && !foundflagforranking) {
-							foundflagforranking = true;
-							for (let position = 0; position < 50; position++) {
-								if (globalPP > rankingdata.ranking[position].pp) {
-									ranking = (page * 50) + position + 1;
-									break;
-								}
-							}
-						}
-						if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) break;
-					}
-				} catch (e) {
-					await interaction.channel.send("ランキングの取得中にエラーが発生しました。");
-					const embed = new EmbedBuilder()
-						.setColor("Blue")
-						.setTitle(`${mapInfo.artist} - ${mapInfo.title} [${mapInfo.version}]`)
-						.setDescription(`Played by [${playersInfo.username}](${playerUserURL})`)
-						.addFields({ name: `Mods: ${modsBefore.str} → ${mods.str} Acc: ${acc}% Miss: ${playersScore.countmiss}`, value: `**PP:** **${PPbefore.toFixed(2)}**/${SSPPbefore.pp.toFixed(2)}pp → **${PPafter.toFixed(2)}**/${SSPPafter.pp.toFixed(2)}pp`, inline: true })
-						.addFields({ name: `Rank`, value: `**${Number(playersInfo.pp_raw).toLocaleString()}**pp → **${(Math.round(globalPP * 10) / 10).toLocaleString()}**pp ${globalPPDiffPrefix + (globalPPDiff).toFixed(1)}`, inline: false })
-						.setURL(mapUrl)
-						.setAuthor({ name: `Mapped by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
-						.setImage(backgroundURL);
-					await interaction.channel.send({ embeds: [embed] });
-					return;
-				}
-
-				if (!foundflagforranking) {
-					const embed = new EmbedBuilder()
-						.setColor("Blue")
-						.setTitle(`${mapInfo.artist} - ${mapInfo.title} [${mapInfo.version}]`)
-						.setDescription(`Played by [${playersInfo.username}](${playerUserURL})`)
-						.addFields({ name: `Mods: ${modsBefore.str} → ${mods.str} Acc: ${acc}% Miss: ${playersScore.countmiss}`, value: `**PP:** **${PPbefore.toFixed(2)}**/${SSPPbefore.pp.toFixed(2)}pp → **${PPafter.toFixed(2)}**/${SSPPafter.pp.toFixed(2)}pp`, inline: true })
-						.addFields({ name: `Rank`, value: `**${Number(playersInfo.pp_raw).toLocaleString()}**pp → **${(Math.round(globalPP * 10) / 10).toLocaleString()}**pp ${globalPPDiffPrefix + (globalPPDiff).toFixed(1)}`, inline: false })
-						.setURL(mapUrl)
-						.setAuthor({ name: `Mapped by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
-						.setImage(backgroundURL);
-					await interaction.channel.send({ embeds: [embed] });
-					return;
-				}
-
-				const rankingDiff = Number(playersInfo.pp_rank) - ranking;
-				const rankingDiffPrefix = rankingDiff > 0 ? "+" : "";
 
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(`${mapInfo.artist} - ${mapInfo.title} [${mapInfo.version}]`)
 					.setDescription(`Played by [${playersInfo.username}](${playerUserURL})`)
 					.addFields({ name: `Mods: ${modsBefore.str} → ${mods.str} Acc: ${acc}% Miss: ${playersScore.countmiss}`, value: `**PP:** **${PPbefore.toFixed(2)}**/${SSPPbefore.pp.toFixed(2)}pp → **${PPafter.toFixed(2)}**/${SSPPafter.pp.toFixed(2)}pp`, inline: true })
-					.addFields({ name: `Rank`, value: `**${Number(playersInfo.pp_raw).toLocaleString()}**pp (#${Number(playersInfo.pp_rank).toLocaleString()}) → **${(Math.round(globalPP * 10) / 10).toLocaleString()}**pp ${globalPPDiffPrefix + (globalPPDiff).toFixed(1)} (#${ranking.toLocaleString()} ${rankingDiffPrefix + rankingDiff})`, inline: false })
+					.addFields({ name: `Rank`, value: `**${Number(playersInfo.pp_raw).toLocaleString()}**pp (#${Number(playersInfo.pp_rank).toLocaleString()}) → **${(Math.round(globalPP * 10) / 10).toLocaleString()}**pp ${globalPPDiffPrefix + (globalPPDiff).toFixed(1)}`, inline: false })
 					.setURL(mapUrl)
 					.setAuthor({ name: `Mapped by ${mapInfo.creator}`, iconURL: mapperIconURL, url: mapperUserURL })
 					.setImage(backgroundURL);
@@ -1593,7 +1575,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				return;
 			}
 
-			if (interaction.commandName == "osubgquiz") {
+			if (interaction.commandName == "osubgquiz" || interaction.commandName == "osubgquizpf") {
 				if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
 					await interaction.reply("既にクイズが開始されています。/quizendで終了するか回答してください。");
 					return;
@@ -1654,8 +1636,9 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				}
 				
 				let randomjson = [];
+				const ifPerferct = interaction.commandName == "osubgquizpf";
 				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false});
+					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": ifPerferct, "Answerer": "", "hint": false});
 				}
 				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
 				let jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
@@ -1670,7 +1653,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				return;
 			}
 
-			if (interaction.commandName == "osubgquizpf") {
+			if (interaction.commandName == "osuquiz" || interaction.commandName == "osuquizpf") {
 				if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
 					await interaction.reply("既にクイズが開始されています。/quizendで終了するか回答してください。");
 					return;
@@ -1731,163 +1714,9 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				}
 				
 				let randomjson = [];
+				const ifPerferct = interaction.commandName == "osuquizpf";
 				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "BG", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false})
-				}
-				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
-				let jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
-				await interaction.channel.send(`問題1のBGを表示します。`);
-				await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
-					.then(async res => {
-						let BGdata = res.data;
-						await interaction.channel.send({ files: [{ attachment: BGdata, name: 'background.jpg' }] });
-						BGdata = null;
-					});
-				jsondata = null;
-				return;
-			}
-
-			if (interaction.commandName == "osuquiz") {
-				if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
-					await interaction.reply("既にクイズが開始されています。/quizendで終了するか回答してください。");
-					return;
-				}
-
-				const username = interaction.options.get('username').value;
-				let mode = interaction.options.get('mode').value;
-
-				switch (mode) {
-					case "osu":
-						mode = 0;
-						break;
-					case "taiko":
-						mode = 1;
-						break;
-					case "catch":
-						mode = 2;
-						break;
-					case "mania":
-						mode = 3;
-						break;
-				}
-
-				const quizdata = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${username}&type=string&m=${mode}&limit=100`)
-					.then(res => {
-						return res.data;
-					});
-
-				if (quizdata.length == 0) {
-					await interaction.reply("記録が見つかりませんでした。");
-					return;
-				}
-
-				if (quizdata.length < 10) {
-					await interaction.reply("記録が10個以下であったためクイズの問題を取得できませんでした。");
-					return;
-				}
-
-				await interaction.reply("クイズを開始します。問題は10問です。");
-
-				const randomnumber = [];
-				while (randomnumber.length < 10) {
-					const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
-					if (!randomnumber.includes(randomNumber)) randomnumber.push(randomNumber);
-				}
-
-				const randommap = [];
-				const randommaptitle = [];
-				for (const element of randomnumber) {
-					let errorFlag = false;
-					const beatmapsetid = await new osuLibrary.GetMapData(quizdata[element].beatmap_id, apikey, mode).getData()
-						.catch(() => {
-							errorFlag = true;
-						});
-					if (errorFlag) continue;
-					randommap.push(beatmapsetid.beatmapset_id);
-					randommaptitle.push(beatmapsetid.title);
-				}
-				
-				let randomjson = [];
-				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": false, "Answerer": "", "hint": false});
-				}
-				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
-				let jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
-				await interaction.channel.send(`問題1のプレビューを再生します。`);
-				await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' })
-					.then(async res => {
-						let audioData = res.data;
-						await interaction.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
-						audioData = null;
-					});
-				jsondata = null;
-				return;
-			}
-
-			if (interaction.commandName == "osuquizpf") {
-				if (fs.existsSync(`./OsuPreviewquiz/${interaction.channel.id}.json`)) {
-					await interaction.reply("既にクイズが開始されています。/quizendで終了するか回答してください。");
-					return;
-				}
-
-				const username = interaction.options.get('username').value;
-				let mode = interaction.options.get('mode').value;
-
-				switch (mode) {
-					case "osu":
-						mode = 0;
-						break;
-					case "taiko":
-						mode = 1;
-						break;
-					case "catch":
-						mode = 2;
-						break;
-					case "mania":
-						mode = 3;
-						break;
-				}
-
-				const quizdata = await axios.get(`https://osu.ppy.sh/api/get_user_best?k=${apikey}&u=${username}&type=string&m=${mode}&limit=100`)
-					.then(res => {
-						return res.data;
-					});
-				
-
-				if (quizdata.length == 0) {
-					await interaction.reply("記録が見つかりませんでした。");
-					return;
-				}
-
-				if (quizdata.length < 10) {
-					await interaction.reply("記録が10個以下であったためクイズの問題を取得できませんでした。");
-					return;
-				}
-
-				await interaction.reply("クイズを開始します。問題は10問です。");
-
-				const randomnumber = [];
-				while (randomnumber.length < 10) {
-					const randomNumber = Math.floor(Math.random() * Math.min(quizdata.length, 100));
-					if (!randomnumber.includes(randomNumber)) randomnumber.push(randomNumber);
-				}
-
-				const randommap = [];
-				const randommaptitle = [];
-				for (const element of randomnumber) {
-					let errorFlag = false;
-					const beatmapsetid = await new osuLibrary.GetMapData(quizdata[element].beatmap_id, apikey, mode).getData()
-						.catch(() => {
-							errorFlag = true;
-						});
-					if (errorFlag) continue;
-					randommap.push(beatmapsetid.beatmapset_id);
-					randommaptitle.push(beatmapsetid.title);
-				}
-				
-				let randomjson = [];
-				for (let i = 0; i < randommap.length; i++) {
-					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": true, "Answerer": "", "hint": false});
+					randomjson.push({"mode": "pre", "number": i + 1, "id": randommap[i], "name": randommaptitle[i].replace(/\([^)]*\)/g, "").trimEnd(), "quizstatus": false, "Perfect": ifPerferct, "Answerer": "", "hint": false});
 				}
 				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
 				let jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
@@ -3588,247 +3417,87 @@ client.on(Events.MessageCreate, async (message) =>
 
 				const currentanswer = currenttitle.toLowerCase().replace(/ /g, "");
 
-				if (answer == currentanswer) {
-					await message.reply("正解です！");
-					let foundflagforans = false;
-					for (let element of parsedjson) {
-						if (!element.quizstatus && !foundflagforans) {
-							foundflagforans = true;
-							element.quizstatus = true;
-							element.Answerer = `:o::clap:${message.author.username}`;
-							fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
-						}
-					}
-					parsedjson = null;
-					let afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-					let foundflagforafterjsonanswer = false;
-					for (const element of afterjson) {
-						if (!element.quizstatus && !foundflagforafterjsonanswer) {
-							if (element.mode == "BG") {
-								foundflagforafterjsonanswer = true;
-								await message.channel.send(`問題${element.number}のBGを表示します。`);
-								await axios.get(`https://assets.ppy.sh/beatmaps/${element.id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
-									.then(async res => {
-										let BGdata = res.data;
-										await message.channel.send({ files: [{ attachment: BGdata, name: 'background.jpg' }] });
-										BGdata = null;
-									});
-								afterjson = null;
-								return;
-							} else {
-								foundflagforafterjsonanswer = true;
-								await message.channel.send(`問題${element.number}のプレビューを再生します。`);
-								await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' })
-									.then(async res => {
-										let audioData = res.data;
-										await message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
-										audioData = null;
-									});
-								afterjson = null;
-								return;
-							}
-						}
-					}
-
-					if (!foundflagforafterjsonanswer) {
-						let answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-						let answererstring = "";
-						for (let i = 0; i < answererarray.length; i++) {
-							if (answererarray[i].Answerer == "") continue;
-							if (answererarray[i].hint) {
-								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`;
-							} else {
-								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`;
-							}
-						}
-						await message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`);
-						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-						answererarray = null;
-						afterjson = null;
-					}
-					return;
-				} else if (Utils.matchPercentage(answer, currentanswer) > 90 && !isperfect) {
-					await message.reply(`ほぼ正解です！答え: ${currenttitle}`);
-					let foundflagforans = false;
-					for (let element of parsedjson) {
-						if (!element.quizstatus && !foundflagforans) {
-							foundflagforans = true;
-							element.quizstatus = true;
-							element.Answerer = `:o:${message.author.username}`;
-							fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
-						}
-					}
-					parsedjson = null;
-					let afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-					let foundflagforafterjsonanswer = false;
-					for (const element of afterjson) {
-						if (!element.quizstatus && !foundflagforafterjsonanswer) {
-							if (element.mode == "BG") {
-								foundflagforafterjsonanswer = true;
-								await message.channel.send(`問題${element.number}のBGを表示します。`);
-								await axios.get(`https://assets.ppy.sh/beatmaps/${element.id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
-									.then(async res => {
-										let BGdata = res.data;
-										await message.channel.send({ files: [{ attachment: BGdata, name: 'background.jpg' }] });
-										BGdata = null;
-									});
-								afterjson = null;
-								return;
-							} else {
-								foundflagforafterjsonanswer = true
-								await message.channel.send(`問題${element.number}のプレビューを再生します。`)
-								await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' })
-									.then(async res => {
-										let audioData = res.data;
-										await message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
-										audioData = null;
-									});
-								afterjson = null;
-								return;
-							}
-						}
-					}
-
-					if (!foundflagforafterjsonanswer) {
-						let answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-						let answererstring = "";
-						for (let i = 0; i < answererarray.length; i++) {
-							if (answererarray[i].Answerer == "") continue;
-							if (answererarray[i].hint) {
-								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`;
-							} else {
-								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`;
-							}
-						}
-						await message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`);
-						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-						answererarray = null;
-						afterjson = null;
-					}
-					return;
-				} else if (Utils.matchPercentage(answer, currentanswer) > 50 && !isperfect) {
-					await message.reply(`半分正解です！ 答え: ${currenttitle}`);
-					let foundflagforans = false;
-					for (let element of parsedjson) {
-						if (!element.quizstatus && !foundflagforans) {
-							foundflagforans = true;
-							element.quizstatus = true;
-							element.Answerer = `:o:${message.author.username}`;
-							fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
-						}
-					}
-					parsedjson = null;
-					let afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-					let foundflagforafterjsonanswer = false;
-					for (const element of afterjson) {
-						if (!element.quizstatus && !foundflagforafterjsonanswer) {
-							if (element.mode == "BG") {
-								foundflagforafterjsonanswer = true;
-								await message.channel.send(`問題${element.number}のBGを表示します。`);
-								await axios.get(`https://assets.ppy.sh/beatmaps/${element.id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
-									.then(async res => {
-										let BGdata = res.data;
-										await message.channel.send({ files: [{ attachment: BGdata, name: 'background.jpg' }] });
-										BGdata = null;
-									});
-								afterjson = null;
-								return;
-							} else {
-								foundflagforafterjsonanswer = true;
-								await message.channel.send(`問題${element.number}のプレビューを再生します。`);
-								await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' })
-									.then(async res => {
-										let audioData = res.data;
-										await message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
-										audioData = null;
-									});
-								afterjson = null;
-								return;
-							}
-						}
-					}
-
-					if (!foundflagforafterjsonanswer) {
-						let answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-						let answererstring = "";
-						for (let i = 0; i < answererarray.length; i++) {
-							if (answererarray[i].Answerer == "") continue;
-							if (answererarray[i].hint) {
-								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`;
-							} else {
-								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`;
-							}
-						}
-						await message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`);
-						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-						answererarray = null;
-						afterjson = null;
-					}
-					return;
-				} else if (Utils.matchPercentage(answer, currentanswer) > 35 && !isperfect) {
-					await message.reply(`惜しかったです！ 答え: ${currenttitle}`)
-					let foundflagforans = false;
-					for (let element of parsedjson) {
-						if (!element.quizstatus && !foundflagforans) {
-							foundflagforans = true;
-							element.quizstatus = true;
-							element.Answerer = `:o:${message.author.username}`;
-							fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
-						}
-					}
-					parsedjson = null;
-					let afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-					let foundflagforafterjsonanswer = false;
-					for (const element of afterjson) {
-						if (!element.quizstatus && !foundflagforafterjsonanswer) {
-							if (element.mode == "BG") {
-								foundflagforafterjsonanswer = true;
-								await message.channel.send(`問題${element.number}のBGを表示します。`);
-								await axios.get(`https://assets.ppy.sh/beatmaps/${element.id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
-									.then(async res => {
-										let BGdata = res.data;
-										await message.channel.send({ files: [{ attachment: BGdata, name: 'background.jpg' }] });
-										BGdata = null;
-									});
-								afterjson = null;
-								return;
-							} else {
-								foundflagforafterjsonanswer = true;
-								await message.channel.send(`問題${element.number}のプレビューを再生します。`);
-								await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' })
-									.then(async res => {
-										let audioData = res.data;
-										await message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
-										audioData = null;
-									});
-								afterjson = null;
-								return;
-							}
-						}
-					}
-
-					if (!foundflagforafterjsonanswer) {
-						let answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-						let answererstring = "";
-						for (let i = 0; i < answererarray.length; i++) {
-							if (answererarray[i].Answerer == "") continue;
-							if (answererarray[i].hint) {
-								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`;
-							} else {
-								answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`;
-							}
-						}
-						await message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`);
-						fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`);
-						answererarray = null;
-						afterjson = null;
-					}
-					return;
-				} else {
-					await message.reply(`不正解です;-; 答えの約${Math.round(Utils.matchPercentage(answer, currentanswer))}%を入力しています。`);
-					parsedjson = null;
-					return;
+				let answerer = "";
+				switch (true) {
+					case answer == currentanswer:
+						await message.reply("正解です！");
+						answerer = `:o::clap:${message.author.username}`;
+						break;
+					case Utils.matchPercentage(answer, currentanswer) > 90 && !isperfect:
+						await message.reply(`ほぼ正解です！答え: ${currenttitle}`);
+						answerer = `:o:${message.author.username}`;
+						break;
+					case Utils.matchPercentage(answer, currentanswer) > 50 && !isperfect:
+						await message.reply(`半分正解です！ 答え: ${currenttitle}`);
+						answerer = `:o:${message.author.username}`;
+						break;
+					case Utils.matchPercentage(answer, currentanswer) > 35 && !isperfect:
+						await message.reply(`惜しかったです！ 答え: ${currenttitle}`);
+						answerer = `:o:${message.author.username}`;
+						break;
+					default:
+						await message.reply(`不正解です;-; 答えの約${Math.round(Utils.matchPercentage(answer, currentanswer))}%を入力しています。`);
+						parsedjson = null;
+						return;
 				}
+				let foundflagforans = false;
+				for (let element of parsedjson) {
+					if (foundflagforans) break;
+					if (!element.quizstatus && !foundflagforans) {
+						foundflagforans = true;
+						element.quizstatus = true;
+						element.Answerer = answerer;
+						fs.writeJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`, parsedjson, { spaces: 4, replacer: null });
+					}
+				}
+				parsedjson = null;
+				let afterjson = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
+				let foundflagforafterjsonanswer = false;
+				for (const element of afterjson) {
+					if (!element.quizstatus && !foundflagforafterjsonanswer) {
+						if (element.mode == "BG") {
+							foundflagforafterjsonanswer = true;
+							await message.channel.send(`問題${element.number}のBGを表示します。`);
+							await axios.get(`https://assets.ppy.sh/beatmaps/${element.id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
+								.then(async res => {
+									let BGdata = res.data;
+									await message.channel.send({ files: [{ attachment: BGdata, name: 'background.jpg' }] });
+									BGdata = null;
+								});
+							afterjson = null;
+							return;
+						} else {
+							foundflagforafterjsonanswer = true;
+							await message.channel.send(`問題${element.number}のプレビューを再生します。`);
+							await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' })
+								.then(async res => {
+									let audioData = res.data;
+									await message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
+									audioData = null;
+								});
+							afterjson = null;
+							return;
+						}
+					}
+				}
+
+				if (!foundflagforafterjsonanswer) {
+					let answererarray = fs.readJsonSync(`./OsuPreviewquiz/${message.channel.id}.json`);
+					let answererstring = "";
+					for (let i = 0; i < answererarray.length; i++) {
+						if (answererarray[i].Answerer == "") continue;
+						if (answererarray[i].hint) {
+							answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}** ※ヒント使用\n`;
+						} else {
+							answererstring += `問題${i + 1}の回答者: **${answererarray[i].Answerer}**\n`;
+						}
+					}
+					await message.channel.send(`クイズが終了しました！お疲れ様でした！\n${answererstring}`);
+					fs.removeSync(`./OsuPreviewquiz/${message.channel.id}.json`);
+					answererarray = null;
+					afterjson = null;
+				}
+				return;
 			}
 
 			if (message.content == "!skip") {
@@ -3852,6 +3521,7 @@ client.on(Events.MessageCreate, async (message) =>
 
 				let foundflagforans = false;
 				for (let element of parsedjson) {
+					if (foundflagforans) break;
 					if (!element.quizstatus && !foundflagforans) {
 						foundflagforans = true;
 						element.quizstatus = true;
