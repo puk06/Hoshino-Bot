@@ -3418,26 +3418,26 @@ client.on(Events.MessageCreate, async (message) =>
 				const currentanswer = currenttitle.toLowerCase().replace(/ /g, "");
 
 				let answerer = "";
-				const matchPercentage = Utils.matchPercentage(answer, currentanswer);
+				const matchPercentage = Math.round(Utils.matchPercentage(answer, currentanswer));
 				switch (true) {
 					case answer == currentanswer:
 						await message.reply("正解です！");
 						answerer = `:o::clap:${message.author.username}`;
 						break;
 					case matchPercentage >= 90 && !isperfect:
-						await message.reply(`ほぼ正解です！(正答率: ${Math.round(matchPercentage)}%)\n答え: ${currenttitle}`);
+						await message.reply(`ほぼ正解です！(正答率: ${matchPercentage}%)\n答え: ${currenttitle}`);
 						answerer = `:o:${message.author.username}`;
 						break;
 					case matchPercentage >= 50 && !isperfect:
-						await message.reply(`半分正解です！(正答率: ${Math.round(matchPercentage)}%)\n答え: ${currenttitle}`);
+						await message.reply(`半分正解です！(正答率: ${matchPercentage}%)\n答え: ${currenttitle}`);
 						answerer = `:o:${message.author.username}`;
 						break;
 					case matchPercentage >= 35 && !isperfect:
-						await message.reply(`惜しかったです！(正答率: ${Math.round(matchPercentage)}%)\n答え: ${currenttitle}`);
+						await message.reply(`惜しかったです！(正答率: ${matchPercentage}%)\n答え: ${currenttitle}`);
 						answerer = `:o:${message.author.username}`;
 						break;
 					default:
-						await message.reply(`不正解です;-;\n答えの約${Math.round(matchPercentage)}%を入力しています。`);
+						await message.reply(`不正解です;-;\n答えの約${matchPercentage}%を入力しています。`);
 						parsedjson = null;
 						return;
 				}
