@@ -9,6 +9,6 @@
         "dotenv": "16.2.0",
         "fs-extra": "11.1.1",
         "osu-api-extended": "2.5.30",
-        "rosu-pp-nodev": "1.0.0"
+        "rosu-pp-nodev": "1.1.0"
     }
 }
