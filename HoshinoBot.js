@@ -3605,7 +3605,7 @@ client.on(Events.MessageCreate, async (message) =>
 					"!map [maplink] (mods) (acc)": "指定した譜面の情報を表示します。modsとaccは省略可能です。",
 					"!c (maplink) (username)": "ユーザーのそのマップでの記録(最大5個)を表示します。usernameは登録していれば省略可能です。マップリンクも省略可です。",
 					"!r(o, t, c, m) (username)": "ユーザーの最新のosu!std、taiko、catch、maniaの記録を表示します。usernameは登録していれば省略可能です。stdは!rでも!roでも実行可能です。",
-					"!wi[o, t, c, m] [pp] (username)": "ユーザーが指定したppを新しく取得したときのppとランキングを表示します。usernameは省略可能です。(開発中)",
+					"!wi[o, t, c, m] [pp] (username)": "ユーザーが指定したppを新しく取得したときのppを表示します。usernameは省略可能です。",
 					"!m [mods]": "直近に送信された譜面にmodsをつけてppを表示します。/linkコマンドで有効になります。",
 					"!skip": "osubgquiz、osubgquizpf、osuquiz、osuquizpfコマンドで使用できます。現在の問題をスキップします。",
 					"!hint": "osubgquiz、osubgquizpf、osuquiz、osuquizpfコマンドで使用できます。現在の問題のヒントを表示します。",
