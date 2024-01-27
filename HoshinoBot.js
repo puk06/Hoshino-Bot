@@ -3233,9 +3233,6 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 				commandLogs(message, "what if", 1);
 
-				await message.reply("現在、この機能は開発中です。完成までお待ち下さい！");
-				return;
-
 				let enteredpp;
 				if (message.content.split(" ")[1] == undefined) {
 					await message.reply("ppを入力してください。");
@@ -3277,6 +3274,7 @@ client.on(Events.MessageCreate, async (message) =>
 				let mode = "";
 				let modeforranking = "";
 				switch (message.content.split(" ")[0]) {
+					case "!wi":
 					case "!wio":
 						mode = "0";
 						modeforranking = "osu";
@@ -3342,55 +3340,12 @@ client.on(Events.MessageCreate, async (message) =>
 					if (enteredpp > element) bpRanking--;
 				}
 
-				let ranking = 0;
-				let foundflag = false;
 				const playerIconURL = osuLibrary.URLBuilder.iconURL(userdata?.user_id);
 				const playerUserURL = osuLibrary.URLBuilder.userURL(userdata?.user_id);
-
-				await message.reply("ランキングを取得しています。");
-				try {
-					await auth.login(osuclientid, osuclientsecret);
-					for (let page = 0; page < 120; page++) {
-						const object = { "cursor[page]": page + 1 };
-						let rankingdata = await v2.ranking.details(modeforranking, "performance", object);
-						if (globalPP > rankingdata.ranking[rankingdata.ranking.length - 1].pp) {
-							foundflag = true;
-							for (let position = 0; position < 50; position++) {
-								if (globalPP > rankingdata.ranking[position].pp) {
-									ranking = (page * 50) + position + 1;
-									break;
-								}
-							}
-						}
-						if (foundflag) break;
-					}
-				} catch (e) {
-					await message.reply("ランキングの取得に失敗しました。");
-					const notfoundembed = new EmbedBuilder()
-						.setColor("Blue")
-						.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
-						.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${bpRanking} best play.\nTheir pp would change by **+${(Math.round((globalPP - Number(userdata.pp_raw)) * 100) / 100).toLocaleString()}** to **${(Math.round(globalPP * 100) / 100).toLocaleString()}pp** and they would reach approx. Ranking wasn't loaded;-;.`)
-						.setThumbnail(playerIconURL)
-						.setAuthor({ name: `${userdata.username}: ${Number(userdata.pp_raw).toLocaleString()}pp (#${Number(userdata.pp_rank).toLocaleString()} ${userdata.country}${Number(userdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconURL, url: playerUserURL });
-					await message.channel.send({ embeds: [notfoundembed] });
-					return;
-				}
-
-				if (!foundflag) {
-					const notfoundembed = new EmbedBuilder()
-						.setColor("Blue")
-						.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
-						.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${bpRanking} best play.\nTheir pp would change by **+${(Math.round((globalPP - Number(userdata.pp_raw)) * 100) / 100).toLocaleString()}** to **${(Math.round(globalPP * 100) / 100).toLocaleString()}pp** and they would reach approx. rank <#6000(Calculations are not available after page 120.).`)
-						.setThumbnail(playerIconURL)
-						.setAuthor({ name: `${userdata.username}: ${Number(userdata.pp_raw).toLocaleString()}pp (#${Number(userdata.pp_rank).toLocaleString()} ${userdata.country}${Number(userdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconURL, url: playerUserURL });
-					await message.channel.send({ embeds: [notfoundembed] });
-					return;
-				}
-
 				const embed = new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
-					.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${bpRanking} best play.\nTheir pp would change by **+${(Math.round((globalPP - Number(userdata.pp_raw)) * 100) / 100).toLocaleString()}** to **${(Math.round(globalPP * 100) / 100).toLocaleString()}pp** and they would reach approx. rank #${ranking.toLocaleString()} (+${(userdata.pp_rank - ranking).toLocaleString()}).`)
+					.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${bpRanking} best play.\nTheir pp would change by **+${(Math.round((globalPP - Number(userdata.pp_raw)) * 100) / 100).toLocaleString()}** to **${(Math.round(globalPP * 100) / 100).toLocaleString()}pp**.`)
 					.setThumbnail(playerIconURL)
 					.setAuthor({ name: `${userdata.username}: ${Number(userdata.pp_raw).toLocaleString()}pp (#${Number(userdata.pp_rank).toLocaleString()} ${userdata.country}${Number(userdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconURL, url: playerUserURL });
 				await message.channel.send({ embeds: [embed] });
