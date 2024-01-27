@@ -3369,7 +3369,7 @@ client.on(Events.MessageCreate, async (message) =>
 					const notfoundembed = new EmbedBuilder()
 						.setColor("Blue")
 						.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
-						.setDescription(`A ${enteredpp}pp play would be ${playername}"s #${bpRanking} best play.\nTheir pp would change by **+${(Math.round((globalPP - Number(userdata.pp_raw)) * 100) / 100).toLocaleString()}** to **${(Math.round(globalPP * 100) / 100).toLocaleString()}pp** and they would reach approx. Ranking wasn"t loaded;-;.`)
+						.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${bpRanking} best play.\nTheir pp would change by **+${(Math.round((globalPP - Number(userdata.pp_raw)) * 100) / 100).toLocaleString()}** to **${(Math.round(globalPP * 100) / 100).toLocaleString()}pp** and they would reach approx. Ranking wasn't loaded;-;.`)
 						.setThumbnail(playerIconURL)
 						.setAuthor({ name: `${userdata.username}: ${Number(userdata.pp_raw).toLocaleString()}pp (#${Number(userdata.pp_rank).toLocaleString()} ${userdata.country}${Number(userdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconURL, url: playerUserURL });
 					await message.channel.send({ embeds: [notfoundembed] });
