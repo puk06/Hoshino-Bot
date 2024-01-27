@@ -1,13 +1,13 @@
 //必要となるライブラリ
 const { Client, EmbedBuilder, Events, GatewayIntentBits, ActivityType, WebhookClient } = require("./node_modules/discord.js");
-require('./node_modules/dotenv').config();
+require("./node_modules/dotenv").config();
 const fs = require("./node_modules/fs-extra");
 const { tools, auth, v2 } = require("./node_modules/osu-api-extended");
 const axios = require("./node_modules/axios");
 const { Beatmap, Calculator } = require("./node_modules/rosu-pp-nodev");
 const { Readable } = require("node:stream");
-const path = require('node:path');
-const asciify = require('node:util').promisify(require('./node_modules/asciify'));
+const path = require("node:path");
+const asciify = require("node:util").promisify(require("./node_modules/asciify"));
 const osuLibrary = require("./src/osuLibrary.js");
 const Utils = require("./src/Utils.js");
 
@@ -124,7 +124,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				let betAmount = interaction.options.get('betamount').value;
+				let betAmount = interaction.options.get("betamount").value;
 				if (!(/^\d+$/.test(betAmount))) {
 					await interaction.reply("数字のみ入力するようにしてください。");
 					return;
@@ -144,7 +144,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const rewardMultiplier = Utils.evaluateSlotResult(result);
 				const reward = betAmount * rewardMultiplier;
 				const resultprefix = reward - betAmount >= 0n ? "+" : "";
-				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${Utils.formatBigInt(reward)}coin (${resultprefix}${Utils.formatBigInt((reward - betAmount))})`);
+				await interaction.reply(`結果: ${result.join(" ")}\n報酬: ${Utils.formatBigInt(reward)}coin (${resultprefix}${Utils.formatBigInt((reward - betAmount))})`);
 				bankData[interaction.user.id].balance = (newBalance + reward).toString();
 				fs.writeJsonSync("./ServerDatas/UserBankData.json", bankData, { spaces: 4, replacer: null });
 				bankData = null;
@@ -158,7 +158,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				let betAmount = interaction.options.get('betamount').value;
+				let betAmount = interaction.options.get("betamount").value;
 				if (!(/^\d+$/.test(betAmount))) {
 					await interaction.reply("数字のみ入力するようにしてください。");
 					return;
@@ -178,7 +178,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const rewardMultiplier = Utils.evaluateSlotResult(result);
 				const reward = rewardMultiplier == 0n ? betAmount * 2n * 10n / 100n : betAmount * rewardMultiplier * 7n * 10n / 100n;
 				const resultPrefix = reward - betAmount >= 0n ? "+" : "";
-				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${Utils.formatBigInt(reward)}coin (${resultPrefix}${Utils.formatBigInt((reward - betAmount))})`);
+				await interaction.reply(`結果: ${result.join(" ")}\n報酬: ${Utils.formatBigInt(reward)}coin (${resultPrefix}${Utils.formatBigInt((reward - betAmount))})`);
 				bankData[interaction.user.id].balance = (newBalance + reward).toString();
 				fs.writeJsonSync("./ServerDatas/UserBankData.json", bankData, { spaces: 4, replacer: null });
 				bankData = null;
@@ -196,7 +196,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				for (let i = 0; i < Math.min(bankDataArray.length, 10); i++) {
 					ranking.push(`- __#**${i + 1}**__: **${bankDataArray[i].username}** (__*${bankDataArray[i].balance.length}桁*__)`);
 				}
-				await interaction.reply(`__**Current Bank digits Ranking**__\n${ranking.join('\n')}`);
+				await interaction.reply(`__**Current Bank digits Ranking**__\n${ranking.join("\n")}`);
 				bankData = null;
 				return;
 			}
@@ -249,7 +249,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				const rewardMultiplier = Utils.evaluateSlotResult(result);
 				const reward = betAmount * rewardMultiplier * 8n * 10n / 100n;
 				const resultprefix = reward - betAmount >= 0n ? "+" : "";
-				await interaction.reply(`結果: ${result.join(' ')}\n報酬: ${Utils.formatBigInt(reward)}coin (${resultprefix}${Utils.formatBigInt((reward - betAmount))})`);
+				await interaction.reply(`結果: ${result.join(" ")}\n報酬: ${Utils.formatBigInt(reward)}coin (${resultprefix}${Utils.formatBigInt((reward - betAmount))})`);
 				bankData[interaction.user.id].balance = (newBalance + reward).toString();
 				fs.writeJsonSync("./ServerDatas/UserBankData.json", bankData, { spaces: 4, replacer: null });
 				bankData = null;
@@ -288,7 +288,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "amount") {
-				const amount = interaction.options.get('amount').value;
+				const amount = interaction.options.get("amount").value;
 				if (!(/^\d+$/.test(amount))) {
 					await interaction.reply("数字のみ入力するようにしてください。");
 					return;
@@ -316,7 +316,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "send") {
-				const sentusername = interaction.options.get('username').value;
+				const sentusername = interaction.options.get("username").value;
 				if (sentusername == interaction.user.username) {
 					await interaction.reply("自分自身に送ることは許されていません！");
 					return;
@@ -341,7 +341,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				const amount = interaction.options.get('amount').value;
+				const amount = interaction.options.get("amount").value;
 				if (!(/^\d+$/.test(amount))) {
 					await interaction.reply("数字のみ入力するようにしてください。");
 					return;
@@ -409,7 +409,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "kemodelete") {
 				let dataBase = fs.readJsonSync("./Pictures/Furry/DataBase.json");
-				const usercount = interaction.options.get('count').value;
+				const usercount = interaction.options.get("count").value;
 				let foundFlag = false;
 				for (const fileName of dataBase.PhotoDataBase) {
 					const file = fileName.split(".")[0];
@@ -441,7 +441,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "pic") {
-				const tag = interaction.options.get('tag').value;
+				const tag = interaction.options.get("tag").value;
 				if (!fs.existsSync(path.join("./Pictures/tag", tag, "DataBase.json"))) {
 					await interaction.reply("このタグは存在しません。");
 					return;
@@ -462,7 +462,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "settag") {
-				const tagName = interaction.options.get('name').value;
+				const tagName = interaction.options.get("name").value;
 				if (fs.existsSync(`./Pictures/tag/${tagName}`)) {
 					await interaction.reply("このタグ名は登録できません。");
 					return;
@@ -511,7 +511,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "delpic") {
-				const usercount = interaction.options.get('count').value;
+				const usercount = interaction.options.get("count").value;
 				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
 				for (const folder of currentDir) {
 					let dataBase = fs.readJsonSync(`./Pictures/tag/${folder}/DataBase.json`);
@@ -539,7 +539,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "piccount") {
-				const tagName = interaction.options.get('name').value;
+				const tagName = interaction.options.get("name").value;
 				if (!fs.existsSync(`./Pictures/tag/${tagName}/DataBase.json`)) {
 					await interaction.reply("このタグは登録されていません。");
 					return;
@@ -560,7 +560,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "quote") {
-				const tag = interaction.options.get('name').value;
+				const tag = interaction.options.get("name").value;
 				let allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				if (!allQuotes[tag]) {
 					await interaction.reply("このタグは存在しません。");
@@ -579,7 +579,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "setquotetag") {
-				const tagName = interaction.options.get('name').value;
+				const tagName = interaction.options.get("name").value;
 				let allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				if (allQuotes[tagName]) {
 					await interaction.reply("このタグ名は既に存在しています。");
@@ -623,7 +623,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				let allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				for (const key in allQuotes) {
 					if (allQuotes[key].id == interaction.channel.id) {
-						const wannadelete = interaction.options.get('quote').value;
+						const wannadelete = interaction.options.get("quote").value;
 						if (!allQuotes[key].quotes.includes(wannadelete)) {
 							await interaction.reply("その名言は存在しません。");
 							return;
@@ -640,7 +640,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "quotecount") {
-				const tagName = interaction.options.get('name').value;
+				const tagName = interaction.options.get("name").value;
 				let allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				if (!allQuotes[tagName]) {
 					await interaction.reply("このタグは存在しません。");
@@ -908,7 +908,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "qf" || interaction.commandName == "deqf" || interaction.commandName == "loved" || interaction.commandName == "deloved") {
-				const mode = interaction.options.get('mode').value;
+				const mode = interaction.options.get("mode").value;
 				const channelid = interaction.channel.id;
 				let allchannels = fs.readJsonSync(`./ServerDatas/MapcheckChannels.json`);
 				switch (interaction.commandName) {
@@ -965,7 +965,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "qfmention" || interaction.commandName == "lovedmention" || interaction.commandName == "rankedmention" || interaction.commandName == "deqfmention" || interaction.commandName == "derankedmention" || interaction.commandName == "delovedmention") {
-				const mode = interaction.options.get('mode').value;
+				const mode = interaction.options.get("mode").value;
 				const userid = interaction.user.id;
 				const serverid = interaction.guild.id;
 				let alluser = fs.readJsonSync(`./ServerDatas/MentionUser.json`);
@@ -1096,7 +1096,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "ifmod") {
-				let playername = interaction.options.get('username')?.value;
+				let playername = interaction.options.get("username")?.value;
 				if (playername == undefined) {
 					let allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
 					const username = allUser["Bancho"][interaction.user.id]?.name;
@@ -1322,7 +1322,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				await osuLibrary.SRChart.calculate(beatmapId, mode).then(async (res) => {
 					const sr = await new osuLibrary.CalculatePPSR(beatmapId, 0, mode).calculateSR();
 					await interaction.channel.send(`**${mapdata.artist} - ${mapdata.title} [${mapdata.version}]**のSRチャートです。最高は${sr.sr.toFixed(2)}★です。`);
-					await interaction.channel.send({ files: [{ attachment: res, name: 'SRchart.png' }] });
+					await interaction.channel.send({ files: [{ attachment: res, name: "SRchart.png" }] });
 				}).catch(async (e) => {
 					console.log(e);
 					await interaction.channel.send("計算できませんでした。");
@@ -1386,8 +1386,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "calculatepp") {
-				let mode = interaction.options.get('mode').value;
-				const osufile = interaction.options.get('beatmapfile').attachment.attachment;
+				let mode = interaction.options.get("mode").value;
+				const osufile = interaction.options.get("beatmapfile").attachment.attachment;
 
 				if (!osufile.includes(".osu")) {
 					await interaction.reply("ファイルの形式が間違っています。〇〇.osuファイルを送信してください。");
@@ -1412,20 +1412,20 @@ client.on(Events.InteractionCreate, async (interaction) =>
 						break;
 				}
 
-				let mod = new osuLibrary.Mod(interaction.options.get('mods')?.value).get();
+				let mod = new osuLibrary.Mod(interaction.options.get("mods")?.value).get();
 
 				if (!mod) {
 					await interaction.reply("Modが存在しないか、指定できないModです。");
 					return;
 				}
 
-				const beatmapdata = await axios.get(osufile, { responseType: 'arraybuffer' })
+				const beatmapdata = await axios.get(osufile, { responseType: "arraybuffer" })
 					.then(res => res.data);
 
 				await interaction.reply("計算中です。");
 				const map = new Beatmap({ bytes: new Uint8Array(Buffer.from(beatmapdata)) });
 				const beatmapDataStream = Readable.from(Buffer.from(beatmapdata));
-				const lineReader = require('readline').createInterface({ input: beatmapDataStream });
+				const lineReader = require("readline").createInterface({ input: beatmapDataStream });
 				let Mapinfo = {
 					Mode: 0,
 					Artist: "",
@@ -1444,7 +1444,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				let hitobjectflag = false;
 				let BPM = [];
 
-				lineReader.on('line', (line) => {
+				lineReader.on("line", (line) => {
 					if (timingpointflag && line.split(",")[6] == "1") {
 						BPM.push(Math.round(1 / Number(line.split(",")[1]) * 1000 * 60 * 10) / 10);
 					}
@@ -1472,18 +1472,18 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					const key = line.split(":")[0];
 					const value = line.split(":")?.slice(1)?.join(":");
 
-					if (key === 'Mode') Mapinfo.Mode = Number(value);
-					if (key === 'Artist') Mapinfo.Artist = value;
-					if (key === 'Title') Mapinfo.Title = value;
-					if (key === 'Creator') Mapinfo.Creator = value;
-					if (key === 'Version') Mapinfo.Version = value;
-					if (key === 'HPDrainRate') Mapinfo.HPDrainRate = Number(value);
-					if (key === 'CircleSize') Mapinfo.CircleSize = Number(value);
-					if (key === 'OverallDifficulty') Mapinfo.OverallDifficulty = Number(value);
-					if (key === 'ApproachRate') Mapinfo.ApproachRate = Number(value);
+					if (key === "Mode") Mapinfo.Mode = Number(value);
+					if (key === "Artist") Mapinfo.Artist = value;
+					if (key === "Title") Mapinfo.Title = value;
+					if (key === "Creator") Mapinfo.Creator = value;
+					if (key === "Version") Mapinfo.Version = value;
+					if (key === "HPDrainRate") Mapinfo.HPDrainRate = Number(value);
+					if (key === "CircleSize") Mapinfo.CircleSize = Number(value);
+					if (key === "OverallDifficulty") Mapinfo.OverallDifficulty = Number(value);
+					if (key === "ApproachRate") Mapinfo.ApproachRate = Number(value);
 				});
 
-				lineReader.on('close', async () => {
+				lineReader.on("close", async () => {
 					if (Mapinfo.Mode != mode && Mapinfo.Mode != 0) mode = Mapinfo.Mode;
 					let score = {
 						mode: mode,
@@ -1581,8 +1581,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				const username = interaction.options.get('username').value;
-				let mode = interaction.options.get('mode').value;
+				const username = interaction.options.get("username").value;
+				let mode = interaction.options.get("mode").value;
 
 				switch (mode) {
 					case "osu":
@@ -1643,10 +1643,10 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
 				let jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
 				await interaction.channel.send(`問題1のBGを表示します。`);
-				await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
+				await axios.get(`https://assets.ppy.sh/beatmaps/${jsondata[0].id}/covers/raw.jpg`, { responseType: "arraybuffer" })
 					.then(async res => {
 						let BGdata = res.data;
-						await interaction.channel.send({ files: [{ attachment: BGdata, name: 'background.jpg' }] });
+						await interaction.channel.send({ files: [{ attachment: BGdata, name: "background.jpg" }] });
 						BGdata = null;
 					});
 				jsondata = null;
@@ -1659,8 +1659,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				const username = interaction.options.get('username').value;
-				let mode = interaction.options.get('mode').value;
+				const username = interaction.options.get("username").value;
+				let mode = interaction.options.get("mode").value;
 
 				switch (mode) {
 					case "osu":
@@ -1721,10 +1721,10 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				fs.writeJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`, randomjson, { spaces: 4, replacer: null });
 				let jsondata = fs.readJsonSync(`./OsuPreviewquiz/${interaction.channel.id}.json`);
 				await interaction.channel.send(`問題1のプレビューを再生します。`);
-				await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: 'arraybuffer' })
+				await axios.get(`https://b.ppy.sh/preview/${jsondata[0].id}.mp3`, { responseType: "arraybuffer" })
 					.then(async res => {
 						let audioData = res.data;
-						await interaction.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
+						await interaction.channel.send({ files: [{ attachment: audioData, name: "audio.mp3" }] });
 						audioData = null;
 					});
 				jsondata = null;
@@ -1756,8 +1756,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				await interaction.reply("検索中です...");
 				await auth.login(osuclientid, osuclientsecret);
 				const seracheddata = await v2.beatmap.search({
-					query: interaction.options.get('query').value,
-					mode: interaction.options.get('mode').value
+					query: interaction.options.get("query").value,
+					mode: interaction.options.get("mode").value
 				});
 				let data = [];
 				if (seracheddata.beatmapsets.length == 0) {
@@ -1766,7 +1766,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				}
 				let embed = new EmbedBuilder()
 					.setColor("Blue")
-					.setTitle(`検索結果: ${interaction.options.get('query').value}`)
+					.setTitle(`検索結果: ${interaction.options.get("query").value}`)
 					.setImage(`https://assets.ppy.sh/beatmaps/${seracheddata.beatmapsets[0].beatmaps[0].beatmapset_id}/covers/cover.jpg`)
 					.setTimestamp();
 				
@@ -1777,8 +1777,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					const minRatingObj = array[0];
 					let maxsrobj = maxRatingObj.id;
 					let minsrobj = minRatingObj.id;
-					const maxsrdata = new osuLibrary.CalculatePPSR(maxsrobj, 0, Utils.modeConvertMap(interaction.options.get('mode')));
-					const minsrdata = new osuLibrary.CalculatePPSR(minsrobj, 0, Utils.modeConvertMap(interaction.options.get('mode')));
+					const maxsrdata = new osuLibrary.CalculatePPSR(maxsrobj, 0, Utils.modeConvertMap(interaction.options.get("mode")));
+					const minsrdata = new osuLibrary.CalculatePPSR(minsrobj, 0, Utils.modeConvertMap(interaction.options.get("mode")));
 					const nmmaxppData = await maxsrdata.calculateSR();
 					const nmminppData = await minsrdata.calculateSR();
 					const dtmaxppData = await maxsrdata.calculateDT();
@@ -1794,7 +1794,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 
 			if (interaction.commandName == "osureg") {
 				const username = interaction.user.id;
-				const osuid = interaction.options.get('username').value;
+				const osuid = interaction.options.get("username").value;
 				const userData = await new osuLibrary.GetUserData(osuid, apikey).getDataWithoutMode();
 				if (!userData) {
 					await interaction.reply("ユーザーが見つかりませんでした。");
@@ -1815,9 +1815,9 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "slayer") {
-				const username = interaction.options.get('username').value;
-				const slayerid = interaction.options.get('slayername').value;
-				const i = interaction.options.get('profileid').value;
+				const username = interaction.options.get("username").value;
+				const slayerid = interaction.options.get("slayername").value;
+				const i = interaction.options.get("profileid").value;
 
 				if (!/^[\d.]+$/g.test(i)) {
 					await interaction.reply("プロファイル番号は数字のみで入力してください。");
@@ -1950,7 +1950,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "profile") {
-				const username = interaction.options.get('username').value;
+				const username = interaction.options.get("username").value;
 
 				const useruuidresponce = await axios.get(`https://api.mojang.com/users/profiles/minecraft/${username}`)
 					.then(res => {
@@ -2003,15 +2003,15 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "loc") {
-				const username = interaction.options.get('username').value;
-				const reponame = interaction.options.get('repository').value;
+				const username = interaction.options.get("username").value;
+				const reponame = interaction.options.get("repository").value;
 				await interaction.reply("LOCの計算中です...");
 				const locdata = await axios.get(`https://api.codetabs.com/v1/loc?github=${username}/${reponame}`)
 					.then(res => {
 						return res.data;
 					});
 				for (const element of locdata) {
-					if (element.language === 'Total') {
+					if (element.language === "Total") {
 						const totalfilecount = element.files;
 						const totalline = element.lines;
 						const totalblanks = element.blanks;
@@ -2030,8 +2030,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 
-				const backuptime = interaction.options.get('backuptime').value;
-				const directory = './Backups';
+				const backuptime = interaction.options.get("backuptime").value;
+				const directory = "./Backups";
 				const sortedFiles = Utils.getFilesSortedByDate(directory).reverse();
 				const wannabackuptime = backuptime - 1;
 				const wannabackup = sortedFiles[wannabackuptime];
@@ -2060,17 +2060,17 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					return;
 				}
 				
-				const directory = './Backups';
+				const directory = "./Backups";
 				const sortedFiles = Utils.getFilesSortedByDate(directory).reverse();
 				const backupfileslist = [];
 				for (let i = 0; i < Math.min(10, sortedFiles.length); i++) {
 					const inputString = sortedFiles[i];
-					const [datePart, hour, minute] = inputString.split(' ');
-					const [year, month, day] = datePart.split('-');
-					const formattedMonth = month.length === 1 ? '0' + month : month;
-					const formattedDay = day.length === 1 ? '0' + day : day;
-					const formattedHour = hour.length === 1 ? '0' + hour : hour;
-					const formattedMinute = minute.length === 1 ? '0' + minute : minute;
+					const [datePart, hour, minute] = inputString.split(" ");
+					const [year, month, day] = datePart.split("-");
+					const formattedMonth = month.length === 1 ? "0" + month : month;
+					const formattedDay = day.length === 1 ? "0" + day : day;
+					const formattedHour = hour.length === 1 ? "0" + hour : hour;
+					const formattedMinute = minute.length === 1 ? "0" + minute : minute;
 					const formattedString = `${year}年${formattedMonth}月${formattedDay}日 ${formattedHour}時${formattedMinute}分`;
 					backupfileslist.push(`${i + 1} | ${formattedString}`);
 				}
@@ -2097,8 +2097,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "echo") {
-				const message = interaction.options.get('message').value;
-				await interaction.reply({ content: '送信しますね！', ephemeral: true });
+				const message = interaction.options.get("message").value;
+				await interaction.reply({ content: "送信しますね！", ephemeral: true });
 				await interaction.channel.send(message);
 				return;
 			}
@@ -2227,7 +2227,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			if (e.message == "No data found") {
 				await interaction.channel.send("マップが見つかりませんでした。")
 					.catch(async () => {
-						await client.users.cache.get(interaction.user.id).send('こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！')
+						await client.users.cache.get(interaction.user.id).send("こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！")
 							.then(() => {
 								console.log("DMに権限に関するメッセージを送信しました。");
 							})
@@ -2242,7 +2242,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 				console.log(e);
 				await interaction.channel.send(`${interaction.user.username}さんのコマンドの実行中にエラーが発生しました。`)
 					.catch(async () => {
-						await client.users.cache.get(interaction.user.id).send('こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！')
+						await client.users.cache.get(interaction.user.id).send("こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！")
 							.then(() => {
 								console.log("DMに権限に関するメッセージを送信しました。");
 							})
@@ -3369,7 +3369,7 @@ client.on(Events.MessageCreate, async (message) =>
 					const notfoundembed = new EmbedBuilder()
 						.setColor("Blue")
 						.setTitle(`What if ${playername} got a new ${enteredpp}pp score?`)
-						.setDescription(`A ${enteredpp}pp play would be ${playername}'s #${bpRanking} best play.\nTheir pp would change by **+${(Math.round((globalPP - Number(userdata.pp_raw)) * 100) / 100).toLocaleString()}** to **${(Math.round(globalPP * 100) / 100).toLocaleString()}pp** and they would reach approx. Ranking wasn't loaded;-;.`)
+						.setDescription(`A ${enteredpp}pp play would be ${playername}"s #${bpRanking} best play.\nTheir pp would change by **+${(Math.round((globalPP - Number(userdata.pp_raw)) * 100) / 100).toLocaleString()}** to **${(Math.round(globalPP * 100) / 100).toLocaleString()}pp** and they would reach approx. Ranking wasn"t loaded;-;.`)
 						.setThumbnail(playerIconURL)
 						.setAuthor({ name: `${userdata.username}: ${Number(userdata.pp_raw).toLocaleString()}pp (#${Number(userdata.pp_rank).toLocaleString()} ${userdata.country}${Number(userdata.pp_country_rank).toLocaleString()})`, iconURL: playerIconURL, url: playerUserURL });
 					await message.channel.send({ embeds: [notfoundembed] });
@@ -3458,10 +3458,10 @@ client.on(Events.MessageCreate, async (message) =>
 						if (element.mode == "BG") {
 							foundflagforafterjsonanswer = true;
 							await message.channel.send(`問題${element.number}のBGを表示します。`);
-							await axios.get(`https://assets.ppy.sh/beatmaps/${element.id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
+							await axios.get(`https://assets.ppy.sh/beatmaps/${element.id}/covers/raw.jpg`, { responseType: "arraybuffer" })
 								.then(async res => {
 									let BGdata = res.data;
-									await message.channel.send({ files: [{ attachment: BGdata, name: 'background.jpg' }] });
+									await message.channel.send({ files: [{ attachment: BGdata, name: "background.jpg" }] });
 									BGdata = null;
 								});
 							afterjson = null;
@@ -3469,10 +3469,10 @@ client.on(Events.MessageCreate, async (message) =>
 						} else {
 							foundflagforafterjsonanswer = true;
 							await message.channel.send(`問題${element.number}のプレビューを再生します。`);
-							await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' })
+							await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: "arraybuffer" })
 								.then(async res => {
 									let audioData = res.data;
-									await message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
+									await message.channel.send({ files: [{ attachment: audioData, name: "audio.mp3" }] });
 									audioData = null;
 								});
 							afterjson = null;
@@ -3538,10 +3538,10 @@ client.on(Events.MessageCreate, async (message) =>
 						if (element.mode == "BG") {
 							foundflagforafterjsonanswer = true;
 							await message.channel.send(`問題${element.number}のBGを表示します。`);
-							await axios.get(`https://assets.ppy.sh/beatmaps/${element.id}/covers/raw.jpg`, { responseType: 'arraybuffer' })
+							await axios.get(`https://assets.ppy.sh/beatmaps/${element.id}/covers/raw.jpg`, { responseType: "arraybuffer" })
 								.then(async res => {
 									let BGdata = res.data;
-									await message.channel.send({ files: [{ attachment: BGdata, name: 'background.jpg' }] });
+									await message.channel.send({ files: [{ attachment: BGdata, name: "background.jpg" }] });
 									BGdata = null;
 								});
 							afterjson = null;
@@ -3549,10 +3549,10 @@ client.on(Events.MessageCreate, async (message) =>
 						} else {
 							foundflagforafterjsonanswer = true;
 							await message.channel.send(`問題${element.number}のプレビューを再生します。`);
-							await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: 'arraybuffer' })
+							await axios.get(`https://b.ppy.sh/preview/${element.id}.mp3`, { responseType: "arraybuffer" })
 								.then(async res => {
 									let audioData = res.data;
-									await message.channel.send({ files: [{ attachment: audioData, name: 'audio.mp3' }] });
+									await message.channel.send({ files: [{ attachment: audioData, name: "audio.mp3" }] });
 									audioData = null;
 								});
 							afterjson = null;
@@ -3629,12 +3629,12 @@ client.on(Events.MessageCreate, async (message) =>
 				commandLogs(message, "エロあるよ（笑）", 1);
 				if (Math.floor(Math.random() * 10) == 0) {
 					let eroVideo = fs.readFileSync("./eroaru.mp4");
-					await message.reply({ files: [{ attachment: eroVideo, name: 'donarudo.mp4' }] });
+					await message.reply({ files: [{ attachment: eroVideo, name: "donarudo.mp4" }] });
 					eroVideo = null;
 					return;
 				} else {
 					let eroVideo = fs.readFileSync("./eronai.mp4");
-					await message.reply({ files: [{ attachment: eroVideo, name: 'donarudo.mp4' }] });
+					await message.reply({ files: [{ attachment: eroVideo, name: "donarudo.mp4" }] });
 					eroVideo = null;
 					return
 				}
@@ -3729,13 +3729,13 @@ client.on(Events.MessageCreate, async (message) =>
 				return;
 			}
 
-			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif')) && message.channel.id == Furrychannel) {
+			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes(".avi") || attachment.url.includes(".mov") || attachment.url.includes(".mp4") || attachment.url.includes(".png") || attachment.url.includes(".jpg") || attachment.url.includes(".gif")) && message.channel.id == Furrychannel) {
 				if (message.author.bot) return;
 				commandLogs(message, "Furry画像登録", 1);
 				let dataBase = fs.readJsonSync("./Pictures/Furry/DataBase.json");
 				for (const attachment of message.attachments.values()) {
 					const imageURL = attachment.url;
-					const imageFile = await axios.get(imageURL, { responseType: 'arraybuffer' });
+					const imageFile = await axios.get(imageURL, { responseType: "arraybuffer" });
 					const extention = imageURL.split(".")[imageURL.split(".").length - 1].split("?")[0];
 					const fileNameWithoutExtention = dataBase.PhotoDataBase.map((x) => Number(x.split(".")[0]));
 					let filename = 0;
@@ -3756,7 +3756,7 @@ client.on(Events.MessageCreate, async (message) =>
 				return;
 			}
 
-			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes('.avi') || attachment.url.includes('.mov') || attachment.url.includes('.mp4') || attachment.url.includes('.png') || attachment.url.includes('.jpg') || attachment.url.includes('.gif'))) {
+			if (message.attachments.size > 0 && message.attachments.every(attachment => attachment.url.includes(".avi") || attachment.url.includes(".mov") || attachment.url.includes(".mp4") || attachment.url.includes(".png") || attachment.url.includes(".jpg") || attachment.url.includes(".gif"))) {
 				if (message.author.bot) return;
 				const currentDir = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
 				for (const folder of currentDir) {
@@ -3766,7 +3766,7 @@ client.on(Events.MessageCreate, async (message) =>
 						let fileNameArray = [];
 						for (const attachment of message.attachments.values()) {
 							const imageURL = attachment.url;
-							const imageFile = await axios.get(imageURL, { responseType: 'arraybuffer' });
+							const imageFile = await axios.get(imageURL, { responseType: "arraybuffer" });
 							const extention = imageURL.split(".")[imageURL.split(".").length - 1].split("?")[0];
 							const fileNameWithoutExtention = dataBase.PhotoDataBase.map((x) => Number(x.split(".")[0]));
 							let filename = 0;
@@ -3810,7 +3810,7 @@ client.on(Events.MessageCreate, async (message) =>
 			if (e.message == "No data found") {
 				await message.reply("マップが見つかりませんでした。")
 					.catch(async () => {
-						await client.users.cache.get(message.author.id).send('こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！')
+						await client.users.cache.get(message.author.id).send("こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！")
 							.then(() => {
 								console.log("DMに権限に関するメッセージを送信しました。");
 							})
@@ -3825,7 +3825,7 @@ client.on(Events.MessageCreate, async (message) =>
 				console.log(e);
 				await message.reply(`${message.author.username}さんのコマンドの実行中にエラーが発生しました。`)
 					.catch(async () => {
-						await client.users.cache.get(message.author.id).send('こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！')
+						await client.users.cache.get(message.author.id).send("こんにちは！\nコマンドを送信したそうですが、権限がなかったため送信できませんでした。もう一度Botの権限について見てみてください！")
 							.then(() => {
 								console.log("DMに権限に関するメッセージを送信しました。");
 							})
