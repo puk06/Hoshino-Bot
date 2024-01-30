@@ -51,13 +51,17 @@ client.on(Events.ClientReady, async () =>
 		}, 1000);
 
 		setInterval(() => {
+			let serverJSONdata = fs.readJsonSync("./ServerDatas/talkcount.json");
+			let count = Object.keys(serverJSONdata).length;
 			client.user.setPresence({
 				activities: [{
-					name: `h!help | ping: ${client.ws.ping}`,
+					name: `h!help | Ping: ${client.ws.ping} | Servers: ${count}`,
 					type: ActivityType.Playing
 				}]
 			});
-		}, 5000);
+			serverJSONdata = null;
+			count = null;
+		}, 10000);
 		setInterval(makeBackup, 3600000);
 
 		(async () => {
@@ -3272,27 +3276,22 @@ client.on(Events.MessageCreate, async (message) =>
 				}
 
 				let mode = "";
-				let modeforranking = "";
 				switch (message.content.split(" ")[0]) {
 					case "!wi":
 					case "!wio":
 						mode = "0";
-						modeforranking = "osu";
 						break;
 
 					case "!wit":
 						mode = "1";
-						modeforranking = "taiko";
 						break;
 
 					case "!wic":
 						mode = "2";
-						modeforranking = "fruits";
 						break;
 
 					case "!wim":
 						mode = "3";
-						modeforranking = "mania";
 						break;
 
 					default:
@@ -3311,7 +3310,6 @@ client.on(Events.MessageCreate, async (message) =>
 					pp.push(Number(element.pp));
 				}
 				pp.push(enteredpp);
-				oldpp.sort((a, b) => b - a);
 				pp.sort((a, b) => b - a);
 
 				if (enteredpp == pp[pp.length - 1]) {
@@ -3334,10 +3332,15 @@ client.on(Events.MessageCreate, async (message) =>
 				let globalPP = 0;
 				globalPP += osuLibrary.CalculateGlobalPP.calculate(pp, userdata.playcount + 1);
 				globalPP += 416.6667 * (1 - Math.pow(0.9994, currentPlaycount + 1));
+
+				oldpp.reverse();
 				let bpRanking = oldpp.length + 1;
-				oldpp.sort((a, b) => a - b);
 				for (const element of oldpp) {
-					if (enteredpp > element) bpRanking--;
+					if (enteredpp > element) {
+						bpRanking--;
+					} else {
+						break;
+					}
 				}
 
 				const playerIconURL = osuLibrary.URLBuilder.iconURL(userdata?.user_id);
