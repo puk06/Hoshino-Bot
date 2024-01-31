@@ -119,6 +119,65 @@ client.on(Events.ClientReady, async () =>
 client.on(Events.InteractionCreate, async (interaction) =>
 	{
 		try {
+			if (interaction.isAutocomplete()) {
+				switch (interaction.commandName) {
+					case "send": {
+						const focusedOption = interaction.options.getFocused(true);
+						let choices = [];
+						if (focusedOption.name === "username") {
+							let users = fs.readJsonSync("./ServerDatas/UserBankData.json");
+							for (const userData in users) choices.push(users[userData].username);
+							users = null;
+						}
+						const filtered = choices
+							.filter((choice) => choice.startsWith(focusedOption.value))
+							.slice(0, 25);
+
+						await interaction.respond(
+							filtered.map((choice) => ({ name: choice, value: choice }))
+						);
+					}
+					break;
+
+					case "quotecount":
+					case "quote": {
+						const focusedOption = interaction.options.getFocused(true);
+						let choices = [];
+						if (focusedOption.name === "tag") {
+							let allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
+							for (const tag in allQuotes) choices.push(tag);
+							allQuotes = null;
+						}
+						const filtered = choices
+							.filter((choice) => choice.startsWith(focusedOption.value))
+							.slice(0, 25);
+
+						await interaction.respond(
+							filtered.map((choice) => ({ name: choice, value: choice }))
+						);
+					}
+					break;
+
+					case "piccount":
+					case "pic": {
+						const focusedOption = interaction.options.getFocused(true);
+						let choices = [];
+						if (focusedOption.name === "tag") {
+							let allTags = fs.readdirSync("./Pictures/tag").filter(folder => fs.existsSync(`./Pictures/tag/${folder}/DataBase.json`));
+							for (const tag of allTags) choices.push(tag);
+							allTags = null;
+						}
+						const filtered = choices
+							.filter((choice) => choice.startsWith(focusedOption.value))
+							.slice(0, 25);
+
+						await interaction.respond(
+							filtered.map((choice) => ({ name: choice, value: choice }))
+						);
+					}
+					break;
+				}
+			}
 			if (!interaction.isCommand()) return;
 			commandLogs(interaction, interaction.commandName, 0);
 			if (interaction.commandName == "slot") {
@@ -543,7 +602,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "piccount") {
-				const tagName = interaction.options.get("name").value;
+				const tagName = interaction.options.get("tag").value;
 				if (!fs.existsSync(`./Pictures/tag/${tagName}/DataBase.json`)) {
 					await interaction.reply("このタグは登録されていません。");
 					return;
@@ -564,7 +623,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "quote") {
-				const tag = interaction.options.get("name").value;
+				const tag = interaction.options.get("tag").value;
 				let allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				if (!allQuotes[tag]) {
 					await interaction.reply("このタグは存在しません。");
@@ -583,7 +642,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "setquotetag") {
-				const tagName = interaction.options.get("name").value;
+				const tagName = interaction.options.get("tag").value;
 				let allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				if (allQuotes[tagName]) {
 					await interaction.reply("このタグ名は既に存在しています。");
@@ -644,7 +703,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 
 			if (interaction.commandName == "quotecount") {
-				const tagName = interaction.options.get("name").value;
+				const tagName = interaction.options.get("tag").value;
 				let allQuotes = fs.readJsonSync("./ServerDatas/Quotes.json");
 				if (!allQuotes[tagName]) {
 					await interaction.reply("このタグは存在しません。");
@@ -654,7 +713,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 					await interaction.reply("このタグには名言がないみたいです。");
 					return;
 				}
-				await interaction.reply(`今まで${interaction.channel.name}タグに追加した名言の合計枚数は${allQuotes[interaction.channel.name].quotes.length}個です。`);
+				await interaction.reply(`今まで${tagName}タグに追加した名言の数は${allQuotes[tagName].quotes.length}個です。`);
 				allQuotes = null;
 				return;
 			}

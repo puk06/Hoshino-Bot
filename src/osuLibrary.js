@@ -1029,11 +1029,12 @@ class CalculateGlobalPP {
      * @returns {number} The calculated global performance points (PP).
      */
     static calculate(scores, userplaycount) {
+        const userScores = scores.slice();
         let scorepp = 0.0;
-        for (let i = 0; i < scores.length; i++) {
-            scorepp += scores[i] * Math.pow(0.95, i);
+        for (let i = 0; i < userScores.length; i++) {
+            scorepp += userScores[i] * Math.pow(0.95, i);
         }
-        return scorepp + extraPolatePPRemainder(scores, userplaycount);
+        return scorepp + extraPolatePPRemainder(userScores, userplaycount);
     }
 }
 

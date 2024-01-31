@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require("./node_modules/discord.js");
+const fs = require("./node_modules/fs-extra");
 
 module.exports = [
     {
@@ -7,8 +8,8 @@ module.exports = [
             .setDescription("スロットを回します。")
             .addStringOption(option =>
                 option
-                    .setName('betamount')
-                    .setDescription('賭け金額')
+                    .setName("betamount")
+                    .setDescription("賭け金額")
                     .setRequired(true)
             )
     },
@@ -18,8 +19,8 @@ module.exports = [
             .setDescription("スロットを回します。負けても報酬が0ではないです。")
             .addStringOption(option =>
                 option
-                    .setName('betamount')
-                    .setDescription('賭け金額')
+                    .setName("betamount")
+                    .setDescription("賭け金額")
                     .setRequired(true)
             )
     },
@@ -54,8 +55,8 @@ module.exports = [
             .setDescription("数値を漢字で表示します。")
             .addStringOption(option =>
                 option
-                    .setName('amount')
-                    .setDescription('数値')
+                    .setName("amount")
+                    .setDescription("数値")
                     .setRequired(true)
             )
     },
@@ -70,14 +71,15 @@ module.exports = [
             .setDescription("指定したユーザーにお金を送ります。")
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('送りたい人の名前')
+                    .setName("username")
+                    .setDescription("送りたい人の名前")
                     .setRequired(true)
+                    .setAutocomplete(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('amount')
-                    .setDescription('送りたい金額')
+                    .setName("amount")
+                    .setDescription("送りたい金額")
                     .setRequired(true)
             )
     },
@@ -102,8 +104,8 @@ module.exports = [
             .setDescription("Furryフォルダから指定された画像を削除します。")
             .addNumberOption(option =>
                 option
-                    .setName('count')
-                    .setDescription('削除したい画像のカウント')
+                    .setName("count")
+                    .setDescription("削除したい画像のカウント")
                     .setRequired(true)
             )
     },
@@ -118,9 +120,10 @@ module.exports = [
             .setDescription("指定されたタグの画像をランダムで表示します。")
             .addStringOption(option =>
                 option
-                    .setName('tag')
-                    .setDescription('タグ名')
+                    .setName("tag")
+                    .setDescription("タグ名")
                     .setRequired(true)
+                    .setAutocomplete(true)
             )
     },
     {
@@ -129,8 +132,8 @@ module.exports = [
             .setDescription("このチャンネルをpicタグに設定します。")
             .addStringOption(option =>
                 option
-                    .setName('name')
-                    .setDescription('タグ名')
+                    .setName("name")
+                    .setDescription("タグ名")
                     .setRequired(true)
             )
     },
@@ -145,8 +148,8 @@ module.exports = [
             .setDescription("指定された画像を削除します。")
             .addNumberOption(option =>
                 option
-                    .setName('count')
-                    .setDescription('削除したい画像のカウント')
+                    .setName("count")
+                    .setDescription("削除したい画像のカウント")
                     .setRequired(true)
             )
     },
@@ -156,9 +159,10 @@ module.exports = [
             .setDescription("送られたタグの総ファイル数を表示します。")
             .addStringOption(option =>
                 option
-                    .setName('name')
-                    .setDescription('タグ名')
+                    .setName("tag")
+                    .setDescription("タグ名")
                     .setRequired(true)
+                    .setAutocomplete(true)
             )
     },
     {
@@ -172,19 +176,20 @@ module.exports = [
             .setDescription("指定されたタグの名言を表示します。")
             .addStringOption(option =>
                 option
-                    .setName('name')
-                    .setDescription('タグ名')
+                    .setName("tag")
+                    .setDescription("タグ名")
                     .setRequired(true)
+                    .setAutocomplete(true)
             )
     },
     {
         data: new SlashCommandBuilder()
             .setName("setquotetag")
-            .setDescription("この名言タグを作成、更新します。")
+            .setDescription("このチャンネルの名言タグを作成、更新します。")
             .addStringOption(option =>
                 option
-                    .setName('name')
-                    .setDescription('タグ名')
+                    .setName("tag")
+                    .setDescription("タグ名")
                     .setRequired(true)
             )
     },
@@ -199,8 +204,8 @@ module.exports = [
             .setDescription("指定された名言を削除します。")
             .addStringOption(option =>
                 option
-                    .setName('quote')
-                    .setDescription('削除したい名言')
+                    .setName("quote")
+                    .setDescription("削除したい名言")
                     .setRequired(true)
             )
     },
@@ -210,9 +215,10 @@ module.exports = [
             .setDescription("送られた名言タグの総名言数を表示します。")
             .addStringOption(option =>
                 option
-                    .setName('name')
-                    .setDescription('タグ名')
+                    .setName("tag")
+                    .setDescription("タグ名")
                     .setRequired(true)
+                    .setAutocomplete(true)
             )
     },
     {
@@ -236,8 +242,8 @@ module.exports = [
             .setDescription("送られたマップのオブジェクトに関する情報を計算します。")
             .addStringOption(option =>
                 option
-                    .setName('beatmaplink')
-                    .setDescription('マップリンク')
+                    .setName("beatmaplink")
+                    .setDescription("マップリンク")
                     .setRequired(true)
             )
     },
@@ -247,14 +253,14 @@ module.exports = [
             .setDescription("PPマップかどうかを表示します。FPという単位で表示されます。")
             .addStringOption(option =>
                 option
-                    .setName('beatmaplink')
-                    .setDescription('マップリンク')
+                    .setName("beatmaplink")
+                    .setDescription("マップリンク")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mods')
-                    .setDescription('Mod')
+                    .setName("mods")
+                    .setDescription("Mod")
                     .setRequired(false)
             )
     },
@@ -264,14 +270,14 @@ module.exports = [
             .setDescription("Mod別ランキングを表示します。")
             .addStringOption(option =>
                 option
-                    .setName('beatmaplink')
-                    .setDescription('マップリンク')
+                    .setName("beatmaplink")
+                    .setDescription("マップリンク")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mods')
-                    .setDescription('Mod')
+                    .setName("mods")
+                    .setDescription("Mod")
                     .setRequired(false)
             )
     },
@@ -281,13 +287,13 @@ module.exports = [
             .setDescription("送られたチャンネルをQF、rankチャンネルに設定します。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -298,13 +304,13 @@ module.exports = [
             .setDescription("送られたチャンネルをLovedチャンネルに設定します。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -315,13 +321,13 @@ module.exports = [
             .setDescription("Qualifiedが検出されたらメンションします。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -332,13 +338,13 @@ module.exports = [
             .setDescription("Lovedが検出されたらメンションします。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -349,13 +355,13 @@ module.exports = [
             .setDescription("Rankedが検出されたらメンションします。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -366,13 +372,13 @@ module.exports = [
             .setDescription("送られたチャンネルをQF、rankチャンネルから削除します。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -383,13 +389,13 @@ module.exports = [
             .setDescription("送られたチャンネルをLovedチャンネルから削除します。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -400,13 +406,13 @@ module.exports = [
             .setDescription("Qualifiedが検出されたらメンションするのを解除します。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -417,13 +423,13 @@ module.exports = [
             .setDescription("Rankedが検出されたらメンションするのを解除します。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -434,13 +440,13 @@ module.exports = [
             .setDescription("Lovedが検出されたらメンションするのを解除します。")
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -451,8 +457,8 @@ module.exports = [
             .setDescription("送られたマップのBGを表示します。")
             .addStringOption(option =>
                 option
-                    .setName('beatmaplink')
-                    .setDescription('マップリンク')
+                    .setName("beatmaplink")
+                    .setDescription("マップリンク")
                     .setRequired(true)
             )
     },
@@ -462,29 +468,29 @@ module.exports = [
             .setDescription("送られたマップのユーザーの最高記録のModを変更してランキングを計算します。")
             .addStringOption(option =>
                 option
-                    .setName('beatmaplink')
-                    .setDescription('マップリンク')
+                    .setName("beatmaplink")
+                    .setDescription("マップリンク")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mods')
-                    .setDescription('Mod')
+                    .setName("mods")
+                    .setDescription("Mod")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('ユーザー名')
+                    .setName("username")
+                    .setDescription("ユーザー名")
                     .setRequired(false)
             )
             .addStringOption(option =>
                 option
-                    .setName('score')
-                    .setDescription('モード')
+                    .setName("score")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'Top Score', value: '0' },
-                        { name: 'Top PP', value: '1' }
+                        { name: "Top Score", value: "0" },
+                        { name: "Top PP", value: "1" }
                     )
                     .setRequired(false)
             )
@@ -495,8 +501,8 @@ module.exports = [
             .setDescription("送られたマップのSRグラフを表示します。")
             .addStringOption(option =>
                 option
-                    .setName('beatmaplink')
-                    .setDescription('マップリンク')
+                    .setName("beatmaplink")
+                    .setDescription("マップリンク")
                     .setRequired(true)
             )
     },
@@ -506,8 +512,8 @@ module.exports = [
             .setDescription("マップのプレビューリンクを表示します。")
             .addStringOption(option =>
                 option
-                    .setName('beatmaplink')
-                    .setDescription('マップリンク')
+                    .setName("beatmaplink")
+                    .setDescription("マップリンク")
                     .setRequired(true)
             )
     },
@@ -517,26 +523,26 @@ module.exports = [
             .setDescription("送られたosuマップのPPを計算します。")
             .addAttachmentOption(option =>
                 option
-                    .setName('beatmapfile')
-                    .setDescription('マップファイル')
+                    .setName("beatmapfile")
+                    .setDescription("マップファイル")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mods')
-                    .setDescription('Mod')
+                    .setName("mods")
+                    .setDescription("Mod")
                     .setRequired(false)
             )
     },
@@ -546,19 +552,19 @@ module.exports = [
             .setDescription("送られたユーザー、モードからBGクイズを出題します。")
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('ユーザー名')
+                    .setName("username")
+                    .setDescription("ユーザー名")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -569,19 +575,19 @@ module.exports = [
             .setDescription("送られたユーザー、モードからBGクイズを出題します。")
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('ユーザー名')
+                    .setName("username")
+                    .setDescription("ユーザー名")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -592,19 +598,19 @@ module.exports = [
             .setDescription("送られたユーザー、モードからBGクイズを出題します。")
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('ユーザー名')
+                    .setName("username")
+                    .setDescription("ユーザー名")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -615,19 +621,19 @@ module.exports = [
             .setDescription("送られたユーザー、モードからBGクイズを出題します。")
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('ユーザー名')
+                    .setName("username")
+                    .setDescription("ユーザー名")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -643,19 +649,19 @@ module.exports = [
             .setDescription("osu!のビートマップを検索します。")
             .addStringOption(option =>
                 option
-                    .setName('query')
-                    .setDescription('検索したいキーワード')
+                    .setName("query")
+                    .setDescription("検索したいキーワード")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('mode')
-                    .setDescription('モード')
+                    .setName("mode")
+                    .setDescription("モード")
                     .addChoices(
-                        { name: 'osu!', value: 'osu' },
-                        { name: 'osu!taiko', value: 'taiko' },
-                        { name: 'osu!catch', value: 'catch' },
-                        { name: 'osu!mania', value: 'mania' }
+                        { name: "osu!", value: "osu" },
+                        { name: "osu!taiko", value: "taiko" },
+                        { name: "osu!catch", value: "catch" },
+                        { name: "osu!mania", value: "mania" }
                     )
                     .setRequired(true)
             )
@@ -666,8 +672,8 @@ module.exports = [
             .setDescription("osu!のユーザー名をほしのbotに登録します。")
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('ユーザー名')
+                    .setName("username")
+                    .setDescription("ユーザー名")
                     .setRequired(true)
             )
     },
@@ -677,27 +683,27 @@ module.exports = [
             .setDescription("スレイヤーの周回数などを表示します。")
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('ユーザー名')
+                    .setName("username")
+                    .setDescription("ユーザー名")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('slayername')
-                    .setDescription('スレイヤー名')
+                    .setName("slayername")
+                    .setDescription("スレイヤー名")
                     .addChoices(
-                        { name: 'Revenant Horror', value: 'Revenant Horror' },
-                        { name: 'Sven Packmaster', value: 'Sven Packmaster' },
-                        { name: 'Voidgloom Seraph', value: 'Voidgloom Seraph' },
-                        { name: 'Inferno Demonlord', value: 'Inferno Demonlord' },
-                        { name: 'Riftstalker Bloodfiend', value: 'Riftstalker Bloodfiend' },
+                        { name: "Revenant Horror", value: "Revenant Horror" },
+                        { name: "Sven Packmaster", value: "Sven Packmaster" },
+                        { name: "Voidgloom Seraph", value: "Voidgloom Seraph" },
+                        { name: "Inferno Demonlord", value: "Inferno Demonlord" },
+                        { name: "Riftstalker Bloodfiend", value: "Riftstalker Bloodfiend" },
                     )
                     .setRequired(true)
             )
             .addNumberOption(option =>
                 option
-                    .setName('profileid')
-                    .setDescription('プロファイルID')
+                    .setName("profileid")
+                    .setDescription("プロファイルID")
                     .setRequired(true)
             )
     },
@@ -707,8 +713,8 @@ module.exports = [
             .setDescription("プレイヤーのSkyblockプロファイルを表示します。")
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('ユーザー名')
+                    .setName("username")
+                    .setDescription("ユーザー名")
                     .setRequired(true)
             )
     },
@@ -723,14 +729,14 @@ module.exports = [
             .setDescription("GitHubのリポジトリのLOCを表示します。")
             .addStringOption(option =>
                 option
-                    .setName('username')
-                    .setDescription('ユーザー名')
+                    .setName("username")
+                    .setDescription("ユーザー名")
                     .setRequired(true)
             )
             .addStringOption(option =>
                 option
-                    .setName('repository')
-                    .setDescription('リポジトリ名')
+                    .setName("repository")
+                    .setDescription("リポジトリ名")
                     .setRequired(true)
             )
     },
@@ -740,8 +746,8 @@ module.exports = [
             .setDescription("バックアップを復元できます。管理者専用です。")
             .addNumberOption(option =>
                 option
-                    .setName('backuptime')
-                    .setDescription('何時間前のバックアップを復元するか')
+                    .setName("backuptime")
+                    .setDescription("何時間前のバックアップを復元するか")
                     .setRequired(true)
             )
     },
@@ -761,8 +767,8 @@ module.exports = [
             .setDescription("メッセージをあなたの代わりに送信します。")
             .addStringOption(option =>
                 option
-                    .setName('message')
-                    .setDescription('送りたいメッセージ')
+                    .setName("message")
+                    .setDescription("送りたいメッセージ")
                     .setRequired(true)
             )
     },
