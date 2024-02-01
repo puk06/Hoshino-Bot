@@ -180,6 +180,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
 			}
 			if (!interaction.isCommand()) return;
 			commandLogs(interaction, interaction.commandName, 0);
+
 			if (interaction.commandName == "slot") {
 				let bankData = fs.readJsonSync("./ServerDatas/UserBankData.json");
 				if (!bankData[interaction.user.id]) {
@@ -3089,35 +3090,74 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 					allUser = null;
 					playername = username;
-					const messageData = await message.channel.messages.fetch();
-					const messages = Array.from(messageData.values());
-					let maplinks = messages.map(message => {
-						if (regex.test(message.content) || regex2.test(message.content) || regex3.test(message.content)) return message.content;
-						if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
-						if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.author.url;
-					});
-					maplinks = maplinks.filter(link => link != undefined);
-					if (maplinks[0] == undefined) {
-						await message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。");
-						return;
+					if (message.reference == null) {
+						const messageData = await message.channel.messages.fetch();
+						const messages = Array.from(messageData.values());
+						let maplinks = messages.map(message => {
+							if (regex.test(message.content) || regex2.test(message.content) || regex3.test(message.content)) return message.content;
+							if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
+							if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.author.url;
+						});
+						maplinks = maplinks.filter(link => link != undefined);
+						if (maplinks[0] == undefined) {
+							await message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。");
+							return;
+						}
+						maplink = maplinks[0];
+					} else {
+						const messageData = await client.channels.cache.get(message.reference.channelId)?.messages.fetch(message.reference.messageId);
+						if (messageData == undefined) {
+							await message.reply("メッセージの取得に失敗しました。");
+							return;
+						}
+
+						maplink = ((messageData) => {
+							if (regex.test(messageData.content) || regex2.test(messageData.content) || regex3.test(messageData.content)) return messageData.content;
+							if (regex.test(messageData.embeds[0]?.data?.url) || regex2.test(messageData.embeds[0]?.data?.url) || regex3.test(messageData.embeds[0]?.data?.url)) return messageData.embeds[0].data.url;
+							if (regex.test(messageData.embeds[0]?.author?.url) || regex2.test(messageData.embeds[0]?.author?.url) || regex3.test(messageData.embeds[0]?.data?.url)) return messageData.embeds[0].data.author.url;
+							return undefined;
+						})(messageData);
+
+						if (maplink == undefined) {
+							await message.reply("メッセージからマップリンクが見つかりませんでした。");
+							return;
+						}
 					}
-					maplink = maplinks[0];
 				} else {
 					playername = message.content.split(" ")?.slice(1)?.join(" ");
-					const messageData = await message.channel.messages.fetch();
-					const messages = Array.from(messageData.values());
-					let maplinks = messages.map(message => {
-						if (regex.test(message.content) || regex2.test(message.content) || regex3.test(message.content)) return message.content;
-						if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
-						if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url) || regex3.test(message.embeds[0]?.author?.url)) return message.embeds[0].data.author.url;
-						return "No Link";
-					});
-					maplinks = maplinks.filter(link => link != "No Link");
-					if (maplinks[0] == undefined) {
-						await message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。");
-						return;
+					if (message.reference == null) {
+						const messageData = await message.channel.messages.fetch();
+						const messages = Array.from(messageData.values());
+						let maplinks = messages.map(message => {
+							if (regex.test(message.content) || regex2.test(message.content) || regex3.test(message.content)) return message.content;
+							if (regex.test(message.embeds[0]?.data?.url) || regex2.test(message.embeds[0]?.data?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.url;
+							if (regex.test(message.embeds[0]?.author?.url) || regex2.test(message.embeds[0]?.author?.url) || regex3.test(message.embeds[0]?.data?.url)) return message.embeds[0].data.author.url;
+						});
+						maplinks = maplinks.filter(link => link != undefined);
+						if (maplinks[0] == undefined) {
+							await message.reply("直近50件のメッセージからマップリンクが見つかりませんでした。");
+							return;
+						}
+						maplink = maplinks[0];
+					} else {
+						const messageData = await client.channels.cache.get(message.reference.channelId)?.messages.fetch(message.reference.messageId);
+						if (messageData == undefined) {
+							await message.reply("メッセージの取得に失敗しました。");
+							return;
+						}
+
+						maplink = ((messageData) => {
+							if (regex.test(messageData.content) || regex2.test(messageData.content) || regex3.test(messageData.content)) return messageData.content;
+							if (regex.test(messageData.embeds[0]?.data?.url) || regex2.test(messageData.embeds[0]?.data?.url) || regex3.test(messageData.embeds[0]?.data?.url)) return messageData.embeds[0].data.url;
+							if (regex.test(messageData.embeds[0]?.author?.url) || regex2.test(messageData.embeds[0]?.author?.url) || regex3.test(messageData.embeds[0]?.data?.url)) return messageData.embeds[0].data.author.url;
+							return undefined;
+						})(messageData);
+
+						if (maplink == undefined) {
+							await message.reply("メッセージからマップリンクが見つかりませんでした。");
+							return;
+						}
 					}
-					maplink = maplinks[0];
 				}
 				
 				if (playername == "") {
