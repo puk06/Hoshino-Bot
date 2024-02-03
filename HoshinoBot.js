@@ -2577,6 +2577,17 @@ client.on(Events.MessageCreate, async (message) =>
 					playername = username;
 				} else {
 					playername = message.content.split(" ")?.slice(1)?.join(" ");
+					if (/^<@\d+>$/.test(playername)) {
+						let allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
+						const userId = RegExp(/^<@(\d+)>$/).exec(playername)[1];
+						if (!allUser["Bancho"][userId]?.name) {
+							await message.reply("このDiscordのユーザーは登録されていません。/osuregで登録してもらうか、osuのユーザー名を入力してください。");
+							allUser = null;
+							return;
+						}
+						playername = allUser["Bancho"][userId].name;
+						allUser = null;
+					}
 				}
 
 				if (playername == "") {
@@ -3079,6 +3090,17 @@ client.on(Events.MessageCreate, async (message) =>
 						playername = username;
 					} else {
 						playername = message.content.split(" ")?.slice(2)?.join(" ");
+						if (/^<@\d+>$/.test(playername)) {
+							let allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
+							const userId = RegExp(/^<@(\d+)>$/).exec(playername)[1];
+							if (!allUser["Bancho"][userId]?.name) {
+								await message.reply("このDiscordのユーザーは登録されていません。/osuregで登録してもらうか、osuのユーザー名を入力してください。");
+								allUser = null;
+								return;
+							}
+							playername = allUser["Bancho"][userId].name;
+							allUser = null;
+						}
 					}
 				} else if (message.content.split(" ")[1] == undefined) {
 					let allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
@@ -3125,6 +3147,17 @@ client.on(Events.MessageCreate, async (message) =>
 					}
 				} else {
 					playername = message.content.split(" ")?.slice(1)?.join(" ");
+					if (/^<@\d+>$/.test(playername)) {
+						let allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
+						const userId = RegExp(/^<@(\d+)>$/).exec(playername)[1];
+						if (!allUser["Bancho"][userId]?.name) {
+							await message.reply("このDiscordのユーザーは登録されていません。/osuregで登録してもらうか、osuのユーザー名を入力してください。");
+							allUser = null;
+							return;
+						}
+						playername = allUser["Bancho"][userId].name;
+						allUser = null;
+					}
 					if (message.reference == null) {
 						const messageData = await message.channel.messages.fetch();
 						const messages = Array.from(messageData.values());
@@ -3367,6 +3400,17 @@ client.on(Events.MessageCreate, async (message) =>
 					playername = username;
 				} else {
 					playername = message.content.split(" ")?.slice(2)?.join(" ");
+					if (/^<@\d+>$/.test(playername)) {
+						let allUser = fs.readJsonSync("./ServerDatas/PlayerData.json");
+						const userId = RegExp(/^<@(\d+)>$/).exec(playername)[1];
+						if (!allUser["Bancho"][userId]?.name) {
+							await message.reply("このDiscordのユーザーは登録されていません。/osuregで登録してもらうか、osuのユーザー名を入力してください。");
+							allUser = null;
+							return;
+						}
+						playername = allUser["Bancho"][userId].name;
+						allUser = null;
+					}
 				}
 
 				if (playername == "") {
@@ -4335,8 +4379,9 @@ async function rankedintheday() {
 		const sevenDayAgoDateString = `${sevenDayAgoDate.getFullYear()}-${sevenDayAgoDate.getMonth() + 1}-${sevenDayAgoDate.getDate()}`;
 		let sevenDayAgoQf = [];
 		let count = 0;
-		for (const element of qfparsedjson) {
+		for (let i = 0; i < Math.min(qfparsedjson.length, 10); i++) {
 			try {
+				const element = qfparsedjson[i];
 				const qfdate = new Date(element.qfdate);
 				const qfdateString = `${qfdate.getFullYear()}-${qfdate.getMonth() + 1}-${qfdate.getDate()}`;
 				if (qfdateString == sevenDayAgoDateString) {
@@ -4387,7 +4432,7 @@ async function rankedintheday() {
 			.setAuthor({ name: `🎉Daily Ranked Check🎉` })
 			.setTitle(`日付が変わりました！今日Ranked予定の${mode}マップのリストです！`)
 			.addFields(sevenDayAgoQf)
-			.setFooter({ text: `このメッセージは毎日0時に送信されます。既にRankedされた譜面は表示されません。` });
+			.setFooter({ text: `このメッセージは毎日0時に送信されます(最大10マップ)。既にRankedされた譜面は表示されません。` });
 		let MapcheckChannels = fs.readJsonSync(`./ServerDatas/MapcheckChannels.json`);
 		for (const element of MapcheckChannels.Qualified[mode]) {
 			try {
