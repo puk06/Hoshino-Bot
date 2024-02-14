@@ -41,7 +41,6 @@ client.on(Events.ClientReady, async () =>
 		});
 		setInterval(checkMap, 60000);
 		let lastDate = new Date().getDate();
-		rankedintheday();
 		setInterval(async () => {
 			const currentDate = new Date().getDate();
 			if (currentDate !== lastDate) {
