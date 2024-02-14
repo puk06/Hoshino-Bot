@@ -41,6 +41,7 @@ client.on(Events.ClientReady, async () =>
 		});
 		setInterval(checkMap, 60000);
 		let lastDate = new Date().getDate();
+		rankedintheday();
 		setInterval(async () => {
 			const currentDate = new Date().getDate();
 			if (currentDate !== lastDate) {
@@ -4379,9 +4380,9 @@ async function rankedintheday() {
 		const sevenDayAgoDateString = `${sevenDayAgoDate.getFullYear()}-${sevenDayAgoDate.getMonth() + 1}-${sevenDayAgoDate.getDate()}`;
 		let sevenDayAgoQf = [];
 		let count = 0;
-		for (let i = 0; i < Math.min(qfparsedjson.length, 10); i++) {
+		for (const element of qfparsedjson) {
+			if (count >= 10) break;
 			try {
-				const element = qfparsedjson[i];
 				const qfdate = new Date(element.qfdate);
 				const qfdateString = `${qfdate.getFullYear()}-${qfdate.getMonth() + 1}-${qfdate.getDate()}`;
 				if (qfdateString == sevenDayAgoDateString) {
